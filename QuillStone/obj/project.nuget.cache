@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "z4vd0EVRLdU=",
+  "success": true,
+  "projectFilePath": "/home/runner/work/quill-stone/quill-stone/QuillStone/QuillStone.csproj",
+  "expectedPackageFiles": [
+    "/tmp/codeql-scratch-cbc97000f7df0db8/dbs/csharp/working/packages/microsoft.netcore.app.ref/8.0.25/microsoft.netcore.app.ref.8.0.25.nupkg.sha512",
+    "/tmp/codeql-scratch-cbc97000f7df0db8/dbs/csharp/working/packages/microsoft.windowsdesktop.app.ref/8.0.25/microsoft.windowsdesktop.app.ref.8.0.25.nupkg.sha512",
+    "/tmp/codeql-scratch-cbc97000f7df0db8/dbs/csharp/working/packages/microsoft.aspnetcore.app.ref/8.0.25/microsoft.aspnetcore.app.ref.8.0.25.nupkg.sha512",
+    "/tmp/codeql-scratch-cbc97000f7df0db8/dbs/csharp/working/packages/microsoft.netcore.app.host.linux-x64/8.0.25/microsoft.netcore.app.host.linux-x64.8.0.25.nupkg.sha512"
+  ],
+  "logs": []
+}
