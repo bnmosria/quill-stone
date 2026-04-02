@@ -54,5 +54,63 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
 
         return new TextEditResult(newText, newCursorPos, newCursorPos);
     }
+
+    public TextEditResult ApplyHeadingToSelectedLines(string text, TextSelectionRange selection, int level)
+    {
+        if (level is < 1 or > 6)
+            throw new ArgumentOutOfRangeException(nameof(level));
+
+        int start = selection.NormalizedStart;
+        int end = selection.NormalizedEnd;
+
+        int lineStart = start == 0 ? 0 : text.LastIndexOf('\n', start - 1) + 1;
+
+        int lineEnd = text.IndexOf('\n', end);
+        if (lineEnd == -1)
+            lineEnd = text.Length;
+
+        string block = text[lineStart..lineEnd];
+        string[] lines = block.Split('\n');
+        string replacement = string.Join('\n', lines.Select(line => ReplaceHeading(line, level)));
+
+        string newText = text[..lineStart] + replacement + text[lineEnd..];
+        int newCursorPos = lineStart + replacement.Length;
+
+        return new TextEditResult(newText, newCursorPos, newCursorPos);
+    }
+
+    private static string ReplaceHeading(string line, int level)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return line;
+
+        int contentStart = 0;
+        while (contentStart < line.Length && (line[contentStart] == ' ' || line[contentStart] == '\t'))
+            contentStart++;
+
+        string indent = line[..contentStart];
+        string content = StripAtxHeading(line[contentStart..]);
+
+        return $"{indent}{new string('#', level)} {content}";
+    }
+
+    private static string StripAtxHeading(string value)
+    {
+        if (string.IsNullOrEmpty(value) || value[0] != '#')
+            return value;
+
+        int hashCount = 0;
+        while (hashCount < value.Length && hashCount < 6 && value[hashCount] == '#')
+            hashCount++;
+
+        if (hashCount == 0 || (hashCount < value.Length && value[hashCount] != ' '))
+            return value;
+
+        int bodyStart = hashCount;
+        while (bodyStart < value.Length && value[bodyStart] == ' ')
+            bodyStart++;
+
+        return value[bodyStart..];
+    }
 }
 

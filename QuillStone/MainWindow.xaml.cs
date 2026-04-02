@@ -99,13 +99,13 @@ public partial class MainWindow : Window
     }
 
     private void ToolbarH1_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("# ");
+        ApplyHeadingFormatting(1);
 
     private void ToolbarH2_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("## ");
+        ApplyHeadingFormatting(2);
 
     private void ToolbarH3_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("### ");
+        ApplyHeadingFormatting(3);
 
     private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e) =>
         ApplyLinePrefixFormatting("- ");
@@ -205,6 +205,15 @@ public partial class MainWindow : Window
     {
         string editorText = Editor.Text ?? string.Empty;
         TextEditResult result = _markdownFormatter.PrefixSelectedLines(editorText, _savedSelection, prefix);
+        ApplyTextEdit(result);
+        MarkDirty(true);
+        Editor.Focus();
+    }
+
+    private void ApplyHeadingFormatting(int level)
+    {
+        string editorText = Editor.Text ?? string.Empty;
+        TextEditResult result = _markdownFormatter.ApplyHeadingToSelectedLines(editorText, _savedSelection, level);
         ApplyTextEdit(result);
         MarkDirty(true);
         Editor.Focus();
