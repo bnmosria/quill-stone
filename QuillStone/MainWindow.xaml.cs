@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 
@@ -35,13 +36,46 @@ public partial class MainWindow : Window
 
     // ── Toolbar handlers ─────────────────────────────────────────────────────
 
-    private void ToolbarBold_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarBold_Click(object? sender, RoutedEventArgs e) =>
+        WrapSelection("**", "**", "bold text");
 
-    private void ToolbarItalic_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarItalic_Click(object? sender, RoutedEventArgs e) =>
+        WrapSelection("*", "*", "italic text");
 
-    private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e) =>
+        WrapSelection("`", "`", "code");
 
-    private void ToolbarLink_Click(object? sender, RoutedEventArgs e) { }
+    private async void ToolbarLink_Click(object? sender, RoutedEventArgs e)
+    {
+        int savedStart = Editor.SelectionStart;
+        int savedEnd = Editor.SelectionEnd;
+
+        string? url = await ShowInputDialogAsync("Insert Link", "Enter URL:", "https://");
+        if (url is null)
+            return;
+
+        Editor.SelectionStart = savedStart;
+        Editor.SelectionEnd = savedEnd;
+        WrapSelection("[", $"]({url})", "link text");
+    }
+
+    private void Editor_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyModifiers == KeyModifiers.Control)
+        {
+            switch (e.Key)
+            {
+                case Key.B:
+                    WrapSelection("**", "**", "bold text");
+                    e.Handled = true;
+                    break;
+                case Key.I:
+                    WrapSelection("*", "*", "italic text");
+                    e.Handled = true;
+                    break;
+            }
+        }
+    }
 
     private void ToolbarH1_Click(object? sender, RoutedEventArgs e) { }
 
@@ -129,6 +163,43 @@ public partial class MainWindow : Window
     }
 
     // ── Core helpers ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Wraps the current selection with <paramref name="prefix"/> and <paramref name="suffix"/>.
+    /// When there is no selection, inserts <paramref name="placeholder"/> wrapped in prefix/suffix
+    /// and selects the placeholder so the user can immediately type to replace it.
+    /// </summary>
+    private void WrapSelection(string prefix, string suffix, string placeholder)
+    {
+        string text = Editor.Text ?? string.Empty;
+        int selStart = Math.Min(Editor.SelectionStart, Editor.SelectionEnd);
+        int selEnd = Math.Max(Editor.SelectionStart, Editor.SelectionEnd);
+        bool hasSelection = selEnd > selStart;
+
+        string inner = hasSelection ? text[selStart..selEnd] : placeholder;
+        string replacement = prefix + inner + suffix;
+
+        _isUpdatingEditorText = true;
+        try
+        {
+            Editor.Text = text[..selStart] + replacement + text[selEnd..];
+
+            if (hasSelection)
+                Editor.CaretIndex = selStart + replacement.Length;
+            else
+            {
+                Editor.SelectionStart = selStart + prefix.Length;
+                Editor.SelectionEnd = selStart + prefix.Length + placeholder.Length;
+            }
+        }
+        finally
+        {
+            _isUpdatingEditorText = false;
+        }
+
+        MarkDirty(true);
+        Editor.Focus();
+    }
 
     /// <summary>
     /// Prompts the user to save if there are unsaved changes.
@@ -368,6 +439,49 @@ public partial class MainWindow : Window
         };
 
         await dialog.ShowDialog(this);
+    }
+
+    private async Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultValue)
+    {
+        var dialog = CreateDialogWindow(title);
+        string? result = null;
+
+        var input = new TextBox { Text = defaultValue, MinWidth = 320 };
+        var ok = new Button { Content = "OK", MinWidth = 80 };
+        var cancel = new Button { Content = "Cancel", MinWidth = 80 };
+
+        void Accept() { result = input.Text; dialog.Close(); }
+        void Dismiss() => dialog.Close();
+
+        ok.Click += (_, _) => Accept();
+        cancel.Click += (_, _) => Dismiss();
+
+        input.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter) { Accept(); e.Handled = true; }
+            else if (e.Key == Key.Escape) { Dismiss(); e.Handled = true; }
+        };
+
+        dialog.Content = new StackPanel
+        {
+            Spacing = 12,
+            Margin = new Avalonia.Thickness(16),
+            Children =
+            {
+                new TextBlock { Text = prompt, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                input,
+                new StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                    Spacing = 8,
+                    Children = { ok, cancel }
+                }
+            }
+        };
+
+        await dialog.ShowDialog(this);
+        return result;
     }
 
     private static Window CreateDialogWindow(string title) => new()

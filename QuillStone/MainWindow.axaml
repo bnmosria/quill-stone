@@ -69,7 +69,8 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  Padding="8"
-                 TextChanged="Editor_TextChanged" />
+                 TextChanged="Editor_TextChanged"
+                 KeyDown="Editor_KeyDown" />
     </DockPanel>
 </Window>
 
