@@ -53,13 +53,43 @@ create, open, edit, and save `.md` files with a clean, distraction-free interfac
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Windows 11 or macOS (Intel and Apple Silicon)
 
-## Build & Run
+## Build, Run, and Publish
+
+There is no `.sln` file in this repo. Build/publish directly from `QuillStone/QuillStone.csproj`.
+
+- `dotnet build` compiles the project for development (fast local builds).
+- `dotnet publish` creates deployable artifacts for a target runtime.
+
+### Build and run (dev)
 
 ```bash
-cd QuillStone
-dotnet build
-dotnet run
+dotnet build QuillStone/QuillStone.csproj
+dotnet run --project QuillStone/QuillStone.csproj
 ```
+
+### Publish self-contained executables (Release)
+
+```bash
+# macOS Apple Silicon
+dotnet publish QuillStone/QuillStone.csproj -c Release -r osx-arm64 --self-contained true
+
+# macOS Intel (optional)
+dotnet publish QuillStone/QuillStone.csproj -c Release -r osx-x64 --self-contained true
+
+# Windows x64
+dotnet publish QuillStone/QuillStone.csproj -c Release -r win-x64 --self-contained true
+```
+
+Typical output folders:
+
+- `QuillStone/bin/Release/net10.0/osx-arm64/publish/`
+- `QuillStone/bin/Release/net10.0/osx-x64/publish/`
+- `QuillStone/bin/Release/net10.0/win-x64/publish/`
+
+Main app artifact names:
+
+- macOS: `QuillStone`
+- Windows: `QuillStone.exe`
 
 ## Platform notes
 
