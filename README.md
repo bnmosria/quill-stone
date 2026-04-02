@@ -1,6 +1,6 @@
 # Quill-Stone
 
-Quill-Stone is a lightweight desktop Markdown editor built with C# and WPF (.NET 8). It lets you create, open, edit, and save `.md` files with a clean, distraction-free interface and standard OS file dialogs.
+Quill-Stone is a lightweight desktop Markdown editor built with C# and Avalonia (.NET 10). It lets you create, open, edit, and save `.md` files with a clean, distraction-free interface and native file dialogs.
 
 ## Features (Phase 1)
 
@@ -12,8 +12,8 @@ Quill-Stone is a lightweight desktop Markdown editor built with C# and WPF (.NET
 
 ## Requirements
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows)
-- Windows 10 or later (WPF is Windows-only)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- macOS or Windows
 
 ## Build & Run
 
@@ -22,5 +22,3 @@ cd QuillStone
 dotnet build
 dotnet run
 ```
-
-Or open `QuillStone/QuillStone.csproj` in Visual Studio 2022+ and press **F5**.
