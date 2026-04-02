@@ -1,9 +1,9 @@
-﻿using System.IO;
-using System.Text;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using QuillStone.Models;
+using QuillStone.Services;
 
 namespace QuillStone;
 
@@ -11,16 +11,35 @@ public partial class MainWindow : Window
 {
     private const string AppName = "QuillStone";
 
-    private IStorageFile? _currentFile;
-    private string? _currentFilePath;
-    private bool _isDirty;
+    private readonly DocumentState _documentState;
+    private readonly IMarkdownFileService _fileService;
+    private readonly IWindowDialogService _dialogService;
+    private readonly IMarkdownFormatter _markdownFormatter;
+
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+    private TextSelectionRange _savedSelection;
 
     public MainWindow()
+        : this(new DocumentState(), new MarkdownFileService(), new WindowDialogService(), new MarkdownFormatter())
     {
+    }
+
+    internal MainWindow(
+        DocumentState documentState,
+        IMarkdownFileService fileService,
+        IWindowDialogService dialogService,
+        IMarkdownFormatter markdownFormatter)
+    {
+        _documentState = documentState;
+        _fileService = fileService;
+        _dialogService = dialogService;
+        _markdownFormatter = markdownFormatter;
+
         InitializeComponent();
+        FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
+        CaptureEditorSelection();
         UpdateWindowTitle();
     }
 
@@ -31,46 +50,48 @@ public partial class MainWindow : Window
         if (_isUpdatingEditorText)
             return;
 
+        CaptureEditorSelection();
         MarkDirty(true);
     }
 
     // ── Toolbar handlers ─────────────────────────────────────────────────────
 
     private void ToolbarBold_Click(object? sender, RoutedEventArgs e) =>
-        WrapSelection("**", "**", "bold text");
+        ApplyWrapFormatting("**", "**", "bold text");
 
     private void ToolbarItalic_Click(object? sender, RoutedEventArgs e) =>
-        WrapSelection("*", "*", "italic text");
+        ApplyWrapFormatting("*", "*", "italic text");
 
     private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e) =>
-        WrapSelection("`", "`", "code");
+        ApplyWrapFormatting("`", "`", "code");
 
     private async void ToolbarLink_Click(object? sender, RoutedEventArgs e)
     {
-        int savedStart = Editor.SelectionStart;
-        int savedEnd = Editor.SelectionEnd;
-
-        string? url = await ShowInputDialogAsync("Insert Link", "Enter URL:", "https://");
+        string? url = await _dialogService.ShowInputDialogAsync(this, "Insert Link", "Enter URL:", "https://");
         if (url is null)
             return;
 
-        Editor.SelectionStart = savedStart;
-        Editor.SelectionEnd = savedEnd;
-        WrapSelection("[", $"]({url})", "link text");
+        string editorText = Editor.Text ?? string.Empty;
+        TextEditResult result = _markdownFormatter.InsertLink(editorText, _savedSelection, url, "link text");
+        ApplyTextEdit(result);
+        MarkDirty(true);
+        Editor.Focus();
     }
 
     private void Editor_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyModifiers == KeyModifiers.Control)
         {
+            CaptureEditorSelection();
+
             switch (e.Key)
             {
                 case Key.B:
-                    WrapSelection("**", "**", "bold text");
+                    ApplyWrapFormatting("**", "**", "bold text");
                     e.Handled = true;
                     break;
                 case Key.I:
-                    WrapSelection("*", "*", "italic text");
+                    ApplyWrapFormatting("*", "*", "italic text");
                     e.Handled = true;
                     break;
             }
@@ -125,10 +146,10 @@ public partial class MainWindow : Window
 
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
     {
-        if (_currentFile is null)
+        if (_documentState.CurrentFile is null)
             await SaveAsAsync();
         else
-            await SaveToFileAsync(_currentFile);
+            await SaveToFileAsync(_documentState.CurrentFile);
     }
 
     private async void MenuSaveAs_Click(object? sender, RoutedEventArgs e) => await SaveAsAsync();
@@ -139,7 +160,7 @@ public partial class MainWindow : Window
 
     private async void Window_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (_closeConfirmed || !_isDirty)
+        if (_closeConfirmed || !_documentState.IsDirty)
             return;
 
         e.Cancel = true;
@@ -164,41 +185,29 @@ public partial class MainWindow : Window
 
     // ── Core helpers ─────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Wraps the current selection with <paramref name="prefix"/> and <paramref name="suffix"/>.
-    /// When there is no selection, inserts <paramref name="placeholder"/> wrapped in prefix/suffix
-    /// and selects the placeholder so the user can immediately type to replace it.
-    /// </summary>
-    private void WrapSelection(string prefix, string suffix, string placeholder)
+    private void ApplyWrapFormatting(string prefix, string suffix, string placeholder)
     {
-        string text = Editor.Text ?? string.Empty;
-        int selStart = Math.Min(Editor.SelectionStart, Editor.SelectionEnd);
-        int selEnd = Math.Max(Editor.SelectionStart, Editor.SelectionEnd);
-        bool hasSelection = selEnd > selStart;
+        string editorText = Editor.Text ?? string.Empty;
+        TextEditResult result = _markdownFormatter.WrapSelection(editorText, _savedSelection, prefix, suffix, placeholder);
+        ApplyTextEdit(result);
+        MarkDirty(true);
+        Editor.Focus();
+    }
 
-        string inner = hasSelection ? text[selStart..selEnd] : placeholder;
-        string replacement = prefix + inner + suffix;
-
+    private void ApplyTextEdit(TextEditResult result)
+    {
         _isUpdatingEditorText = true;
         try
         {
-            Editor.Text = text[..selStart] + replacement + text[selEnd..];
-
-            if (hasSelection)
-                Editor.CaretIndex = selStart + replacement.Length;
-            else
-            {
-                Editor.SelectionStart = selStart + prefix.Length;
-                Editor.SelectionEnd = selStart + prefix.Length + placeholder.Length;
-            }
+            Editor.Text = result.Text;
+            Editor.SelectionStart = result.SelectionStart;
+            Editor.SelectionEnd = result.SelectionEnd;
+            CaptureEditorSelection();
         }
         finally
         {
             _isUpdatingEditorText = false;
         }
-
-        MarkDirty(true);
-        Editor.Focus();
     }
 
     /// <summary>
@@ -208,16 +217,13 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task<bool> TryPromptToSaveIfDirtyAsync()
     {
-        if (!_isDirty)
+        if (!_documentState.IsDirty)
             return true;
 
-        string docName = _currentFilePath is not null
-            ? Path.GetFileName(_currentFilePath)
-            : "Untitled";
-
-        var result = await ShowConfirmDialogAsync(
+        var result = await _dialogService.ShowConfirmDialogAsync(
+            this,
             AppName,
-            $"'{docName}' has unsaved changes. Do you want to save before continuing?",
+            $"'{_documentState.DisplayName}' has unsaved changes. Do you want to save before continuing?",
             "Save",
             "Don't Save",
             "Cancel");
@@ -236,10 +242,10 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task<bool> TrySaveAndReportAsync()
     {
-        if (_currentFile is null)
+        if (_documentState.CurrentFile is null)
             return await SaveAsAsync();
 
-        return await SaveToFileAsync(_currentFile);
+        return await SaveToFileAsync(_documentState.CurrentFile);
     }
 
     private async Task<bool> SaveAsAsync()
@@ -247,9 +253,7 @@ public partial class MainWindow : Window
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Save Markdown File",
-            SuggestedFileName = _currentFilePath is not null
-                ? Path.GetFileName(_currentFilePath)
-                : "Untitled",
+            SuggestedFileName = _documentState.DisplayName,
             DefaultExtension = "md",
             ShowOverwritePrompt = true,
             FileTypeChoices =
@@ -269,31 +273,16 @@ public partial class MainWindow : Window
     {
         try
         {
-            string? localPath = file.TryGetLocalPath();
-
-            if (localPath is not null)
-            {
-                await File.WriteAllTextAsync(localPath, Editor.Text ?? string.Empty, Encoding.UTF8);
-            }
-            else
-            {
-                await using var stream = await file.OpenWriteAsync();
-                if (stream.CanSeek)
-                    stream.SetLength(0);
-
-                await using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: false);
-                await writer.WriteAsync(Editor.Text ?? string.Empty);
-                await writer.FlushAsync();
-            }
-
-            _currentFile = file;
-            _currentFilePath = localPath ?? file.Name;
+            string content = Editor.Text ?? string.Empty;
+            string? localPath = await _fileService.SaveAsync(file, content);
+            _documentState.SetCurrentFile(file, localPath);
             MarkDirty(false);
             return true;
         }
         catch (Exception ex)
         {
-            await ShowMessageDialogAsync(
+            await _dialogService.ShowMessageDialogAsync(
+                this,
                 AppName,
                 $"Could not save file. Check permissions and try again.\n\nDetails: {ex.Message}");
             return false;
@@ -304,33 +293,24 @@ public partial class MainWindow : Window
     {
         try
         {
-            string content;
-            string? localPath = file.TryGetLocalPath();
-
-            if (localPath is not null)
-            {
-                content = await File.ReadAllTextAsync(localPath, Encoding.UTF8);
-            }
-            else
-            {
-                await using var stream = await file.OpenReadAsync();
-                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-                content = await reader.ReadToEndAsync();
-            }
+            LoadedDocument document = await _fileService.LoadAsync(file);
 
             _isUpdatingEditorText = true;
-            Editor.Text = content;
+            Editor.Text = document.Content;
+            Editor.SelectionStart = 0;
+            Editor.SelectionEnd = 0;
+            CaptureEditorSelection();
             _isUpdatingEditorText = false;
 
-            _currentFile = file;
-            _currentFilePath = localPath ?? file.Name;
+            _documentState.SetCurrentFile(document.File, document.LocalPath);
             MarkDirty(false);
             Editor.CaretIndex = 0;
         }
         catch (Exception ex)
         {
             _isUpdatingEditorText = false;
-            await ShowMessageDialogAsync(
+            await _dialogService.ShowMessageDialogAsync(
+                this,
                 AppName,
                 $"Could not open file. Check that the file exists and you have read access.\n\nDetails: {ex.Message}");
         }
@@ -340,158 +320,25 @@ public partial class MainWindow : Window
     {
         _isUpdatingEditorText = true;
         Editor.Clear();
+        Editor.SelectionStart = 0;
+        Editor.SelectionEnd = 0;
         _isUpdatingEditorText = false;
 
-        _currentFile = null;
-        _currentFilePath = null;
-        MarkDirty(false);
+        _documentState.Reset();
+        CaptureEditorSelection();
+        UpdateWindowTitle();
     }
 
     private void MarkDirty(bool dirty)
     {
-        _isDirty = dirty;
+        _documentState.MarkDirty(dirty);
         UpdateWindowTitle();
     }
 
-    private void UpdateWindowTitle()
-    {
-        string docName = _currentFilePath is not null
-            ? Path.GetFileName(_currentFilePath)
-            : "Untitled";
+    private void UpdateWindowTitle() => Title = _documentState.BuildWindowTitle(AppName);
 
-        string dirtyMark = _isDirty ? "*" : string.Empty;
-        Title = $"{docName}{dirtyMark} - {AppName}";
-    }
+    private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e) => CaptureEditorSelection();
 
-    private enum DialogChoice
-    {
-        Primary,
-        Secondary,
-        Cancel
-    }
-
-    private async Task<DialogChoice> ShowConfirmDialogAsync(
-        string title,
-        string message,
-        string primaryButton,
-        string secondaryButton,
-        string cancelButton)
-    {
-        var dialog = CreateDialogWindow(title);
-        var result = DialogChoice.Cancel;
-
-        void CloseWith(DialogChoice choice)
-        {
-            result = choice;
-            dialog.Close();
-        }
-
-        var primary = new Button { Content = primaryButton, MinWidth = 96 };
-        var secondary = new Button { Content = secondaryButton, MinWidth = 96 };
-        var cancel = new Button { Content = cancelButton, MinWidth = 96 };
-
-        primary.Click += (_, _) => CloseWith(DialogChoice.Primary);
-        secondary.Click += (_, _) => CloseWith(DialogChoice.Secondary);
-        cancel.Click += (_, _) => CloseWith(DialogChoice.Cancel);
-
-        dialog.Content = new StackPanel
-        {
-            Spacing = 12,
-            Margin = new Avalonia.Thickness(16),
-            Children =
-            {
-                new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-                new StackPanel
-                {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                    Spacing = 8,
-                    Children = { primary, secondary, cancel }
-                }
-            }
-        };
-
-        await dialog.ShowDialog(this);
-        return result;
-    }
-
-    private async Task ShowMessageDialogAsync(string title, string message)
-    {
-        var dialog = CreateDialogWindow(title);
-
-        var ok = new Button { Content = "OK", MinWidth = 96 };
-        ok.Click += (_, _) => dialog.Close();
-
-        dialog.Content = new StackPanel
-        {
-            Spacing = 12,
-            Margin = new Avalonia.Thickness(16),
-            Children =
-            {
-                new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-                new StackPanel
-                {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                    Children = { ok }
-                }
-            }
-        };
-
-        await dialog.ShowDialog(this);
-    }
-
-    private async Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultValue)
-    {
-        var dialog = CreateDialogWindow(title);
-        string? result = null;
-
-        var input = new TextBox { Text = defaultValue, MinWidth = 320 };
-        var ok = new Button { Content = "OK", MinWidth = 80 };
-        var cancel = new Button { Content = "Cancel", MinWidth = 80 };
-
-        void Accept() { result = input.Text; dialog.Close(); }
-        void Dismiss() => dialog.Close();
-
-        ok.Click += (_, _) => Accept();
-        cancel.Click += (_, _) => Dismiss();
-
-        input.KeyDown += (_, e) =>
-        {
-            if (e.Key == Key.Enter) { Accept(); e.Handled = true; }
-            else if (e.Key == Key.Escape) { Dismiss(); e.Handled = true; }
-        };
-
-        dialog.Content = new StackPanel
-        {
-            Spacing = 12,
-            Margin = new Avalonia.Thickness(16),
-            Children =
-            {
-                new TextBlock { Text = prompt, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-                input,
-                new StackPanel
-                {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                    Spacing = 8,
-                    Children = { ok, cancel }
-                }
-            }
-        };
-
-        await dialog.ShowDialog(this);
-        return result;
-    }
-
-    private static Window CreateDialogWindow(string title) => new()
-    {
-        Title = title,
-        Width = 520,
-        MinWidth = 420,
-        SizeToContent = SizeToContent.Height,
-        CanResize = false,
-        WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        ShowInTaskbar = false
-    };
+    private void CaptureEditorSelection() => _savedSelection = new TextSelectionRange(Editor.SelectionStart, Editor.SelectionEnd);
 }
+
