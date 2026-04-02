@@ -66,7 +66,7 @@ public partial class MainWindow : Window
         UpdateWindowTitle();
     }
 
-    private void Editor_KeyDown(object? sender, KeyEventArgs e)
+    private async void Editor_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Return && e.KeyModifiers == KeyModifiers.None)
         {
@@ -94,6 +94,18 @@ public partial class MainWindow : Window
                     break;
                 case Key.I:
                     _formatHandler.ApplyItalic();
+                    _documentService.MarkDirty(true);
+                    UpdateWindowTitle();
+                    e.Handled = true;
+                    break;
+                case Key.K:
+                    e.Handled = true;
+                    await _formatHandler.InsertLinkAsync(this);
+                    _documentService.MarkDirty(true);
+                    UpdateWindowTitle();
+                    break;
+                case Key.H:
+                    _formatHandler.ApplyHeading(1);
                     _documentService.MarkDirty(true);
                     UpdateWindowTitle();
                     e.Handled = true;

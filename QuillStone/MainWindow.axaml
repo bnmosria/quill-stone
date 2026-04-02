@@ -34,12 +34,12 @@
                     AutomationProperties.Name="Inline Code"
                     Focusable="False"
                     Click="ToolbarInlineCode_Click" Margin="2" />
-            <Button Content="🔗" MinWidth="36" ToolTip.Tip="Insert Link"
+            <Button Content="🔗" MinWidth="36" ToolTip.Tip="Insert Link (Ctrl+K)"
                     AutomationProperties.Name="Insert Link"
                     Focusable="False"
                     Click="ToolbarLink_Click" Margin="2" />
             <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
-            <Button Content="H1" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 1"
+            <Button Content="H1" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 1 (Ctrl+H)"
                     AutomationProperties.Name="Heading 1"
                     Focusable="False"
                     Click="ToolbarH1_Click" Margin="2" />
