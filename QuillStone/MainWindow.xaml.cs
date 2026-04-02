@@ -98,19 +98,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ToolbarH1_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarH1_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("# ");
 
-    private void ToolbarH2_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarH2_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("## ");
 
-    private void ToolbarH3_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarH3_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("### ");
 
-    private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("- ");
 
-    private void ToolbarNumberedList_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarNumberedList_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("1. ");
 
-    private void ToolbarBlockquote_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarBlockquote_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("> ");
 
-    private void ToolbarCheckbox_Click(object? sender, RoutedEventArgs e) { }
+    private void ToolbarCheckbox_Click(object? sender, RoutedEventArgs e) =>
+        ApplyLinePrefixFormatting("- [ ] ");
 
     // ── Menu handlers ────────────────────────────────────────────────────────
 
@@ -189,6 +196,15 @@ public partial class MainWindow : Window
     {
         string editorText = Editor.Text ?? string.Empty;
         TextEditResult result = _markdownFormatter.WrapSelection(editorText, _savedSelection, prefix, suffix, placeholder);
+        ApplyTextEdit(result);
+        MarkDirty(true);
+        Editor.Focus();
+    }
+
+    private void ApplyLinePrefixFormatting(string prefix)
+    {
+        string editorText = Editor.Text ?? string.Empty;
+        TextEditResult result = _markdownFormatter.PrefixSelectedLines(editorText, _savedSelection, prefix);
         ApplyTextEdit(result);
         MarkDirty(true);
         Editor.Focus();

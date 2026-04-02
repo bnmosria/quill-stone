@@ -33,5 +33,26 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
             ? new TextEditResult(updatedText, start + replacement.Length, start + replacement.Length)
             : new TextEditResult(updatedText, start + 1, start + 1 + inner.Length);
     }
+
+    public TextEditResult PrefixSelectedLines(string text, TextSelectionRange selection, string prefix)
+    {
+        int start = selection.NormalizedStart;
+        int end = selection.NormalizedEnd;
+
+        int lineStart = start == 0 ? 0 : text.LastIndexOf('\n', start - 1) + 1;
+
+        int lineEnd = text.IndexOf('\n', end);
+        if (lineEnd == -1)
+            lineEnd = text.Length;
+
+        string block = text[lineStart..lineEnd];
+        string[] lines = block.Split('\n');
+        string replacement = string.Join('\n', lines.Select(l => string.IsNullOrEmpty(l) ? l : prefix + l));
+
+        string newText = text[..lineStart] + replacement + text[lineEnd..];
+        int newCursorPos = lineStart + replacement.Length;
+
+        return new TextEditResult(newText, newCursorPos, newCursorPos);
+    }
 }
 
