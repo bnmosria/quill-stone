@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using QuillStone.Models;
 
 namespace QuillStone.Services;
@@ -48,7 +49,7 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
 
         string block = text[lineStart..lineEnd];
         string[] lines = block.Split('\n');
-        string replacement = string.Join('\n', lines.Select(l => string.IsNullOrWhiteSpace(l) ? l : prefix + l));
+        string replacement = string.Join('\n', lines.Select(l => string.IsNullOrWhiteSpace(l) ? l : prefix + StripLinePrefix(l)));
 
         string newText = text[..lineStart] + replacement + text[lineEnd..];
         int newCursorPos = lineStart + replacement.Length;
@@ -79,6 +80,29 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
         int newCursorPos = lineStart + replacement.Length;
 
         return new TextEditResult(newText, newCursorPos, newCursorPos);
+    }
+
+    // Ordered by longest match first so "- [ ] " is checked before "- ".
+    private static readonly string[] LinePrefixes =
+    [
+        "- [ ] ", "- [x] ", "> ", "- ", "* ", "+ ",
+    ];
+
+    private static readonly Regex OrderedListPrefix = new(@"^\d+\.\s+", RegexOptions.Compiled);
+
+    private static string StripLinePrefix(string line)
+    {
+        foreach (string p in LinePrefixes)
+        {
+            if (line.StartsWith(p, StringComparison.Ordinal))
+                return line[p.Length..];
+        }
+
+        Match m = OrderedListPrefix.Match(line);
+        if (m.Success)
+            return line[m.Length..];
+
+        return line;
     }
 
     private static string ReplaceHeading(string line, int level)
