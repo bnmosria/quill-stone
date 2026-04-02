@@ -33,6 +33,30 @@ public partial class MainWindow : Window
         MarkDirty(true);
     }
 
+    // ── Toolbar handlers ─────────────────────────────────────────────────────
+
+    private void ToolbarBold_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarItalic_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarLink_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarH1_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarH2_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarH3_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarNumberedList_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarBlockquote_Click(object? sender, RoutedEventArgs e) { }
+
+    private void ToolbarCheckbox_Click(object? sender, RoutedEventArgs e) { }
+
     // ── Menu handlers ────────────────────────────────────────────────────────
 
     private async void MenuNew_Click(object? sender, RoutedEventArgs e)

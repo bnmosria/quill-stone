@@ -16,6 +16,49 @@
             </MenuItem>
         </Menu>
 
+        <WrapPanel DockPanel.Dock="Top"
+                   Orientation="Horizontal"
+                   Background="#F3F3F3"
+                   Margin="0"
+                   HorizontalAlignment="Stretch">
+            <Button Content="B" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Bold (Ctrl+B)"
+                    AutomationProperties.Name="Bold"
+                    Click="ToolbarBold_Click" Margin="2" />
+            <Button Content="I" FontStyle="Italic" MinWidth="36" ToolTip.Tip="Italic (Ctrl+I)"
+                    AutomationProperties.Name="Italic"
+                    Click="ToolbarItalic_Click" Margin="2" />
+            <Button Content="` `" FontFamily="Consolas, Courier New, monospace" MinWidth="36" ToolTip.Tip="Inline Code"
+                    AutomationProperties.Name="Inline Code"
+                    Click="ToolbarInlineCode_Click" Margin="2" />
+            <Button Content="🔗" MinWidth="36" ToolTip.Tip="Insert Link"
+                    AutomationProperties.Name="Insert Link"
+                    Click="ToolbarLink_Click" Margin="2" />
+            <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
+            <Button Content="H1" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 1"
+                    AutomationProperties.Name="Heading 1"
+                    Click="ToolbarH1_Click" Margin="2" />
+            <Button Content="H2" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 2"
+                    AutomationProperties.Name="Heading 2"
+                    Click="ToolbarH2_Click" Margin="2" />
+            <Button Content="H3" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 3"
+                    AutomationProperties.Name="Heading 3"
+                    Click="ToolbarH3_Click" Margin="2" />
+            <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
+            <Button Content="• List" MinWidth="52" ToolTip.Tip="Bullet List"
+                    AutomationProperties.Name="Bullet List"
+                    Click="ToolbarBulletList_Click" Margin="2" />
+            <Button Content="1. List" MinWidth="52" ToolTip.Tip="Numbered List"
+                    AutomationProperties.Name="Numbered List"
+                    Click="ToolbarNumberedList_Click" Margin="2" />
+            <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
+            <Button Content="❝" MinWidth="36" ToolTip.Tip="Blockquote"
+                    AutomationProperties.Name="Blockquote"
+                    Click="ToolbarBlockquote_Click" Margin="2" />
+            <Button Content="☑" MinWidth="36" ToolTip.Tip="Checkbox"
+                    AutomationProperties.Name="Checkbox"
+                    Click="ToolbarCheckbox_Click" Margin="2" />
+        </WrapPanel>
+
         <TextBox x:Name="Editor"
                  AcceptsReturn="True"
                  AcceptsTab="True"
