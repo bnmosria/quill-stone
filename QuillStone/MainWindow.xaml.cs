@@ -34,8 +34,8 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter)
     {
-        ApplyWindowChrome();
         InitializeComponent();
+        ConfigureWindowChromeForPlatform();
 
         var editorService = new EditorService(markdownFormatter);
         editorService.SetEditor(Editor);
@@ -54,6 +54,7 @@ public partial class MainWindow : Window
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
+        UpdateMaximizeButtonTooltip();
     }
 
     // ── Editor events ────────────────────────────────────────────────────────
@@ -272,8 +273,29 @@ public partial class MainWindow : Window
 
     // ── Window chrome ─────────────────────────────────────────────────────────
 
-    private void ApplyWindowChrome()
+    private void ConfigureWindowChromeForPlatform()
     {
+        Classes.Remove("platform-windows");
+        Classes.Remove("platform-native");
+
+        if (OperatingSystem.IsWindows())
+        {
+            ConfigureWindowsChrome();
+            return;
+        }
+
+        ConfigureNativeChrome();
+    }
+
+    private void ConfigureWindowsChrome()
+    {
+        Classes.Add("platform-windows");
+        SystemDecorations = SystemDecorations.None;
+        ExtendClientAreaToDecorationsHint = true;
+        ExtendClientAreaChromeHints = Avalonia.Platform.ExtendClientAreaChromeHints.NoChrome;
+        ExtendClientAreaTitleBarHeightHint = -1;
+        TitleBar.IsVisible = true;
+
         TransparencyLevelHint =
         [
             WindowTransparencyLevel.Mica,
@@ -281,6 +303,15 @@ public partial class MainWindow : Window
             WindowTransparencyLevel.Blur,
             WindowTransparencyLevel.None,
         ];
+    }
+
+    private void ConfigureNativeChrome()
+    {
+        Classes.Add("platform-native");
+        SystemDecorations = SystemDecorations.Full;
+        ExtendClientAreaToDecorationsHint = false;
+        ExtendClientAreaTitleBarHeightHint = 0;
+        TitleBar.IsVisible = false;
     }
 
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)

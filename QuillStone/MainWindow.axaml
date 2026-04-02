@@ -5,14 +5,11 @@
         Title="QuillStone" Height="600" Width="900"
         MinWidth="480" MinHeight="320"
         Closing="Window_Closing"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
-        ExtendClientAreaTitleBarHeightHint="-1"
         Background="#CCF0F3F5">
 
     <DockPanel>
 
-        <!-- Glass title bar: transparent so the Mica/Acrylic effect shows through -->
+        <!-- Windows custom title bar; hidden on platforms that use native window chrome -->
         <Grid x:Name="TitleBar"
               DockPanel.Dock="Top"
               Height="40">
