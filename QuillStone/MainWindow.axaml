@@ -1,7 +1,7 @@
 <Window x:Class="QuillStone.MainWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Quill-Stone" Height="600" Width="900"
+        Title="QuillStone" Height="600" Width="900"
         Closing="Window_Closing">
 
     <DockPanel>
