@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using QuillStone.Models;
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter)
     {
+        ApplyWindowChrome();
         InitializeComponent();
 
         var editorService = new EditorService(markdownFormatter);
@@ -266,6 +268,57 @@ public partial class MainWindow : Window
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         _editorService.UpdateSelection();
+    }
+
+    // ── Window chrome ─────────────────────────────────────────────────────────
+
+    private void ApplyWindowChrome()
+    {
+        TransparencyLevelHint =
+        [
+            WindowTransparencyLevel.Mica,
+            WindowTransparencyLevel.AcrylicBlur,
+            WindowTransparencyLevel.Blur,
+            WindowTransparencyLevel.None,
+        ];
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+
+    private void TitleBar_DoubleTapped(object? sender, TappedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CaptionMinimize_Click(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void CaptionMaximize_Click(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CaptionClose_Click(object? sender, RoutedEventArgs e) => Close();
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty)
+            UpdateMaximizeButtonTooltip();
+    }
+
+    private void UpdateMaximizeButtonTooltip()
+    {
+        if (MaximizeButton is not null)
+            ToolTip.SetTip(MaximizeButton, WindowState == WindowState.Maximized ? "Restore" : "Maximize");
     }
 }
 
