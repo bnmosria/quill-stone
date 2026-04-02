@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using QuillStone.Models;
@@ -34,6 +35,7 @@ public partial class MainWindow : Window
         IMarkdownFormatter markdownFormatter)
     {
         InitializeComponent();
+        ConfigureWindowChromeForPlatform();
 
         var editorService = new EditorService(markdownFormatter);
         editorService.SetEditor(Editor);
@@ -52,6 +54,7 @@ public partial class MainWindow : Window
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
+        UpdateMaximizeButtonTooltip();
     }
 
     // ── Editor events ────────────────────────────────────────────────────────
@@ -266,6 +269,87 @@ public partial class MainWindow : Window
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         _editorService.UpdateSelection();
+    }
+
+    // ── Window chrome ─────────────────────────────────────────────────────────
+
+    private void ConfigureWindowChromeForPlatform()
+    {
+        Classes.Remove("platform-windows");
+        Classes.Remove("platform-native");
+
+        if (OperatingSystem.IsWindows())
+        {
+            ConfigureWindowsChrome();
+            return;
+        }
+
+        ConfigureNativeChrome();
+    }
+
+    private void ConfigureWindowsChrome()
+    {
+        Classes.Add("platform-windows");
+        SystemDecorations = SystemDecorations.None;
+        ExtendClientAreaToDecorationsHint = true;
+        ExtendClientAreaChromeHints = Avalonia.Platform.ExtendClientAreaChromeHints.NoChrome;
+        ExtendClientAreaTitleBarHeightHint = -1;
+        TitleBar.IsVisible = true;
+
+        TransparencyLevelHint =
+        [
+            WindowTransparencyLevel.Mica,
+            WindowTransparencyLevel.AcrylicBlur,
+            WindowTransparencyLevel.Blur,
+            WindowTransparencyLevel.None,
+        ];
+    }
+
+    private void ConfigureNativeChrome()
+    {
+        Classes.Add("platform-native");
+        SystemDecorations = SystemDecorations.Full;
+        ExtendClientAreaToDecorationsHint = false;
+        ExtendClientAreaTitleBarHeightHint = 0;
+        TitleBar.IsVisible = false;
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+
+    private void TitleBar_DoubleTapped(object? sender, TappedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CaptionMinimize_Click(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void CaptionMaximize_Click(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CaptionClose_Click(object? sender, RoutedEventArgs e) => Close();
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty)
+            UpdateMaximizeButtonTooltip();
+    }
+
+    private void UpdateMaximizeButtonTooltip()
+    {
+        if (MaximizeButton is not null)
+            ToolTip.SetTip(MaximizeButton, WindowState == WindowState.Maximized ? "Restore" : "Maximize");
     }
 }
 
