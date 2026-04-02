@@ -8,6 +8,7 @@ QuillStone is a lightweight desktop Markdown editor built with C# and Avalonia (
 - **Unsaved-changes protection** — prompts to Save / Don't Save / Cancel when closing, or before New/Open discards edits
 - **Window title reflects state** — `Untitled - QuillStone` for new docs, `filename.md - QuillStone` when saved, `filename.md* - QuillStone` when dirty
 - **Keyboard shortcuts** — `Ctrl+N` New, `Ctrl+O` Open, `Ctrl+S` Save, `Ctrl+Shift+S` Save As
+- **Formatting shortcuts** — `Ctrl+B` Bold, `Ctrl+I` Italic, `Ctrl+K` Insert Link, `Ctrl+H` Heading 1
 - **Editor** — monospaced multiline TextBox with scroll bars, undo/redo, copy/paste
 
 ## Requirements
