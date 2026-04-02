@@ -23,6 +23,8 @@
                  FontFamily="Consolas, Courier New, monospace"
                  FontSize="14"
                  VerticalContentAlignment="Top"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  Padding="8"
                  TextChanged="Editor_TextChanged" />
     </DockPanel>

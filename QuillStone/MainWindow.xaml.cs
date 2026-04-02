@@ -8,7 +8,7 @@ namespace QuillStone;
 
 public partial class MainWindow : Window
 {
-    private const string AppName = "QuillStone";
+    private const string AppName = "Quill-Stone";
 
     private IStorageFile? _currentFile;
     private string? _currentFilePath;
