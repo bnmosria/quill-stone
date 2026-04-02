@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+
+# IDE – JetBrains Rider
+.idea/
+*.sln.iml
+
+# IDE – Visual Studio
+.vs/
+*.suo
+*.user
+
+# IDE – Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# macOS
+.DS_Store
+
