@@ -138,5 +138,81 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
 
         return value[bodyStart..];
     }
-}
 
+    public TextEditResult ApplyNumberedListToSelectedLines(string text, TextSelectionRange selection)
+    {
+        int start = selection.NormalizedStart;
+        int end = selection.NormalizedEnd;
+
+        int lineStart = start == 0 ? 0 : text.LastIndexOf('\n', start - 1) + 1;
+
+        int effectiveEnd = (end > start && end > 0 && text[end - 1] == '\n') ? end - 1 : end;
+        int lineEnd = text.IndexOf('\n', effectiveEnd);
+        if (lineEnd == -1)
+            lineEnd = text.Length;
+
+        string block = text[lineStart..lineEnd];
+        string[] lines = block.Split('\n');
+
+        int listNumber = 1;
+        string[] formatted = lines.Select(l =>
+        {
+            if (string.IsNullOrWhiteSpace(l))
+                return l;
+
+            string stripped = StripLinePrefix(l);
+            return $"{listNumber++}. {stripped}";
+        }).ToArray();
+
+        string replacement = string.Join('\n', formatted);
+        string newText = text[..lineStart] + replacement + text[lineEnd..];
+        int newCursorPos = lineStart + replacement.Length;
+
+        return new TextEditResult(newText, newCursorPos, newCursorPos);
+    }
+
+    public string? GetNextListItemPrefix(string text, int cursorPosition)
+    {
+        if (cursorPosition < 0 || cursorPosition > text.Length)
+            return null;
+
+        int lineStart = cursorPosition == 0 ? 0 : text.LastIndexOf('\n', cursorPosition - 1) + 1;
+        int lineEnd = text.IndexOf('\n', cursorPosition);
+        if (lineEnd == -1)
+            lineEnd = text.Length;
+
+        string fullLine = text[lineStart..lineEnd];
+        string lineContent = fullLine.TrimStart();
+
+        if (string.IsNullOrWhiteSpace(lineContent))
+            return null;
+
+        Match orderedMatch = OrderedListPrefix.Match(lineContent);
+        if (orderedMatch.Success)
+        {
+            string numPart = lineContent[..orderedMatch.Length].Trim();
+            if (int.TryParse(numPart.TrimEnd('.'), out int number))
+                return $"{number + 1}. ";
+        }
+
+        if (lineContent.StartsWith("- ", StringComparison.Ordinal))
+            return "- ";
+        if (lineContent.StartsWith("* ", StringComparison.Ordinal))
+            return "* ";
+        if (lineContent.StartsWith("+ ", StringComparison.Ordinal))
+            return "+ ";
+        if (lineContent.StartsWith("> ", StringComparison.Ordinal))
+            return "> ";
+        if (lineContent.StartsWith("- [ ] ", StringComparison.Ordinal))
+            return "- [ ] ";
+        if (lineContent.StartsWith("- [x] ", StringComparison.Ordinal))
+            return "- [ ] ";
+
+        return null;
+    }
+
+    public string StripListPrefix(string line)
+    {
+        return StripLinePrefix(line);
+    }
+}

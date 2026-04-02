@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
 using QuillStone.Models;
 using QuillStone.Services;
 
@@ -9,20 +8,22 @@ namespace QuillStone;
 
 public partial class MainWindow : Window
 {
-    private const string AppName = "QuillStone";
-
-    private readonly DocumentState _documentState;
-    private readonly IMarkdownFileService _fileService;
-    private readonly IWindowDialogService _dialogService;
-    private readonly IMarkdownFormatter _markdownFormatter;
+    private readonly IEditorService _editorService;
+    private readonly IDocumentService _documentService;
+    private readonly IFormatCommandHandler _formatHandler;
+    private readonly IMenuCommandHandler _menuHandler;
+    private readonly IWindowLifecycleManager _lifecycleManager;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
-    private TextSelectionRange _savedSelection;
 
     public MainWindow()
-        : this(new DocumentState(), new MarkdownFileService(), new WindowDialogService(), new MarkdownFormatter())
+        : this(
+            new DocumentState(),
+            new MarkdownFileService(),
+            new WindowDialogService(),
+            new MarkdownFormatter())
     {
     }
 
@@ -32,14 +33,24 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter)
     {
-        _documentState = documentState;
-        _fileService = fileService;
-        _dialogService = dialogService;
-        _markdownFormatter = markdownFormatter;
-
         InitializeComponent();
+
+        var editorService = new EditorService(markdownFormatter);
+        editorService.SetEditor(Editor);
+
+        var documentService = new DocumentService(fileService, dialogService, documentState);
+        var formatHandler = new FormatCommandHandler(editorService, markdownFormatter, dialogService);
+        var menuHandler = new MenuCommandHandler(editorService, documentService, dialogService, this);
+        var lifecycleManager = new WindowLifecycleManager(documentService, editorService, this);
+
+        _editorService = editorService;
+        _documentService = documentService;
+        _formatHandler = formatHandler;
+        _menuHandler = menuHandler;
+        _lifecycleManager = lifecycleManager;
+
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
-        CaptureEditorSelection();
+        _editorService.UpdateSelection();
         UpdateWindowTitle();
     }
 
@@ -50,116 +61,140 @@ public partial class MainWindow : Window
         if (_isUpdatingEditorText)
             return;
 
-        CaptureEditorSelection();
-        MarkDirty(true);
-    }
-
-    // ── Toolbar handlers ─────────────────────────────────────────────────────
-
-    private void ToolbarBold_Click(object? sender, RoutedEventArgs e) =>
-        ApplyWrapFormatting("**", "**", "bold text");
-
-    private void ToolbarItalic_Click(object? sender, RoutedEventArgs e) =>
-        ApplyWrapFormatting("*", "*", "italic text");
-
-    private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e) =>
-        ApplyWrapFormatting("`", "`", "code");
-
-    private async void ToolbarLink_Click(object? sender, RoutedEventArgs e)
-    {
-        string? url = await _dialogService.ShowInputDialogAsync(this, "Insert Link", "Enter URL:", "https://");
-        if (url is null)
-            return;
-
-        string editorText = Editor.Text ?? string.Empty;
-        TextEditResult result = _markdownFormatter.InsertLink(editorText, _savedSelection, url, "link text");
-        ApplyTextEdit(result);
-        MarkDirty(true);
-        Editor.Focus();
+        _editorService.UpdateSelection();
+        _documentService.MarkDirty(true);
+        UpdateWindowTitle();
     }
 
     private void Editor_KeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Return && e.KeyModifiers == KeyModifiers.None)
+        {
+            if (_editorService.HandleEnterKey())
+            {
+                _documentService.MarkDirty(true);
+                UpdateWindowTitle();
+                e.Handled = true;
+            }
+
+            return;
+        }
+
         if (e.KeyModifiers == KeyModifiers.Control)
         {
-            CaptureEditorSelection();
+            _editorService.UpdateSelection();
 
             switch (e.Key)
             {
                 case Key.B:
-                    ApplyWrapFormatting("**", "**", "bold text");
+                    _formatHandler.ApplyBold();
+                    _documentService.MarkDirty(true);
+                    UpdateWindowTitle();
                     e.Handled = true;
                     break;
                 case Key.I:
-                    ApplyWrapFormatting("*", "*", "italic text");
+                    _formatHandler.ApplyItalic();
+                    _documentService.MarkDirty(true);
+                    UpdateWindowTitle();
                     e.Handled = true;
                     break;
             }
         }
     }
 
-    private void ToolbarH1_Click(object? sender, RoutedEventArgs e) =>
-        ApplyHeadingFormatting(1);
+    // ── Toolbar handlers ─────────────────────────────────────────────────────
 
-    private void ToolbarH2_Click(object? sender, RoutedEventArgs e) =>
-        ApplyHeadingFormatting(2);
+    private void ToolbarBold_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyBold();
+        MarkDirty();
+    }
 
-    private void ToolbarH3_Click(object? sender, RoutedEventArgs e) =>
-        ApplyHeadingFormatting(3);
+    private void ToolbarItalic_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyItalic();
+        MarkDirty();
+    }
 
-    private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("- ");
+    private void ToolbarInlineCode_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyInlineCode();
+        MarkDirty();
+    }
 
-    private void ToolbarNumberedList_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("1. ");
+    private async void ToolbarLink_Click(object? sender, RoutedEventArgs e)
+    {
+        await _formatHandler.InsertLinkAsync(this);
+        MarkDirty();
+    }
 
-    private void ToolbarBlockquote_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("> ");
+    private void ToolbarH1_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyHeading(1);
+        MarkDirty();
+    }
 
-    private void ToolbarCheckbox_Click(object? sender, RoutedEventArgs e) =>
-        ApplyLinePrefixFormatting("- [ ] ");
+    private void ToolbarH2_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyHeading(2);
+        MarkDirty();
+    }
+
+    private void ToolbarH3_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyHeading(3);
+        MarkDirty();
+    }
+
+    private void ToolbarBulletList_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyBulletList();
+        MarkDirty();
+    }
+
+    private void ToolbarNumberedList_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyNumberedList();
+        MarkDirty();
+    }
+
+    private void ToolbarBlockquote_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyBlockquote();
+        MarkDirty();
+    }
+
+    private void ToolbarCheckbox_Click(object? sender, RoutedEventArgs e)
+    {
+        _formatHandler.ApplyCheckbox();
+        MarkDirty();
+    }
 
     // ── Menu handlers ────────────────────────────────────────────────────────
 
     private async void MenuNew_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TryPromptToSaveIfDirtyAsync())
-            return;
-
-        ClearEditor();
+        await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
+        UpdateWindowTitle();
     }
 
     private async void MenuOpen_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TryPromptToSaveIfDirtyAsync())
-            return;
-
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Open Markdown File",
-            AllowMultiple = false,
-            FileTypeFilter =
-            [
-                new FilePickerFileType("Markdown files") { Patterns = ["*.md"] },
-                FilePickerFileTypes.All
-            ]
-        });
-
-        if (files.Count == 0)
-            return;
-
-        await LoadFromFileAsync(files[0]);
+        await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
+        UpdateWindowTitle();
     }
 
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
     {
-        if (_documentState.CurrentFile is null)
-            await SaveAsAsync();
-        else
-            await SaveToFileAsync(_documentState.CurrentFile);
+        await _menuHandler.SaveDocumentAsync();
+        UpdateWindowTitle();
     }
 
-    private async void MenuSaveAs_Click(object? sender, RoutedEventArgs e) => await SaveAsAsync();
+    private async void MenuSaveAs_Click(object? sender, RoutedEventArgs e)
+    {
+        await _menuHandler.SaveDocumentAsAsync();
+        UpdateWindowTitle();
+    }
 
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
 
@@ -167,7 +202,7 @@ public partial class MainWindow : Window
 
     private async void Window_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (_closeConfirmed || !_documentState.IsDirty)
+        if (_closeConfirmed || !_documentService.IsDirty)
             return;
 
         e.Cancel = true;
@@ -178,7 +213,7 @@ public partial class MainWindow : Window
         _closingPromptOpen = true;
         try
         {
-            if (await TryPromptToSaveIfDirtyAsync())
+            if (await _lifecycleManager.HandleClosingAsync())
             {
                 _closeConfirmed = true;
                 Close();
@@ -190,44 +225,20 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Core helpers ─────────────────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private void ApplyWrapFormatting(string prefix, string suffix, string placeholder)
+    private void MarkDirty()
     {
-        string editorText = Editor.Text ?? string.Empty;
-        TextEditResult result = _markdownFormatter.WrapSelection(editorText, _savedSelection, prefix, suffix, placeholder);
-        ApplyTextEdit(result);
-        MarkDirty(true);
-        Editor.Focus();
+        _documentService.MarkDirty(true);
+        UpdateWindowTitle();
     }
 
-    private void ApplyLinePrefixFormatting(string prefix)
-    {
-        string editorText = Editor.Text ?? string.Empty;
-        TextEditResult result = _markdownFormatter.PrefixSelectedLines(editorText, _savedSelection, prefix);
-        ApplyTextEdit(result);
-        MarkDirty(true);
-        Editor.Focus();
-    }
-
-    private void ApplyHeadingFormatting(int level)
-    {
-        string editorText = Editor.Text ?? string.Empty;
-        TextEditResult result = _markdownFormatter.ApplyHeadingToSelectedLines(editorText, _savedSelection, level);
-        ApplyTextEdit(result);
-        MarkDirty(true);
-        Editor.Focus();
-    }
-
-    private void ApplyTextEdit(TextEditResult result)
+    private async Task RunWithEditorUpdateGuardAsync(Func<Task> operation)
     {
         _isUpdatingEditorText = true;
         try
         {
-            Editor.Text = result.Text;
-            Editor.SelectionStart = result.SelectionStart;
-            Editor.SelectionEnd = result.SelectionEnd;
-            CaptureEditorSelection();
+            await operation();
         }
         finally
         {
@@ -235,135 +246,15 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Prompts the user to save if there are unsaved changes.
-    /// Returns true if the caller may proceed (saved, discarded, or nothing was dirty).
-    /// Returns false if the user cancelled.
-    /// </summary>
-    private async Task<bool> TryPromptToSaveIfDirtyAsync()
+    private void UpdateWindowTitle()
     {
-        if (!_documentState.IsDirty)
-            return true;
-
-        var result = await _dialogService.ShowConfirmDialogAsync(
-            this,
-            AppName,
-            $"'{_documentState.DisplayName}' has unsaved changes. Do you want to save before continuing?",
-            "Save",
-            "Don't Save",
-            "Cancel");
-
-        return result switch
-        {
-            DialogChoice.Primary => await TrySaveAndReportAsync(),
-            DialogChoice.Secondary => true,
-            _ => false
-        };
+        Title = $"{_documentService.DisplayName}{(_documentService.IsDirty ? "*" : "")} - QuillStone";
     }
 
-    /// <summary>
-    /// Saves the current document (Save As if no path is set).
-    /// Returns true if the save succeeded.
-    /// </summary>
-    private async Task<bool> TrySaveAndReportAsync()
+    private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_documentState.CurrentFile is null)
-            return await SaveAsAsync();
-
-        return await SaveToFileAsync(_documentState.CurrentFile);
+        _editorService.UpdateSelection();
     }
-
-    private async Task<bool> SaveAsAsync()
-    {
-        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = "Save Markdown File",
-            SuggestedFileName = _documentState.DisplayName,
-            DefaultExtension = "md",
-            ShowOverwritePrompt = true,
-            FileTypeChoices =
-            [
-                new FilePickerFileType("Markdown files") { Patterns = ["*.md"] },
-                FilePickerFileTypes.All
-            ]
-        });
-
-        if (file is null)
-            return false;
-
-        return await SaveToFileAsync(file);
-    }
-
-    private async Task<bool> SaveToFileAsync(IStorageFile file)
-    {
-        try
-        {
-            string content = Editor.Text ?? string.Empty;
-            string? localPath = await _fileService.SaveAsync(file, content);
-            _documentState.SetCurrentFile(file, localPath);
-            MarkDirty(false);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowMessageDialogAsync(
-                this,
-                AppName,
-                $"Could not save file. Check permissions and try again.\n\nDetails: {ex.Message}");
-            return false;
-        }
-    }
-
-    private async Task LoadFromFileAsync(IStorageFile file)
-    {
-        try
-        {
-            LoadedDocument document = await _fileService.LoadAsync(file);
-
-            _isUpdatingEditorText = true;
-            Editor.Text = document.Content;
-            Editor.SelectionStart = 0;
-            Editor.SelectionEnd = 0;
-            CaptureEditorSelection();
-            _isUpdatingEditorText = false;
-
-            _documentState.SetCurrentFile(document.File, document.LocalPath);
-            MarkDirty(false);
-            Editor.CaretIndex = 0;
-        }
-        catch (Exception ex)
-        {
-            _isUpdatingEditorText = false;
-            await _dialogService.ShowMessageDialogAsync(
-                this,
-                AppName,
-                $"Could not open file. Check that the file exists and you have read access.\n\nDetails: {ex.Message}");
-        }
-    }
-
-    private void ClearEditor()
-    {
-        _isUpdatingEditorText = true;
-        Editor.Clear();
-        Editor.SelectionStart = 0;
-        Editor.SelectionEnd = 0;
-        _isUpdatingEditorText = false;
-
-        _documentState.Reset();
-        CaptureEditorSelection();
-        UpdateWindowTitle();
-    }
-
-    private void MarkDirty(bool dirty)
-    {
-        _documentState.MarkDirty(dirty);
-        UpdateWindowTitle();
-    }
-
-    private void UpdateWindowTitle() => Title = _documentState.BuildWindowTitle(AppName);
-
-    private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e) => CaptureEditorSelection();
-
-    private void CaptureEditorSelection() => _savedSelection = new TextSelectionRange(Editor.SelectionStart, Editor.SelectionEnd);
 }
+
 
