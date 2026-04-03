@@ -243,6 +243,15 @@
                                     <TreeDataTemplate DataType="vm:FolderNodeViewModel"
                                                       ItemsSource="{Binding Children}">
                                         <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                                            <StackPanel.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="New Markdown File" Click="FolderContextMenu_NewFile_Click"/>
+                                                    <MenuItem Header="New Folder" Click="FolderContextMenu_NewFolder_Click"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Rename" Click="FolderContextMenu_Rename_Click"/>
+                                                    <MenuItem Header="Delete" Click="FolderContextMenu_Delete_Click"/>
+                                                </ContextMenu>
+                                            </StackPanel.ContextMenu>
                                             <PathIcon Data="{DynamicResource Icon.Folder}"
                                                       Width="12" Height="12"
                                                       VerticalAlignment="Center"
@@ -253,6 +262,12 @@
                                     </TreeDataTemplate>
                                     <DataTemplate DataType="vm:FileNodeViewModel">
                                         <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                                            <StackPanel.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Rename" Click="FileContextMenu_Rename_Click"/>
+                                                    <MenuItem Header="Delete" Click="FileContextMenu_Delete_Click"/>
+                                                </ContextMenu>
+                                            </StackPanel.ContextMenu>
                                             <PathIcon Data="{DynamicResource Icon.File}"
                                                       Width="12" Height="12"
                                                       VerticalAlignment="Center"

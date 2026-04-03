@@ -32,6 +32,18 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
         Children.Add(new PlaceholderNodeViewModel());
     }
 
+    /// <summary>Reloads the immediate children from disk.</summary>
+    public void Refresh()
+    {
+        _isLoaded = false;
+        Children.Clear();
+
+        if (_isExpanded)
+            EnsureChildrenLoaded();
+        else
+            Children.Add(new PlaceholderNodeViewModel());
+    }
+
     private void EnsureChildrenLoaded()
     {
         if (_isLoaded)
@@ -48,13 +60,17 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
                          .Where(d => !d.Attributes.HasFlag(FileAttributes.Hidden))
                          .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase))
             {
-                Children.Add(new FolderNodeViewModel(subDir.Name, subDir.FullName));
+                var folderVm = new FolderNodeViewModel(subDir.Name, subDir.FullName);
+                folderVm.ParentFolder = this;
+                Children.Add(folderVm);
             }
 
             foreach (var file in dir.GetFiles("*.md")
                          .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
             {
-                Children.Add(new FileNodeViewModel(file.Name, file.FullName));
+                var fileVm = new FileNodeViewModel(file.Name, file.FullName);
+                fileVm.ParentFolder = this;
+                Children.Add(fileVm);
             }
         }
         catch (UnauthorizedAccessException)

@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using System.Collections.ObjectModel;
+using System.IO;
 using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
@@ -336,6 +337,277 @@ public partial class MainWindow : Window
         // Clear selection so every subsequent click always fires a new SelectionChanged,
         // regardless of whether the same item or a folder was previously selected.
         ProjectTree.SelectedItem = null;
+    }
+
+    // ── Tree context menu handlers ────────────────────────────────────────────
+
+    private async void FolderContextMenu_NewFile_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
+            return;
+
+        var name = await _dialogService.ShowInputDialogAsync(this, "New File", "File name:", "untitled.md");
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        if (!name.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            name += ".md";
+
+        var filePath = Path.Combine(folder.FullPath, name);
+        if (File.Exists(filePath))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"A file named '{name}' already exists in this folder.");
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(filePath, string.Empty, System.Text.Encoding.UTF8);
+            folder.Refresh();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not create file.\n\n{ex.Message}");
+        }
+    }
+
+    private async void FolderContextMenu_NewFolder_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
+            return;
+
+        var name = await _dialogService.ShowInputDialogAsync(this, "New Folder", "Folder name:", "New Folder");
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        var folderPath = Path.Combine(folder.FullPath, name);
+        if (Directory.Exists(folderPath))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"A folder named '{name}' already exists.");
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(folderPath);
+            folder.Refresh();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not create folder.\n\n{ex.Message}");
+        }
+    }
+
+    private async void FolderContextMenu_Rename_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
+            return;
+
+        if (IsProjectRoot(folder))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot rename the project root folder from the explorer.");
+            return;
+        }
+
+        if (CurrentOpenFileIsInsideFolder(folder))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot rename this folder because it contains the currently open file.");
+            return;
+        }
+
+        var newName = await _dialogService.ShowInputDialogAsync(this, "Rename Folder", "New name:", folder.Name);
+        if (string.IsNullOrWhiteSpace(newName) || newName == folder.Name)
+            return;
+
+        var parentPath = Path.GetDirectoryName(folder.FullPath);
+        if (parentPath is null)
+            return;
+
+        var newPath = Path.Combine(parentPath, newName);
+        if (Directory.Exists(newPath))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"A folder named '{newName}' already exists.");
+            return;
+        }
+
+        try
+        {
+            Directory.Move(folder.FullPath, newPath);
+            RefreshFolderOrSidebar(folder.ParentFolder);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not rename folder.\n\n{ex.Message}");
+        }
+    }
+
+    private async void FolderContextMenu_Delete_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
+            return;
+
+        if (IsProjectRoot(folder))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot delete the project root folder from the explorer.");
+            return;
+        }
+
+        if (CurrentOpenFileIsInsideFolder(folder))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot delete this folder because it contains the currently open file.");
+            return;
+        }
+
+        var confirmed = await _dialogService.ShowConfirmAsync(
+            this,
+            "Delete Folder",
+            $"Permanently delete the folder '{folder.Name}' and all its contents?",
+            "Delete");
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            Directory.Delete(folder.FullPath, recursive: true);
+            RefreshFolderOrSidebar(folder.ParentFolder);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not delete folder.\n\n{ex.Message}");
+        }
+    }
+
+    private async void FileContextMenu_Rename_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FileNodeViewModel>(sender) is not { } fileNode)
+            return;
+
+        if (IsCurrentlyOpenFile(fileNode))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot rename the file that is currently open in the editor.");
+            return;
+        }
+
+        var newName = await _dialogService.ShowInputDialogAsync(this, "Rename File", "New name:", fileNode.Name);
+        if (string.IsNullOrWhiteSpace(newName) || newName == fileNode.Name)
+            return;
+
+        if (!newName.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            newName += ".md";
+
+        var parentPath = Path.GetDirectoryName(fileNode.FullPath);
+        if (parentPath is null)
+            return;
+
+        var newPath = Path.Combine(parentPath, newName);
+        if (File.Exists(newPath))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"A file named '{newName}' already exists.");
+            return;
+        }
+
+        try
+        {
+            File.Move(fileNode.FullPath, newPath);
+            RefreshFolderOrSidebar(fileNode.ParentFolder);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not rename file.\n\n{ex.Message}");
+        }
+    }
+
+    private async void FileContextMenu_Delete_Click(object? sender, RoutedEventArgs e)
+    {
+        if (GetContextMenuNode<FileNodeViewModel>(sender) is not { } fileNode)
+            return;
+
+        if (IsCurrentlyOpenFile(fileNode))
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                "Cannot delete the file that is currently open in the editor.");
+            return;
+        }
+
+        var confirmed = await _dialogService.ShowConfirmAsync(
+            this,
+            "Delete File",
+            $"Permanently delete '{fileNode.Name}'?",
+            "Delete");
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            File.Delete(fileNode.FullPath);
+            RefreshFolderOrSidebar(fileNode.ParentFolder);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not delete file.\n\n{ex.Message}");
+        }
+    }
+
+    private static T? GetContextMenuNode<T>(object? sender) where T : class
+    {
+        if (sender is not MenuItem menuItem)
+            return null;
+
+        if (menuItem.Parent is ContextMenu contextMenu)
+            return contextMenu.PlacementTarget?.DataContext as T
+                ?? contextMenu.DataContext as T;
+
+        return menuItem.DataContext as T;
+    }
+
+    private bool IsCurrentlyOpenFile(FileNodeViewModel fileNode)
+    {
+        var currentPath = _documentService.CurrentDocument?.LocalPath;
+        return currentPath is not null
+            && string.Equals(currentPath, fileNode.FullPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool CurrentOpenFileIsInsideFolder(FolderNodeViewModel folder)
+    {
+        var currentPath = _documentService.CurrentDocument?.LocalPath;
+        if (currentPath is null)
+            return false;
+
+        var normalizedCurrent = Path.GetFullPath(currentPath);
+        var normalizedFolder = Path.GetFullPath(folder.FullPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+
+        return normalizedCurrent.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsProjectRoot(FolderNodeViewModel folder)
+        => _projectService.CurrentProject is { } project
+            && string.Equals(project.RootPath, folder.FullPath, StringComparison.OrdinalIgnoreCase);
+
+    private void RefreshFolderOrSidebar(FolderNodeViewModel? parentFolder)
+    {
+        if (parentFolder is not null)
+            parentFolder.Refresh();
+        else
+            RefreshSidebar();
     }
 
     private void MarkDirty()
