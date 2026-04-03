@@ -31,7 +31,6 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
         if (url is null)
             return;
 
-        _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
         TextEditResult result = _formatter.InsertLink(editorText, _editorService.GetSavedSelection(), url, "link text");
         _editorService.ApplyTextEdit(result);
@@ -39,7 +38,6 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 
     public void ApplyHeading(int level)
     {
-        _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
         TextEditResult result = _formatter.ApplyHeadingToSelectedLines(editorText, _editorService.GetSavedSelection(), level);
         _editorService.ApplyTextEdit(result);
@@ -49,7 +47,6 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 
     public void ApplyNumberedList()
     {
-        _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
         TextEditResult result = _formatter.ApplyNumberedListToSelectedLines(editorText, _editorService.GetSavedSelection());
         _editorService.ApplyTextEdit(result);
@@ -61,7 +58,6 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 
     private void ApplyWrap(string prefix, string suffix, string placeholder)
     {
-        _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
         TextEditResult result = _formatter.WrapSelection(editorText, _editorService.GetSavedSelection(), prefix, suffix, placeholder);
         _editorService.ApplyTextEdit(result);
@@ -69,10 +65,8 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 
     private void ApplyLinePrefix(string prefix)
     {
-        _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
         TextEditResult result = _formatter.PrefixSelectedLines(editorText, _editorService.GetSavedSelection(), prefix);
         _editorService.ApplyTextEdit(result);
     }
 }
-

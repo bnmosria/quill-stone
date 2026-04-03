@@ -168,7 +168,7 @@
         <Setter Property="Padding"         Value="24"/>
         <Setter Property="FontFamily"      Value="{DynamicResource Font.Editor}"/>
         <Setter Property="FontSize"        Value="{DynamicResource FontSize.MD}"/>
-        <Setter Property="LineHeight"      Value="1.7"/>
+        <Setter Property="LineHeight"      Value="26"/>
         <Setter Property="AcceptsReturn"   Value="True"/>
         <Setter Property="AcceptsTab"      Value="True"/>
         <Setter Property="TextWrapping"    Value="Wrap"/>
