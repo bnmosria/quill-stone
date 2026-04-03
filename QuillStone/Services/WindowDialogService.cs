@@ -51,6 +51,38 @@ public sealed class WindowDialogService : IWindowDialogService
         return result;
     }
 
+    public async Task<bool> ShowConfirmAsync(Window owner, string title, string message, string confirmButton)
+    {
+        var dialog = CreateDialogWindow(title);
+        var confirmed = false;
+
+        var confirm = new Button { Content = confirmButton, MinWidth = 96 };
+        var cancel = new Button { Content = "Cancel", MinWidth = 96 };
+
+        confirm.Click += (_, _) => { confirmed = true; dialog.Close(); };
+        cancel.Click += (_, _) => dialog.Close();
+
+        dialog.Content = new StackPanel
+        {
+            Spacing = 12,
+            Margin = new Avalonia.Thickness(16),
+            Children =
+            {
+                new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                new StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                    Spacing = 8,
+                    Children = { confirm, cancel }
+                }
+            }
+        };
+
+        await dialog.ShowDialog(owner);
+        return confirmed;
+    }
+
     public async Task ShowMessageDialogAsync(Window owner, string title, string message)
     {
         var dialog = CreateDialogWindow(title);

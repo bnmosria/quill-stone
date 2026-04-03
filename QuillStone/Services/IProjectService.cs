@@ -6,6 +6,6 @@ namespace QuillStone.Services;
 public interface IProjectService
 {
     ProjectState? CurrentProject { get; }
-    Task OpenFolderAsync(Window owner);
-    Task NewProjectAsync(Window owner, IWindowDialogService dialogService);
+    Task<bool> OpenFolderAsync(Window owner);
+    Task<bool> NewProjectAsync(Window owner, IWindowDialogService dialogService);
 }

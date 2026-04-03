@@ -89,6 +89,41 @@ public sealed class DocumentService : IDocumentService
         }
     }
 
+    public async Task<bool> RebindCurrentFileAsync(Window owner, string newPath, string content)
+    {
+        if (CurrentDocument is null)
+            return false;
+
+        IStorageFile? file;
+        try
+        {
+            file = await owner.StorageProvider.TryGetFileFromPathAsync(newPath);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(
+                owner,
+                AppName,
+                $"The file was renamed, but QuillStone could not reconnect to the new path.\n\nDetails: {ex.Message}");
+            return false;
+        }
+
+        if (file is null)
+        {
+            await _dialogService.ShowMessageDialogAsync(
+                owner,
+                AppName,
+                "The file was renamed, but QuillStone could not reconnect to the new path.");
+            return false;
+        }
+
+        string localPath = file.TryGetLocalPath() ?? newPath;
+        _documentState.SetCurrentFile(file, localPath);
+        CurrentDocument = new LoadedDocument(file, localPath, content);
+        SyncDirtyState(content);
+        return true;
+    }
+
     public void NewDocument()
     {
         CurrentDocument = null;
