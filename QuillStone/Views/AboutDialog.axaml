@@ -2,7 +2,7 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="About QuillStone"
-        Width="400"
+        Width="360"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -10,103 +10,105 @@
         Background="{DynamicResource Brush.Background.Surface}"
         Icon="avares://QuillStone/Assets/Icons/icon.png">
 
-    <StackPanel Spacing="0">
+    <StackPanel Margin="36,40,36,32" Spacing="0">
 
-        <!-- Header banner -->
-        <Border Background="{DynamicResource Brush.Accent.Primary}"
-                Padding="24,20,24,20">
-            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                <Image Source="avares://QuillStone/Assets/Icons/icon.png"
-                       Width="48" Height="48"
-                       RenderOptions.BitmapInterpolationMode="HighQuality" />
-                <StackPanel VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="QuillStone"
-                               FontFamily="{DynamicResource Font.UI}"
-                               FontSize="{DynamicResource FontSize.XL}"
-                               FontWeight="SemiBold"
-                               Foreground="#FFFFFF" />
-                    <TextBlock x:Name="VersionLabel"
-                               FontFamily="{DynamicResource Font.UI}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="#FFFFFFB3" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
+        <!-- Feather icon — inline Path, inherits theme accent color -->
+        <Viewbox Width="52" Height="52" HorizontalAlignment="Center">
+            <Canvas Width="24" Height="24">
+                <Path Data="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"
+                      Stroke="{DynamicResource Brush.Accent.Primary}"
+                      StrokeThickness="1.5"
+                      Fill="Transparent" />
+                <Path Data="M16 8L2 22"
+                      Stroke="{DynamicResource Brush.Accent.Primary}"
+                      StrokeThickness="1.5" />
+                <Path Data="M17.5 15H9"
+                      Stroke="{DynamicResource Brush.Accent.Primary}"
+                      StrokeThickness="1.5" />
+            </Canvas>
+        </Viewbox>
 
-        <!-- Body -->
-        <StackPanel Spacing="16" Margin="24,20,24,20">
+        <!-- App name -->
+        <TextBlock Text="QuillStone"
+                   HorizontalAlignment="Center"
+                   FontFamily="{DynamicResource Font.UI}"
+                   FontSize="{DynamicResource FontSize.2XL}"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource Brush.Text.Primary}"
+                   Margin="0,20,0,5" />
 
-            <TextBlock Text="A lightweight, cross-platform Markdown editor."
+        <!-- Version -->
+        <TextBlock x:Name="VersionLabel"
+                   HorizontalAlignment="Center"
+                   FontFamily="{DynamicResource Font.UI}"
+                   FontSize="{DynamicResource FontSize.SM}"
+                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+
+        <!-- Tagline -->
+        <TextBlock Text="A lightweight, cross-platform Markdown editor."
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   FontFamily="{DynamicResource Font.UI}"
+                   FontSize="{DynamicResource FontSize.SM}"
+                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                   TextWrapping="Wrap"
+                   Margin="0,20,0,0" />
+
+        <!-- Divider -->
+        <Border Height="1"
+                Background="{DynamicResource Brush.Border.Separator}"
+                Margin="0,24,0,24" />
+
+        <!-- Credits -->
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+              HorizontalAlignment="Center" Width="236">
+
+            <TextBlock Grid.Row="0" Grid.Column="0"
+                       Text="Framework"
+                       FontFamily="{DynamicResource Font.Editor}"
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       Margin="0,0,24,6" />
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text=".NET 10 + Avalonia UI 11"
                        FontFamily="{DynamicResource Font.UI}"
-                       FontSize="{DynamicResource FontSize.Base}"
-                       Foreground="{DynamicResource Brush.Text.Primary}"
-                       TextWrapping="Wrap" />
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" />
 
-            <!-- Divider -->
-            <Border Height="1"
-                    Background="{DynamicResource Brush.Border.Separator}"
-                    Margin="0,4,0,4" />
+            <TextBlock Grid.Row="1" Grid.Column="0"
+                       Text="Theme"
+                       FontFamily="{DynamicResource Font.Editor}"
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       Margin="0,0,24,6" />
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       Text="Vellichor"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" />
 
-            <!-- Credits -->
-            <StackPanel Spacing="6">
-                <TextBlock Text="Built with"
-                           FontFamily="{DynamicResource Font.UI}"
-                           FontSize="{DynamicResource FontSize.SM}"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource Brush.Text.Secondary}" />
+            <TextBlock Grid.Row="2" Grid.Column="0"
+                       Text="License"
+                       FontFamily="{DynamicResource Font.Editor}"
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       Margin="0,0,24,0" />
+            <TextBlock Grid.Row="2" Grid.Column="1"
+                       Text="MIT"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.SM}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" />
 
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" >
-                    <TextBlock Grid.Row="0" Grid.Column="0"
-                               Text="Framework"
-                               FontFamily="{DynamicResource Font.Mono}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               Margin="0,0,16,4" />
-                    <TextBlock Grid.Row="0" Grid.Column="1"
-                               Text=".NET 10 + Avalonia UI 11"
-                               FontFamily="{DynamicResource Font.UI}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Primary}" />
+        </Grid>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0"
-                               Text="Theme"
-                               FontFamily="{DynamicResource Font.Mono}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               Margin="0,0,16,4" />
-                    <TextBlock Grid.Row="1" Grid.Column="1"
-                               Text="Vellichor"
-                               FontFamily="{DynamicResource Font.UI}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Primary}" />
+        <!-- Close button -->
+        <Button Content="Close"
+                HorizontalAlignment="Center"
+                MinWidth="104"
+                Margin="0,28,0,0"
+                Classes="Secondary"
+                Click="CloseButton_Click" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0"
-                               Text="License"
-                               FontFamily="{DynamicResource Font.Mono}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               Margin="0,0,16,0" />
-                    <TextBlock Grid.Row="2" Grid.Column="1"
-                               Text="MIT"
-                               FontFamily="{DynamicResource Font.UI}"
-                               FontSize="{DynamicResource FontSize.SM}"
-                               Foreground="{DynamicResource Brush.Text.Primary}" />
-                </Grid>
-            </StackPanel>
-
-            <!-- Divider -->
-            <Border Height="1"
-                    Background="{DynamicResource Brush.Border.Separator}"
-                    Margin="0,4,0,4" />
-
-            <!-- Close button -->
-            <Button Content="Close"
-                    HorizontalAlignment="Right"
-                    MinWidth="96"
-                    Classes="Secondary"
-                    Click="CloseButton_Click" />
-
-        </StackPanel>
     </StackPanel>
 
 </Window>

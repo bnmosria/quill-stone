@@ -2,7 +2,7 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Name="RootWindow"
-        Title="QuillStone" Height="680" Width="960"
+        Title="QuillStone" Height="800" Width="1280"
         MinWidth="480" MinHeight="360"
         WindowStartupLocation="CenterScreen"
         Closing="Window_Closing"
