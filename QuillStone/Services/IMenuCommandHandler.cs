@@ -8,5 +8,6 @@ public interface IMenuCommandHandler
     Task OpenDocumentAsync();
     Task SaveDocumentAsync();
     Task SaveDocumentAsAsync();
+    Task OpenFileFromPathAsync(string path);
 }
 

@@ -2,8 +2,11 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
+using System.Collections.ObjectModel;
 using QuillStone.Models;
 using QuillStone.Services;
+using QuillStone.ViewModels;
 
 namespace QuillStone;
 
@@ -20,6 +23,8 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+
+    private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
     public MainWindow()
         : this(
@@ -57,6 +62,7 @@ public partial class MainWindow : Window
         _projectService = projectService;
         _dialogService = dialogService;
 
+        ProjectTree.ItemsSource = _projectRoots;
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
@@ -71,7 +77,7 @@ public partial class MainWindow : Window
             return;
 
         _editorService.UpdateSelection();
-        _documentService.MarkDirty(true);
+        _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
     }
 
@@ -81,7 +87,7 @@ public partial class MainWindow : Window
         {
             if (_editorService.HandleEnterKey())
             {
-                _documentService.MarkDirty(true);
+                _documentService.SyncDirtyState(_editorService.GetEditorText());
                 UpdateWindowTitle();
                 e.Handled = true;
             }
@@ -97,25 +103,25 @@ public partial class MainWindow : Window
             {
                 case Key.B:
                     _formatHandler.ApplyBold();
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
                 case Key.I:
                     _formatHandler.ApplyItalic();
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
                 case Key.K:
                     e.Handled = true;
                     await _formatHandler.InsertLinkAsync(this);
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     break;
                 case Key.H:
                     _formatHandler.ApplyHeading(1);
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
@@ -197,11 +203,27 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private async void MenuOpen_Click(object? sender, RoutedEventArgs e)
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
+        UpdateWindowTitle();
+        RefreshSidebar();
+    }
+
+    private async void SidebarOpenFile_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
+        RefreshSidebar();
+        UpdateWindowTitle();
+    }
+
+    private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        await _projectService.OpenFolderAsync(this);
+        RefreshSidebar();
         UpdateWindowTitle();
     }
 
@@ -209,12 +231,14 @@ public partial class MainWindow : Window
     {
         await _menuHandler.SaveDocumentAsync();
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private async void MenuSaveAs_Click(object? sender, RoutedEventArgs e)
     {
         await _menuHandler.SaveDocumentAsAsync();
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
@@ -222,12 +246,14 @@ public partial class MainWindow : Window
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.OpenFolderAsync(this);
+        RefreshSidebar();
         UpdateWindowTitle();
     }
 
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.NewProjectAsync(this, _dialogService);
+        RefreshSidebar();
         UpdateWindowTitle();
     }
 
@@ -269,9 +295,52 @@ public partial class MainWindow : Window
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    private void RefreshSidebar()
+    {
+        _projectRoots.Clear();
+
+        if (_projectService.CurrentProject is { } project)
+        {
+            SidebarNoProjectActions.IsVisible = false;
+            SidebarOpenSection.IsVisible = false;
+            ProjectTree.IsVisible = true;
+
+            var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
+            root.IsExpanded = true;
+            _projectRoots.Add(root);
+            return;
+        }
+
+        ProjectTree.IsVisible = false;
+
+        if (_documentService.CurrentDocument is not null)
+        {
+            SidebarNoProjectActions.IsVisible = false;
+            SidebarOpenSection.IsVisible = true;
+            CurrentFileLabel.Text = _documentService.DisplayName;
+            return;
+        }
+
+        SidebarNoProjectActions.IsVisible = true;
+        SidebarOpenSection.IsVisible = false;
+    }
+
+    private async void ProjectTree_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is FileNodeViewModel fileNode)
+        {
+            await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
+            UpdateWindowTitle();
+        }
+
+        // Clear selection so every subsequent click always fires a new SelectionChanged,
+        // regardless of whether the same item or a folder was previously selected.
+        ProjectTree.SelectedItem = null;
+    }
+
     private void MarkDirty()
     {
-        _documentService.MarkDirty(true);
+        _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
     }
 
@@ -300,6 +369,24 @@ public partial class MainWindow : Window
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         _editorService.UpdateSelection();
+    }
+
+    private void WindowSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is not Visual sourceVisual)
+            return;
+
+        if (sourceVisual == Editor || Editor.IsVisualAncestorOf(sourceVisual))
+            return;
+
+        if (sourceVisual.FindAncestorOfType<Button>() is not null
+            || sourceVisual.FindAncestorOfType<MenuItem>() is not null
+            || sourceVisual.FindAncestorOfType<TreeViewItem>() is not null)
+        {
+            return;
+        }
+
+        WindowSurface.Focus();
     }
 
     // ── Window chrome ─────────────────────────────────────────────────────────

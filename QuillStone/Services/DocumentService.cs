@@ -28,6 +28,8 @@ public sealed class DocumentService : IDocumentService
 
     public async Task<bool> TrySaveIfDirtyAsync(Window owner, string content)
     {
+        SyncDirtyState(content);
+
         if (!IsDirty)
             return true;
 
@@ -57,6 +59,7 @@ public sealed class DocumentService : IDocumentService
             string? localPath = await _fileService.SaveAsync(_documentState.CurrentFile, content);
             _documentState.SetCurrentFile(_documentState.CurrentFile, localPath);
             CurrentDocument = new LoadedDocument(_documentState.CurrentFile, localPath, content);
+            _documentState.SetPersistedContent(content);
             MarkDirty(false);
             return true;
         }
@@ -77,6 +80,7 @@ public sealed class DocumentService : IDocumentService
             LoadedDocument document = await _fileService.LoadAsync(file);
             CurrentDocument = document;
             _documentState.SetCurrentFile(document.File, document.LocalPath);
+            _documentState.SetPersistedContent(document.Content);
             MarkDirty(false);
         }
         catch (Exception ex)
@@ -95,6 +99,11 @@ public sealed class DocumentService : IDocumentService
     public void MarkDirty(bool dirty)
     {
         _documentState.MarkDirty(dirty);
+    }
+
+    public void SyncDirtyState(string content)
+    {
+        _documentState.MarkDirty(_documentState.HasUnsavedChanges(content));
     }
 
     public async Task<bool> SaveAsAsync(Window owner, string content)
@@ -120,6 +129,7 @@ public sealed class DocumentService : IDocumentService
             string? localPath = await _fileService.SaveAsync(file, content);
             _documentState.SetCurrentFile(file, localPath);
             CurrentDocument = new LoadedDocument(file, localPath, content);
+            _documentState.SetPersistedContent(content);
             MarkDirty(false);
             return true;
         }

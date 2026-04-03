@@ -163,9 +163,10 @@
     <Style Selector="TextBox.CodeEditor">
         <Setter Property="Background"      Value="{DynamicResource Brush.Background.Surface}"/>
         <Setter Property="Foreground"      Value="{DynamicResource Brush.Text.Primary}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="BorderBrush"     Value="Transparent"/>
-        <Setter Property="Padding"         Value="24"/>
+        <Setter Property="CornerRadius"    Value="0"/>
+        <Setter Property="Padding"         Value="24,8,24,8"/>
         <Setter Property="FontFamily"      Value="{DynamicResource Font.Editor}"/>
         <Setter Property="FontSize"        Value="13"/>
         <Setter Property="LineHeight"      Value="20"/>
@@ -178,6 +179,11 @@
     </Style>
     <Style Selector="TextBox.CodeEditor:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+    </Style>
+    <Style Selector="TextBox.CodeEditor:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+        <Setter Property="BorderThickness" Value="0.4"/>
+        <Setter Property="CornerRadius" Value="0"/>
     </Style>
 
     <!-- ── SCROLLBAR ────────────────────────────────────────────── -->
@@ -383,6 +389,31 @@
         <Setter Property="Padding"         Value="6,2"/>
         <Setter Property="CornerRadius"    Value="{DynamicResource Radius.Full}"/>
         <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- ── TREEVIEW (Project Explorer sidebar) ──────────────────── -->
+    <Style Selector="TreeView.SidebarTree">
+        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding"         Value="0,4,4,8"/>
+    </Style>
+    <Style Selector="TreeView.SidebarTree TreeViewItem">
+        <Setter Property="FontFamily"                Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"                  Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="MinHeight"                 Value="24"/>
+        <Setter Property="Padding"                   Value="0,2,4,2"/>
+        <Setter Property="HorizontalAlignment"       Value="Stretch"/>
+    </Style>
+    <!-- Root-level items: no extra left margin so the folder sits flush left -->
+    <Style Selector="TreeView.SidebarTree > TreeViewItem">
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
+    <Style Selector="TextBlock.ExplorerItem">
+        <Setter Property="FontFamily"        Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"          Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
     </Style>
 
 </Styles>
