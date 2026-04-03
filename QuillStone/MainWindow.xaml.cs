@@ -216,6 +216,12 @@ public partial class MainWindow : Window
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
         => QuillStone.Styles.Theme.ThemeManager.Toggle();
 
+    private async void MenuAbout_Click(object? sender, RoutedEventArgs e)
+    {
+        var dialog = new Views.AboutDialog();
+        await dialog.ShowDialog(this);
+    }
+
     // ── Window closing ───────────────────────────────────────────────────────
 
     private async void Window_Closing(object? sender, WindowClosingEventArgs e)
