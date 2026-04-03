@@ -213,6 +213,9 @@ public partial class MainWindow : Window
 
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
 
+    private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
+        => QuillStone.Styles.Theme.ThemeManager.Toggle();
+
     // ── Window closing ───────────────────────────────────────────────────────
 
     private async void Window_Closing(object? sender, WindowClosingEventArgs e)
