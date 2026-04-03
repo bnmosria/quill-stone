@@ -28,7 +28,7 @@
 
     <Color x:Key="Light.Border.Default">#D8D2C8</Color>
     <Color x:Key="Light.Border.Strong">#B8B0A6</Color>
-    <Color x:Key="Light.Border.Focus">#C0622A</Color>
+    <Color x:Key="Light.Border.Focus">#B97A55</Color>
     <Color x:Key="Light.Border.Separator">#E4E0D8</Color>
 
     <Color x:Key="Light.Syntax.Heading">#1A1714</Color>
@@ -68,7 +68,7 @@
 
     <Color x:Key="Dark.Border.Default">#332E28</Color>
     <Color x:Key="Dark.Border.Strong">#4A4540</Color>
-    <Color x:Key="Dark.Border.Focus">#E07A3E</Color>
+    <Color x:Key="Dark.Border.Focus">#D09166</Color>
     <Color x:Key="Dark.Border.Separator">#2A2520</Color>
 
     <Color x:Key="Dark.Syntax.Heading">#F0EBE3</Color>

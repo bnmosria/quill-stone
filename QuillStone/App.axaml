@@ -13,7 +13,12 @@
     </Application.Resources>
 
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#C0622A" />
+                <ColorPaletteResources x:Key="Dark" Accent="#E07A3E" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
         <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml" />
     </Application.Styles>
 
