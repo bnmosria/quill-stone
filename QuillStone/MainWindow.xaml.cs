@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     private readonly IFormatCommandHandler _formatHandler;
     private readonly IMenuCommandHandler _menuHandler;
     private readonly IWindowLifecycleManager _lifecycleManager;
+    private readonly IProjectService _projectService;
+    private readonly IWindowDialogService _dialogService;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
@@ -24,7 +26,8 @@ public partial class MainWindow : Window
             new DocumentState(),
             new MarkdownFileService(),
             new WindowDialogService(),
-            new MarkdownFormatter())
+            new MarkdownFormatter(),
+            new ProjectService())
     {
     }
 
@@ -32,7 +35,8 @@ public partial class MainWindow : Window
         DocumentState documentState,
         IMarkdownFileService fileService,
         IWindowDialogService dialogService,
-        IMarkdownFormatter markdownFormatter)
+        IMarkdownFormatter markdownFormatter,
+        IProjectService projectService)
     {
         InitializeComponent();
         ConfigureWindowChromeForPlatform();
@@ -50,6 +54,8 @@ public partial class MainWindow : Window
         _formatHandler = formatHandler;
         _menuHandler = menuHandler;
         _lifecycleManager = lifecycleManager;
+        _projectService = projectService;
+        _dialogService = dialogService;
 
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
@@ -213,6 +219,18 @@ public partial class MainWindow : Window
 
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
 
+    private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
+    {
+        await _projectService.OpenFolderAsync(this);
+        UpdateWindowTitle();
+    }
+
+    private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
+    {
+        await _projectService.NewProjectAsync(this, _dialogService);
+        UpdateWindowTitle();
+    }
+
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
         => QuillStone.Styles.Theme.ThemeManager.Toggle();
 
@@ -272,7 +290,11 @@ public partial class MainWindow : Window
 
     private void UpdateWindowTitle()
     {
-        Title = $"{_documentService.DisplayName}{(_documentService.IsDirty ? "*" : "")} - QuillStone";
+        string dirtyMark = _documentService.IsDirty ? "*" : string.Empty;
+        string docPart = $"{_documentService.DisplayName}{dirtyMark}";
+        Title = _projectService.CurrentProject is { } project
+            ? $"{docPart} - {project.ProjectName} - QuillStone"
+            : $"{docPart} - QuillStone";
     }
 
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
