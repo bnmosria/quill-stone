@@ -239,6 +239,7 @@
                                       Classes="SidebarTree"
                                       IsVisible="False"
                                       SelectionChanged="ProjectTree_SelectionChanged"
+                                      DragDrop.AllowDrop="True"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
                                 <TreeView.DataTemplates>
