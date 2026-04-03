@@ -84,5 +84,46 @@ public sealed class MenuCommandHandler : IMenuCommandHandler
     {
         await _documentService.SaveAsAsync(_owner, _editorService.GetEditorText());
     }
+
+    public async Task OpenFileFromPathAsync(string path)
+    {
+        if (!await _documentService.TrySaveIfDirtyAsync(_owner, _editorService.GetEditorText()))
+            return;
+
+        IStorageFile? file = null;
+        try
+        {
+            file = await _owner.StorageProvider.TryGetFileFromPathAsync(new Uri(path));
+        }
+        catch (Exception) { }
+
+        if (file is null)
+        {
+            await _dialogService.ShowMessageDialogAsync(
+                _owner,
+                AppName,
+                "Could not open the selected file. The file may have been moved or deleted.");
+            return;
+        }
+
+        try
+        {
+            await _documentService.LoadAsync(file);
+            var doc = _documentService.CurrentDocument;
+            if (doc is not null)
+            {
+                _editorService.SetEditorText(doc.Content);
+                _editorService.SetCaretIndex(0);
+                _editorService.UpdateSelection();
+            }
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(
+                _owner,
+                AppName,
+                $"Could not open file. Check that the file exists and you have read access.\n\nDetails: {ex.Message}");
+        }
+    }
 }
 

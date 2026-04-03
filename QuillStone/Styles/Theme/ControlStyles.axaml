@@ -385,4 +385,24 @@
         <Setter Property="BorderThickness" Value="0"/>
     </Style>
 
+    <!-- ── TREEVIEW (Project Explorer sidebar) ──────────────────── -->
+    <Style Selector="TreeView.SidebarTree">
+        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding"         Value="8,4,8,8"/>
+    </Style>
+    <Style Selector="TreeView.SidebarTree TreeViewItem">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"   Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="MinHeight"  Value="24"/>
+        <Setter Property="Padding"    Value="4,2,4,2"/>
+    </Style>
+
+    <Style Selector="TextBlock.ExplorerItem">
+        <Setter Property="FontFamily"        Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"          Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+    </Style>
+
 </Styles>

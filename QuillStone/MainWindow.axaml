@@ -1,6 +1,7 @@
 <Window x:Class="QuillStone.MainWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:QuillStone.ViewModels"
         x:Name="RootWindow"
         Title="QuillStone" Height="800" Width="1280"
         MinWidth="480" MinHeight="360"
@@ -182,33 +183,61 @@
                     <Border Grid.Column="0"
                             Background="{DynamicResource Brush.Background.Sidebar}"
                             BorderBrush="{DynamicResource Brush.Border.Separator}"
-                            BorderThickness="0,0,1,0"
-                            Padding="16,16,12,14">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="OPEN"
-                                       Classes="SidebarSectionTitle" />
-                            <Border Classes="SidebarActiveItem"
-                                    Background="{DynamicResource Brush.Accent.Muted}">
-                                <TextBlock Text="README"
-                                           Classes="SidebarActiveItemText"
-                                           Foreground="{DynamicResource Brush.Accent.Primary}" />
+                            BorderThickness="0,0,1,0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top"
+                                    Padding="16,12,12,6"
+                                    BorderBrush="{DynamicResource Brush.Border.Separator}"
+                                    BorderThickness="0,0,0,1">
+                                <TextBlock Text="EXPLORER"
+                                           Classes="SidebarSectionTitle"
+                                           Margin="0"/>
                             </Border>
-                            <TextBlock Text="notes"
+
+                            <TextBlock x:Name="SidebarNoProjectHint"
+                                       DockPanel.Dock="Top"
+                                       Text="Open a folder to explore files."
                                        Classes="SidebarItem"
-                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
-                            <TextBlock Text="CHANGELOG"
-                                       Classes="SidebarItem"
-                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
-                            <TextBlock Text="RECENT"
-                                       Classes="SidebarSectionTitle"
-                                       Margin="0,16,0,0" />
-                            <TextBlock Text="guide"
-                                       Classes="SidebarItem"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <TextBlock Text="blog"
-                                       Classes="SidebarItem"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        </StackPanel>
+                                       Margin="16,8,12,0"
+                                       IsVisible="True"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+
+                            <TreeView x:Name="ProjectTree"
+                                      Classes="SidebarTree"
+                                      IsVisible="False"
+                                      SelectionChanged="ProjectTree_SelectionChanged"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                <TreeView.DataTemplates>
+                                    <TreeDataTemplate DataType="vm:FolderNodeViewModel"
+                                                      ItemsSource="{Binding Children}">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <PathIcon Data="{DynamicResource Icon.Folder}"
+                                                      Width="12" Height="12"
+                                                      VerticalAlignment="Center"
+                                                      Foreground="{DynamicResource Brush.Accent.Secondary}"/>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Classes="ExplorerItem"/>
+                                        </StackPanel>
+                                    </TreeDataTemplate>
+                                    <DataTemplate DataType="vm:FileNodeViewModel">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <PathIcon Data="{DynamicResource Icon.File}"
+                                                      Width="12" Height="12"
+                                                      VerticalAlignment="Center"
+                                                      Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Classes="ExplorerItem"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </TreeView.DataTemplates>
+                                <TreeView.Styles>
+                                    <Style Selector="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                    </Style>
+                                </TreeView.Styles>
+                            </TreeView>
+                        </DockPanel>
                     </Border>
 
                     <TextBox x:Name="Editor"

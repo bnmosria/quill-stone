@@ -2,8 +2,10 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using System.Collections.ObjectModel;
 using QuillStone.Models;
 using QuillStone.Services;
+using QuillStone.ViewModels;
 
 namespace QuillStone;
 
@@ -20,6 +22,8 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+
+    private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
     public MainWindow()
         : this(
@@ -57,6 +61,7 @@ public partial class MainWindow : Window
         _projectService = projectService;
         _dialogService = dialogService;
 
+        ProjectTree.ItemsSource = _projectRoots;
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
@@ -222,12 +227,14 @@ public partial class MainWindow : Window
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.OpenFolderAsync(this);
+        RefreshProjectExplorer();
         UpdateWindowTitle();
     }
 
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.NewProjectAsync(this, _dialogService);
+        RefreshProjectExplorer();
         UpdateWindowTitle();
     }
 
@@ -268,6 +275,34 @@ public partial class MainWindow : Window
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private void RefreshProjectExplorer()
+    {
+        _projectRoots.Clear();
+
+        if (_projectService.CurrentProject is not { } project)
+        {
+            SidebarNoProjectHint.IsVisible = true;
+            ProjectTree.IsVisible = false;
+            return;
+        }
+
+        SidebarNoProjectHint.IsVisible = false;
+        ProjectTree.IsVisible = true;
+
+        var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
+        root.IsExpanded = true;
+        _projectRoots.Add(root);
+    }
+
+    private async void ProjectTree_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is FileNodeViewModel fileNode)
+        {
+            await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
+            UpdateWindowTitle();
+        }
+    }
 
     private void MarkDirty()
     {
