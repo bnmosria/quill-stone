@@ -87,4 +87,7 @@ public sealed class ProjectService : IProjectService
         string trimmed = localPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return string.IsNullOrEmpty(trimmed) ? null : Path.GetFileName(trimmed);
     }
+
+    public void RestoreProject(string name, string rootPath)
+        => CurrentProject = new ProjectState(name, rootPath);
 }
