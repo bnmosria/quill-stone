@@ -136,9 +136,9 @@
     <!--  UI Font: "Geist" feel – swap for your preferred sans      -->
     <!--  Editor Font: Monospace with warm character                -->
 
-    <FontFamily x:Key="Font.UI">Inter, Segoe UI, Arial, sans-serif</FontFamily>
-    <FontFamily x:Key="Font.Editor">JetBrains Mono, Cascadia Code, Consolas, monospace</FontFamily>
-    <FontFamily x:Key="Font.Preview">Georgia, Times New Roman, serif</FontFamily>
+    <FontFamily x:Key="Font.UI">avares://QuillStone/Assets/Fonts#Outfit, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="Font.Editor">avares://QuillStone/Assets/Fonts#JetBrains Mono, Consolas, monospace</FontFamily>
+    <FontFamily x:Key="Font.Preview">avares://QuillStone/Assets/Fonts#Lora, Georgia, serif</FontFamily>
 
     <x:Double x:Key="FontSize.XS">10</x:Double>
     <x:Double x:Key="FontSize.SM">12</x:Double>

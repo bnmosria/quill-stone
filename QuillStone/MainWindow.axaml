@@ -78,11 +78,10 @@
                         BorderBrush="{DynamicResource Brush.Border.Separator}"
                         BorderThickness="0,1,0,1"
                         Padding="16,10,14,10">
-                    <WrapPanel x:Name="FormattingToolbar"
-                               Orientation="Horizontal"
-                               HorizontalAlignment="Stretch"
-                               ItemHeight="36"
-                               ItemWidth="52">
+                    <StackPanel x:Name="FormattingToolbar"
+                                Orientation="Horizontal"
+                                Spacing="2"
+                                VerticalAlignment="Center">
                     <Button Content="H" FontWeight="Bold"
                             ToolTip.Tip="Heading 1 (Ctrl+H)"
                             AutomationProperties.Name="Heading 1"
@@ -141,7 +140,7 @@
                             AutomationProperties.Name="Checkbox"
                             Click="ToolbarCheckbox_Click"
                             Classes="Toolbar Ghost" />
-                    </WrapPanel>
+                    </StackPanel>
                 </Border>
 
                 <Border DockPanel.Dock="Bottom"

@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets/Fonts/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Design mock file, not part of the runtime window types -->
     <AvaloniaXaml Remove="Styles/Theme/MainWindow.axaml" />
     <AvaloniaResource Remove="Styles/Theme/MainWindow.axaml" />

@@ -3,22 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              RequestedThemeVariant="Light">
 
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://QuillStone/Styles/Theme/EditorTheme.axaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
-
     <Application.Styles>
         <FluentTheme>
             <FluentTheme.Palettes>
                 <ColorPaletteResources x:Key="Light" Accent="#C0622A" />
-                <ColorPaletteResources x:Key="Dark" Accent="#E07A3E" />
+                <ColorPaletteResources x:Key="Dark"  Accent="#E07A3E" />
             </FluentTheme.Palettes>
         </FluentTheme>
-        <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml" />
+        <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml"/>
     </Application.Styles>
 
 </Application>
