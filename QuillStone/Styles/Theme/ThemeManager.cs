@@ -5,14 +5,15 @@ using System;
 namespace QuillStone.Styles.Theme;
 
 /// <summary>
-/// Manages runtime switching between the "Vellichor" Light and Dark themes.
+/// Manages runtime switching between light and dark theme variants.
 /// Call ThemeManager.Apply(AppThemeVariant.Light) or .Dark from anywhere.
+/// Theme files live in Styles/Themes/{ThemeName}/ — swap the paths below to change the active theme.
 /// </summary>
 public static class ThemeManager
 {
-    private const string BaseUri   = "avares://QuillStone/Styles/Theme/";
-    private const string LightPath = "LightTheme.axaml";
-    private const string DarkPath  = "DarkTheme.axaml";
+    private const string BaseUri   = "avares://QuillStone/Styles/Themes/";
+    private const string LightPath = "Vellichor/Light.axaml";
+    private const string DarkPath  = "Vellichor/Dark.axaml";
 
     private static ResourceInclude? _activeTheme;
     private static Application      _app = null!;

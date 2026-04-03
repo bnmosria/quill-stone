@@ -1,16 +1,11 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!--  DARK THEME VARIANT                                         -->
-    <!--  Include this in your App.axaml when dark mode is active    -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-
     <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="avares://QuillStone/Styles/Theme/EditorTheme.axaml"/>
+        <ResourceInclude Source="avares://QuillStone/Styles/Themes/Vellichor/Palette.axaml"/>
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Re-export dark colors as semantic tokens -->
+    <!-- Maps Vellichor Dark palette → semantic Brush.* tokens -->
     <SolidColorBrush x:Key="Brush.Background.Base"     Color="{StaticResource Dark.Background.Base}"/>
     <SolidColorBrush x:Key="Brush.Background.Surface"  Color="{StaticResource Dark.Background.Surface}"/>
     <SolidColorBrush x:Key="Brush.Background.Elevated" Color="{StaticResource Dark.Background.Elevated}"/>

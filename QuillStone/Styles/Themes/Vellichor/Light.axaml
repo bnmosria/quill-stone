@@ -1,16 +1,11 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!--  LIGHT THEME VARIANT                                        -->
-    <!--  Include this in your App.axaml when light mode is active   -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-
     <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="avares://QuillStone/Styles/Theme/EditorTheme.axaml"/>
+        <ResourceInclude Source="avares://QuillStone/Styles/Themes/Vellichor/Palette.axaml"/>
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Re-export light colors as semantic tokens -->
+    <!-- Maps Vellichor Light palette → semantic Brush.* tokens -->
     <SolidColorBrush x:Key="Brush.Background.Base"     Color="{StaticResource Light.Background.Base}"/>
     <SolidColorBrush x:Key="Brush.Background.Surface"  Color="{StaticResource Light.Background.Surface}"/>
     <SolidColorBrush x:Key="Brush.Background.Elevated" Color="{StaticResource Light.Background.Elevated}"/>

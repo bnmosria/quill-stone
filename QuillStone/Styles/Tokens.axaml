@@ -1,0 +1,66 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  SHARED DESIGN TOKENS                                       -->
+    <!--  Theme-agnostic. No color values here.                     -->
+    <!--  All themes include this file at their root.               -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ── TYPOGRAPHY ───────────────────────────────────────────── -->
+    <FontFamily x:Key="Font.UI">avares://QuillStone/Assets/Fonts#Outfit, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="Font.Editor">avares://QuillStone/Assets/Fonts#JetBrains Mono, Consolas, monospace</FontFamily>
+    <FontFamily x:Key="Font.Preview">avares://QuillStone/Assets/Fonts#Lora, Georgia, serif</FontFamily>
+
+    <x:Double x:Key="FontSize.XS">10</x:Double>
+    <x:Double x:Key="FontSize.SM">12</x:Double>
+    <x:Double x:Key="FontSize.Base">14</x:Double>
+    <x:Double x:Key="FontSize.MD">15</x:Double>
+    <x:Double x:Key="FontSize.LG">17</x:Double>
+    <x:Double x:Key="FontSize.XL">20</x:Double>
+    <x:Double x:Key="FontSize.2XL">24</x:Double>
+    <x:Double x:Key="FontSize.3XL">30</x:Double>
+
+    <!-- ── SPACING ────────────────────────────────────────────────── -->
+    <Thickness x:Key="Spacing.None">0</Thickness>
+    <Thickness x:Key="Spacing.XS">2</Thickness>
+    <Thickness x:Key="Spacing.SM">4</Thickness>
+    <Thickness x:Key="Spacing.MD">8</Thickness>
+    <Thickness x:Key="Spacing.LG">12</Thickness>
+    <Thickness x:Key="Spacing.XL">16</Thickness>
+    <Thickness x:Key="Spacing.2XL">24</Thickness>
+    <Thickness x:Key="Spacing.3XL">32</Thickness>
+
+    <!-- ── SHAPE ─────────────────────────────────────────────────── -->
+    <CornerRadius x:Key="Radius.None">0</CornerRadius>
+    <CornerRadius x:Key="Radius.SM">3</CornerRadius>
+    <CornerRadius x:Key="Radius.MD">6</CornerRadius>
+    <CornerRadius x:Key="Radius.LG">10</CornerRadius>
+    <CornerRadius x:Key="Radius.XL">14</CornerRadius>
+    <CornerRadius x:Key="Radius.Full">9999</CornerRadius>
+
+    <!-- ── ELEVATION SHADOWS ──────────────────────────────────────── -->
+    <BoxShadows x:Key="Shadow.SM">0 1 3 0 #12000000, 0 1 2 -1 #12000000</BoxShadows>
+    <BoxShadows x:Key="Shadow.MD">0 4 6 -1 #1A000000, 0 2 4 -2 #1A000000</BoxShadows>
+    <BoxShadows x:Key="Shadow.LG">0 10 15 -3 #1A000000, 0 4 6 -4 #1A000000</BoxShadows>
+    <BoxShadows x:Key="Shadow.XL">0 20 25 -5 #1A000000, 0 8 10 -6 #1A000000</BoxShadows>
+
+    <!-- ── ANIMATION DURATIONS ────────────────────────────────────── -->
+    <x:Double x:Key="Duration.Fast">80</x:Double>
+    <x:Double x:Key="Duration.Normal">160</x:Double>
+    <x:Double x:Key="Duration.Slow">300</x:Double>
+
+    <!-- ── TOOLBAR ICONS (Material Design, 24×24 fill paths) ─────── -->
+    <StreamGeometry x:Key="Icon.Heading1">M3,4H5V10H9V4H11V18H9V12H5V18H3V4M14,18V16H16V6.31L13.5,7.75V5.44L16,4H18V16H20V18H14Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Heading2">M3,4H5V10H9V4H11V18H9V12H5V18H3V4M21,18H15A2,2 0 0,1 13,16C13,15.47 13.2,15 13.54,14.64L18.41,9.41C18.78,9.05 19,8.55 19,8A2,2 0 0,0 17,6A2,2 0 0,0 15,8H13A4,4 0 0,1 17,4A4,4 0 0,1 21,8C21,9.1 20.55,10.1 19.83,10.83L15,16H21V18Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Heading3">M3,4H5V10H9V4H11V18H9V12H5V18H3V4M15,4H19A2,2 0 0,1 21,6V16A2,2 0 0,1 19,18H15A2,2 0 0,1 13,16V15H15V16H19V12H15V10H19V6H15V7H13V6A2,2 0 0,1 15,4Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Bold">M13.5,15.5H10V12.5H13.5A1.5,1.5 0 0,1 15,14A1.5,1.5 0 0,1 13.5,15.5M10,6.5H13A1.5,1.5 0 0,1 14.5,8A1.5,1.5 0 0,1 13,9.5H10M15.6,10.79C16.57,10.11 17.25,9 17.25,8C17.25,5.74 15.5,4 13.25,4H7V18H14.04C16.14,18 17.75,16.39 17.75,14.25C17.75,12.69 16.89,11.33 15.6,10.79Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Italic">M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Code">M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Link">M3.9,12C3.9,10.29 5.29,8.9 7,8.9H11V7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H11V15.1H7C5.29,15.1 3.9,13.71 3.9,12M8,13H16V11H8V13M17,7H13V8.9H17C18.71,8.9 20.1,10.29 20.1,12C20.1,13.71 18.71,15.1 17,15.1H13V17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.BulletList">M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.NumberedList">M7,13V11H21V13H7M7,19V17H21V19H7M7,7V5H21V7H7M3,8V5H2V4H4V8H3M2,17V16H5V20H2V19H4V18.5H3V17.5H4V17H2M4,9.5A0.5,0.5 0 0,1 4.5,10A0.5,0.5 0 0,1 4,10.5A0.5,0.5 0 0,1 3.5,10A0.5,0.5 0 0,1 4,9.5Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Blockquote">M14,17H17L19,13V7H13V13H16M6,17H9L11,13V7H5V13H8L6,17Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Checkbox">M19,19H5V5H15V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V11H19M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z</StreamGeometry>
+
+</ResourceDictionary>

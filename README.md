@@ -99,7 +99,8 @@ Windows-only dependencies; native file open/save dialogs and storage APIs are pr
 
 ## Theme
 
-QuillStone ships the **Vellichor** design system — a warm, editorial theme with light and dark variants, embedded
-fonts (Outfit, JetBrains Mono, Lora), and a full semantic token set.
+QuillStone ships the **Vellichor** theme — a warm, editorial design language with light and dark
+variants, embedded fonts (Outfit, JetBrains Mono, Lora), and a full semantic token set. The theme
+infrastructure is designed to support multiple themes; Vellichor is the first.
 
-See [docs/THEME.md](docs/THEME.md) for the token reference, control classes, and theming guide.
+See [docs/THEME.md](docs/THEME.md) for the token reference, control classes, and guide for adding new themes.

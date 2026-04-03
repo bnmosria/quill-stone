@@ -1,0 +1,91 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  VELLICHOR PALETTE                                           -->
+    <!--  Color values for both light and dark variants.             -->
+    <!--  Do not add Brush.* mappings here — those live in           -->
+    <!--  Light.axaml and Dark.axaml.                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ── LIGHT ────────────────────────────────────────────────── -->
+    <Color x:Key="Light.Background.Base">#F7F4EF</Color>
+    <Color x:Key="Light.Background.Surface">#FFFFFF</Color>
+    <Color x:Key="Light.Background.Elevated">#FFFEF9</Color>
+    <Color x:Key="Light.Background.Overlay">#F0EDE6</Color>
+    <Color x:Key="Light.Background.Sidebar">#EDE9E1</Color>
+    <Color x:Key="Light.Background.Hover">#E8E4DB</Color>
+    <Color x:Key="Light.Background.Active">#DDD8CE</Color>
+
+    <Color x:Key="Light.Text.Primary">#1A1714</Color>
+    <Color x:Key="Light.Text.Secondary">#5C5751</Color>
+    <Color x:Key="Light.Text.Tertiary">#8E8880</Color>
+    <Color x:Key="Light.Text.Placeholder">#B5AFA7</Color>
+    <Color x:Key="Light.Text.Inverse">#FAFAF8</Color>
+
+    <Color x:Key="Light.Accent.Primary">#C0622A</Color>
+    <Color x:Key="Light.Accent.Secondary">#E07A3E</Color>
+    <Color x:Key="Light.Accent.Tertiary">#F2A96E</Color>
+    <Color x:Key="Light.Accent.Muted">#F5E6D8</Color>
+
+    <Color x:Key="Light.Border.Default">#D8D2C8</Color>
+    <Color x:Key="Light.Border.Strong">#B8B0A6</Color>
+    <Color x:Key="Light.Border.Focus">#B97A55</Color>
+    <Color x:Key="Light.Border.Separator">#E4E0D8</Color>
+
+    <Color x:Key="Light.Syntax.Heading">#1A1714</Color>
+    <Color x:Key="Light.Syntax.Bold">#2D2926</Color>
+    <Color x:Key="Light.Syntax.Italic">#5C5751</Color>
+    <Color x:Key="Light.Syntax.Code">#8B3A10</Color>
+    <Color x:Key="Light.Syntax.CodeBg">#F2EBE3</Color>
+    <Color x:Key="Light.Syntax.Link">#C0622A</Color>
+    <Color x:Key="Light.Syntax.Quote">#7A7268</Color>
+    <Color x:Key="Light.Syntax.QuoteBorder">#C0622A</Color>
+    <Color x:Key="Light.Syntax.Marker">#D4A855</Color>
+
+    <Color x:Key="Light.Status.Success">#4A7C59</Color>
+    <Color x:Key="Light.Status.Warning">#C9901E</Color>
+    <Color x:Key="Light.Status.Error">#B83232</Color>
+    <Color x:Key="Light.Status.Info">#2E6B9E</Color>
+
+    <!-- ── DARK ─────────────────────────────────────────────────── -->
+    <Color x:Key="Dark.Background.Base">#141210</Color>
+    <Color x:Key="Dark.Background.Surface">#1C1916</Color>
+    <Color x:Key="Dark.Background.Elevated">#231F1B</Color>
+    <Color x:Key="Dark.Background.Overlay">#2A2520</Color>
+    <Color x:Key="Dark.Background.Sidebar">#181512</Color>
+    <Color x:Key="Dark.Background.Hover">#2E2924</Color>
+    <Color x:Key="Dark.Background.Active">#36302A</Color>
+
+    <Color x:Key="Dark.Text.Primary">#F0EBE3</Color>
+    <Color x:Key="Dark.Text.Secondary">#B8AFA4</Color>
+    <Color x:Key="Dark.Text.Tertiary">#7A7068</Color>
+    <Color x:Key="Dark.Text.Placeholder">#524C46</Color>
+    <Color x:Key="Dark.Text.Inverse">#141210</Color>
+
+    <Color x:Key="Dark.Accent.Primary">#E07A3E</Color>
+    <Color x:Key="Dark.Accent.Secondary">#F2A96E</Color>
+    <Color x:Key="Dark.Accent.Tertiary">#F5C99A</Color>
+    <Color x:Key="Dark.Accent.Muted">#3D2416</Color>
+
+    <Color x:Key="Dark.Border.Default">#332E28</Color>
+    <Color x:Key="Dark.Border.Strong">#4A4540</Color>
+    <Color x:Key="Dark.Border.Focus">#D09166</Color>
+    <Color x:Key="Dark.Border.Separator">#2A2520</Color>
+
+    <Color x:Key="Dark.Syntax.Heading">#F0EBE3</Color>
+    <Color x:Key="Dark.Syntax.Bold">#E4DDD4</Color>
+    <Color x:Key="Dark.Syntax.Italic">#B8AFA4</Color>
+    <Color x:Key="Dark.Syntax.Code">#F2A96E</Color>
+    <Color x:Key="Dark.Syntax.CodeBg">#261D15</Color>
+    <Color x:Key="Dark.Syntax.Link">#E07A3E</Color>
+    <Color x:Key="Dark.Syntax.Quote">#8A8078</Color>
+    <Color x:Key="Dark.Syntax.QuoteBorder">#E07A3E</Color>
+    <Color x:Key="Dark.Syntax.Marker">#C9901E</Color>
+
+    <Color x:Key="Dark.Status.Success">#5C9E70</Color>
+    <Color x:Key="Dark.Status.Warning">#D4A030</Color>
+    <Color x:Key="Dark.Status.Error">#D45050</Color>
+    <Color x:Key="Dark.Status.Info">#4A90C0</Color>
+
+</ResourceDictionary>
