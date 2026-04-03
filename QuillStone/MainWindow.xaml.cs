@@ -212,6 +212,13 @@ public partial class MainWindow : Window
         RefreshSidebar();
     }
 
+    private async void SidebarHint_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
+        UpdateWindowTitle();
+        RefreshSidebar();
+    }
+
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
     {
         await _menuHandler.SaveDocumentAsync();

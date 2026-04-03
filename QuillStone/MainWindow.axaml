@@ -196,11 +196,14 @@
 
                             <TextBlock x:Name="SidebarNoProjectHint"
                                        DockPanel.Dock="Top"
-                                       Text="Open a folder or a file to get started."
+                                       Text="Open a folder or a file"
                                        Classes="SidebarItem"
                                        Margin="16,8,12,0"
                                        IsVisible="True"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                                       Cursor="Hand"
+                                       TextDecorations="Underline"
+                                       Foreground="{DynamicResource Brush.Accent.Primary}"
+                                       Tapped="SidebarHint_Tapped"/>
 
                             <StackPanel x:Name="SidebarOpenSection"
                                         DockPanel.Dock="Top"
