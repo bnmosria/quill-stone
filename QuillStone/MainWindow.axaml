@@ -68,6 +68,9 @@
                         <Separator />
                         <MenuItem Header="E_xit" Click="MenuExit_Click" />
                     </MenuItem>
+                    <MenuItem Header="_View">
+                        <MenuItem Header="Toggle _Theme" HotKey="Ctrl+Shift+T" Click="MenuToggleTheme_Click" />
+                    </MenuItem>
                 </Menu>
 
                 <Border DockPanel.Dock="Top"
