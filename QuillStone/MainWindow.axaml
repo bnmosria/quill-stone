@@ -2,9 +2,11 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Name="RootWindow"
-        Title="QuillStone" Height="600" Width="900"
-        MinWidth="480" MinHeight="320"
+        Title="QuillStone" Height="680" Width="960"
+        MinWidth="480" MinHeight="360"
+        WindowStartupLocation="CenterScreen"
         Closing="Window_Closing"
+        Icon="avares://QuillStone/Assets/Icons/icon.png"
         Background="{DynamicResource Brush.Background.Base}">
 
     <DockPanel>
@@ -71,13 +73,16 @@
                     <MenuItem Header="_View">
                         <MenuItem Header="Toggle _Theme" HotKey="Ctrl+Shift+T" Click="MenuToggleTheme_Click" />
                     </MenuItem>
+                    <MenuItem Header="_Help">
+                        <MenuItem Header="_About QuillStone..." Click="MenuAbout_Click" />
+                    </MenuItem>
                 </Menu>
 
                 <Border DockPanel.Dock="Top"
                         Background="{DynamicResource Brush.Background.Overlay}"
                         BorderBrush="{DynamicResource Brush.Border.Separator}"
                         BorderThickness="0,1,0,1"
-                        Padding="16,10,14,10">
+                        Padding="16,10,16,10">
                     <StackPanel x:Name="FormattingToolbar"
                                 Orientation="Horizontal"
                                 Spacing="2"
