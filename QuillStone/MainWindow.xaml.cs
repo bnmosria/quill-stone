@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private readonly IWindowLifecycleManager _lifecycleManager;
     private readonly IProjectService _projectService;
     private readonly IWindowDialogService _dialogService;
+    private readonly IAppSettingsService _settingsService;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
@@ -33,7 +34,8 @@ public partial class MainWindow : Window
             new MarkdownFileService(),
             new WindowDialogService(),
             new MarkdownFormatter(),
-            new ProjectService())
+            new ProjectService(),
+            new AppSettingsService())
     {
     }
 
@@ -42,7 +44,8 @@ public partial class MainWindow : Window
         IMarkdownFileService fileService,
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter,
-        IProjectService projectService)
+        IProjectService projectService,
+        IAppSettingsService settingsService)
     {
         InitializeComponent();
         ConfigureWindowChromeForPlatform();
@@ -62,12 +65,15 @@ public partial class MainWindow : Window
         _lifecycleManager = lifecycleManager;
         _projectService = projectService;
         _dialogService = dialogService;
+        _settingsService = settingsService;
 
         ProjectTree.ItemsSource = _projectRoots;
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
         UpdateMaximizeButtonTooltip();
+
+        Loaded += async (_, _) => await InitializeSettingsAsync();
     }
 
     // ── Editor events ────────────────────────────────────────────────────────
@@ -226,6 +232,7 @@ public partial class MainWindow : Window
         if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
             return;
 
+        await RecordCurrentProjectAndSaveAsync();
         RefreshSidebar();
         UpdateWindowTitle();
     }
@@ -251,6 +258,7 @@ public partial class MainWindow : Window
         if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
             return;
 
+        await RecordCurrentProjectAndSaveAsync();
         RefreshSidebar();
         UpdateWindowTitle();
     }
@@ -259,6 +267,8 @@ public partial class MainWindow : Window
     {
         if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService)))
             return;
+
+        await RecordCurrentProjectAndSaveAsync();
 
         RefreshSidebar();
         UpdateWindowTitle();
@@ -658,6 +668,92 @@ public partial class MainWindow : Window
         });
 
         return true;
+    }
+
+    private async Task RecordCurrentProjectAndSaveAsync()
+    {
+        if (_projectService.CurrentProject is not { } project)
+            return;
+
+        _settingsService.RecordProject(project.ProjectName, project.RootPath);
+        try { await _settingsService.SaveAsync(); } catch { /* settings save failures are non-fatal */ }
+        PopulateRecentProjectsMenu();
+    }
+
+    private async Task InitializeSettingsAsync()
+    {
+        await _settingsService.LoadAsync();
+        PopulateRecentProjectsMenu();
+        await TryRestoreLastProjectAsync();
+    }
+
+    private async Task TryRestoreLastProjectAsync()
+    {
+        var path = _settingsService.Settings.LastOpenedProjectPath;
+        if (path is null || !Directory.Exists(path))
+            return;
+
+        string name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? path;
+        _projectService.RestoreProject(name, path);
+
+        await RunWithEditorUpdateGuardAsync(() =>
+        {
+            _documentService.NewDocument();
+            _editorService.SetEditorText(string.Empty);
+            _editorService.SetCaretIndex(0);
+            _editorService.UpdateSelection();
+            return Task.CompletedTask;
+        });
+
+        RefreshSidebar();
+        UpdateWindowTitle();
+    }
+
+    private void PopulateRecentProjectsMenu()
+    {
+        RecentProjectsMenuItem.Items.Clear();
+
+        var recent = _settingsService.Settings.RecentProjects;
+        if (recent.Count == 0)
+        {
+            RecentProjectsMenuItem.Items.Add(new MenuItem
+            {
+                Header = "(No recent projects)",
+                IsEnabled = false,
+            });
+            return;
+        }
+
+        foreach (var project in recent)
+        {
+            var capturedProject = project;
+            var item = new MenuItem { Header = project.Name };
+            item.Click += async (_, _) =>
+            {
+                if (!await TrySwitchProjectAsync(async () =>
+                {
+                    if (!Directory.Exists(capturedProject.Path))
+                    {
+                        await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                            $"The project folder no longer exists:\n{capturedProject.Path}");
+                        _settingsService.Settings.RecentProjects.RemoveAll(p =>
+                            string.Equals(p.Path, capturedProject.Path, StringComparison.OrdinalIgnoreCase));
+                        try { await _settingsService.SaveAsync(); } catch { /* non-fatal */ }
+                        PopulateRecentProjectsMenu();
+                        return false;
+                    }
+
+                    _projectService.RestoreProject(capturedProject.Name, capturedProject.Path);
+                    return true;
+                }))
+                    return;
+
+                await RecordCurrentProjectAndSaveAsync();
+                RefreshSidebar();
+                UpdateWindowTitle();
+            };
+            RecentProjectsMenuItem.Items.Add(item);
+        }
     }
 
     private void UpdateWindowTitle()

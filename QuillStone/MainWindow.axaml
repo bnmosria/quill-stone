@@ -77,6 +77,8 @@
                     <MenuItem Header="_Project">
                         <MenuItem Header="Open _Folder..." Click="MenuOpenFolder_Click" />
                         <MenuItem Header="_New Project..." Click="MenuNewProject_Click" />
+                        <Separator />
+                        <MenuItem x:Name="RecentProjectsMenuItem" Header="_Recent Projects" />
                     </MenuItem>
                     <MenuItem Header="_View">
                         <MenuItem Header="Toggle _Theme" HotKey="Ctrl+Shift+T" Click="MenuToggleTheme_Click" />
