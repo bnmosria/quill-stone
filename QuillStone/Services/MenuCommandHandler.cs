@@ -95,7 +95,7 @@ public sealed class MenuCommandHandler : IMenuCommandHandler
         {
             file = await _owner.StorageProvider.TryGetFileFromPathAsync(new Uri(path));
         }
-        catch (Exception) { }
+        catch (UriFormatException) { }
 
         if (file is null)
         {

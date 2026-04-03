@@ -57,8 +57,14 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
                 Children.Add(new FileNodeViewModel(file.Name, file.FullName));
             }
         }
-        catch (UnauthorizedAccessException) { }
-        catch (IOException) { }
+        catch (UnauthorizedAccessException)
+        {
+            // Access-denied folders appear empty in the tree — standard file-explorer behaviour.
+        }
+        catch (IOException)
+        {
+            // Broken symlinks or I/O errors are skipped; the folder appears empty.
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
