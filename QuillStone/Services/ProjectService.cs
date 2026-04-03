@@ -29,29 +29,52 @@ public sealed class ProjectService : IProjectService
 
     public async Task NewProjectAsync(Window owner, IWindowDialogService dialogService)
     {
+        string? name = await dialogService.ShowInputDialogAsync(
+            owner,
+            AppName,
+            "Enter a name for the new project:",
+            "MyProject");
+
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
         var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select Project Folder",
+            Title = "Select where to create the project",
             AllowMultiple = false
         });
 
         if (folders.Count == 0)
             return;
 
-        var folder = folders[0];
-        string? localPath = folder.TryGetLocalPath();
-        string defaultName = DeriveFolderName(localPath) ?? folder.Name;
+        var parentFolder = folders[0];
+        string? parentPath = parentFolder.TryGetLocalPath();
 
-        string? name = await dialogService.ShowInputDialogAsync(
-            owner,
-            AppName,
-            "Enter a name for this project:",
-            defaultName);
-
-        if (string.IsNullOrWhiteSpace(name))
+        if (parentPath is null)
+        {
+            await dialogService.ShowMessageDialogAsync(
+                owner,
+                AppName,
+                "The selected location is not accessible. Please choose a local folder.");
             return;
+        }
 
-        CurrentProject = new ProjectState(name.Trim(), localPath ?? folder.Name);
+        string projectPath = Path.Combine(parentPath, name.Trim());
+
+        try
+        {
+            Directory.CreateDirectory(projectPath);
+        }
+        catch (Exception ex)
+        {
+            await dialogService.ShowMessageDialogAsync(
+                owner,
+                AppName,
+                $"Could not create project folder. Check permissions and try again.\n\nDetails: {ex.Message}");
+            return;
+        }
+
+        CurrentProject = new ProjectState(name.Trim(), projectPath);
     }
 
     private static string? DeriveFolderName(string? localPath)
