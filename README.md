@@ -96,3 +96,10 @@ Main app artifact names:
 QuillStone uses Avalonia UI instead of WPF, so it runs without modification on both Windows and macOS. There are no
 Windows-only dependencies; native file open/save dialogs and storage APIs are provided by Avalonia's cross-platform
 `StorageProvider`.
+
+## Theme
+
+QuillStone ships the **Vellichor** design system — a warm, editorial theme with light and dark variants, embedded
+fonts (Outfit, JetBrains Mono, Lora), and a full semantic token set.
+
+See [docs/THEME.md](docs/THEME.md) for the token reference, control classes, and theming guide.

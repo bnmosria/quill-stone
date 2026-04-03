@@ -45,7 +45,7 @@ public static class ThemeManager
         var themePath = variant == AppThemeVariant.Dark ? DarkPath : LightPath;
         var themeUri  = new Uri(BaseUri + themePath);
         _activeTheme  = new ResourceInclude(themeUri) { Source = themeUri };
-        resources.MergedDictionaries.Insert(0, _activeTheme);
+        resources.MergedDictionaries.Add(_activeTheme);
 
         Current = variant;
 

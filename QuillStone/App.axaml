@@ -13,5 +13,13 @@
         <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml"/>
     </Application.Styles>
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://QuillStone/Styles/Theme/LightTheme.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
 </Application>
 

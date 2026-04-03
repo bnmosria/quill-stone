@@ -28,8 +28,8 @@
                 <TextBlock Text="{Binding Title, ElementName=RootWindow}"
                            VerticalAlignment="Center"
                            Margin="16,0,0,0"
-                           FontFamily="{StaticResource Font.UI}"
-                           FontSize="{StaticResource FontSize.Base}"
+                           FontFamily="{DynamicResource Font.UI}"
+                           FontSize="{DynamicResource FontSize.Base}"
                            Foreground="{DynamicResource Brush.Text.Secondary}" />
             </Border>
 
@@ -82,64 +82,75 @@
                                 Orientation="Horizontal"
                                 Spacing="2"
                                 VerticalAlignment="Center">
-                    <Button Content="H" FontWeight="Bold"
-                            ToolTip.Tip="Heading 1 (Ctrl+H)"
-                            AutomationProperties.Name="Heading 1"
-                            Click="ToolbarH1_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="B" FontWeight="Bold"
-                            ToolTip.Tip="Bold (Ctrl+B)"
-                            AutomationProperties.Name="Bold"
-                            Click="ToolbarBold_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="I" FontStyle="Italic"
-                            ToolTip.Tip="Italic (Ctrl+I)"
-                            AutomationProperties.Name="Italic"
-                            Click="ToolbarItalic_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="`" FontFamily="{StaticResource Font.Editor}"
-                            ToolTip.Tip="Inline Code"
-                            AutomationProperties.Name="Inline Code"
-                            Click="ToolbarInlineCode_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="[]"
-                            ToolTip.Tip="Insert Link (Ctrl+K)"
-                            AutomationProperties.Name="Insert Link"
-                            Click="ToolbarLink_Click"
-                            Classes="Toolbar Ghost" />
-                    <Separator Classes="ToolbarSeparator" />
-                    <Button Content="H2" FontWeight="Bold"
-                            ToolTip.Tip="Heading 2"
-                            AutomationProperties.Name="Heading 2"
-                            Click="ToolbarH2_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="H3" FontWeight="Bold"
-                            ToolTip.Tip="Heading 3"
-                            AutomationProperties.Name="Heading 3"
-                            Click="ToolbarH3_Click"
-                            Classes="Toolbar Ghost" />
-                    <Separator Classes="ToolbarSeparator" />
-                    <Button Content="-"
-                            ToolTip.Tip="Bullet List"
-                            AutomationProperties.Name="Bullet List"
-                            Click="ToolbarBulletList_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="1."
-                            ToolTip.Tip="Numbered List"
-                            AutomationProperties.Name="Numbered List"
-                            Click="ToolbarNumberedList_Click"
-                            Classes="Toolbar Ghost" />
-                    <Separator Classes="ToolbarSeparator" />
-                    <Button Content="&quot;"
-                            ToolTip.Tip="Blockquote"
-                            AutomationProperties.Name="Blockquote"
-                            Click="ToolbarBlockquote_Click"
-                            Classes="Toolbar Ghost" />
-                    <Button Content="[ ]"
-                            ToolTip.Tip="Checkbox"
-                            AutomationProperties.Name="Checkbox"
-                            Click="ToolbarCheckbox_Click"
-                            Classes="Toolbar Ghost" />
+                        <Button ToolTip.Tip="Heading 1 (Ctrl+H)"
+                                AutomationProperties.Name="Heading 1"
+                                Click="ToolbarH1_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Heading1}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Heading 2"
+                                AutomationProperties.Name="Heading 2"
+                                Click="ToolbarH2_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Heading2}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Heading 3"
+                                AutomationProperties.Name="Heading 3"
+                                Click="ToolbarH3_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Heading3}" Width="14" Height="14"/>
+                        </Button>
+                        <Separator Classes="ToolbarSeparator" />
+                        <Button ToolTip.Tip="Bold (Ctrl+B)"
+                                AutomationProperties.Name="Bold"
+                                Click="ToolbarBold_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Bold}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Italic (Ctrl+I)"
+                                AutomationProperties.Name="Italic"
+                                Click="ToolbarItalic_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Italic}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Inline Code"
+                                AutomationProperties.Name="Inline Code"
+                                Click="ToolbarInlineCode_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Code}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Insert Link (Ctrl+K)"
+                                AutomationProperties.Name="Insert Link"
+                                Click="ToolbarLink_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Link}" Width="14" Height="14"/>
+                        </Button>
+                        <Separator Classes="ToolbarSeparator" />
+                        <Button ToolTip.Tip="Bullet List"
+                                AutomationProperties.Name="Bullet List"
+                                Click="ToolbarBulletList_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.BulletList}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Numbered List"
+                                AutomationProperties.Name="Numbered List"
+                                Click="ToolbarNumberedList_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.NumberedList}" Width="14" Height="14"/>
+                        </Button>
+                        <Separator Classes="ToolbarSeparator" />
+                        <Button ToolTip.Tip="Blockquote"
+                                AutomationProperties.Name="Blockquote"
+                                Click="ToolbarBlockquote_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Blockquote}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Checkbox"
+                                AutomationProperties.Name="Checkbox"
+                                Click="ToolbarCheckbox_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Checkbox}" Width="14" Height="14"/>
+                        </Button>
                     </StackPanel>
                 </Border>
 
