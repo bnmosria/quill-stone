@@ -202,24 +202,28 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private async void MenuOpen_Click(object? sender, RoutedEventArgs e)
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
     {
         await _menuHandler.SaveDocumentAsync();
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private async void MenuSaveAs_Click(object? sender, RoutedEventArgs e)
     {
         await _menuHandler.SaveDocumentAsAsync();
         UpdateWindowTitle();
+        RefreshSidebar();
     }
 
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
@@ -227,14 +231,14 @@ public partial class MainWindow : Window
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.OpenFolderAsync(this);
-        RefreshProjectExplorer();
+        RefreshSidebar();
         UpdateWindowTitle();
     }
 
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
         await _projectService.NewProjectAsync(this, _dialogService);
-        RefreshProjectExplorer();
+        RefreshSidebar();
         UpdateWindowTitle();
     }
 
@@ -276,23 +280,34 @@ public partial class MainWindow : Window
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private void RefreshProjectExplorer()
+    private void RefreshSidebar()
     {
         _projectRoots.Clear();
 
-        if (_projectService.CurrentProject is not { } project)
+        if (_projectService.CurrentProject is { } project)
         {
-            SidebarNoProjectHint.IsVisible = true;
-            ProjectTree.IsVisible = false;
+            SidebarNoProjectHint.IsVisible = false;
+            SidebarOpenSection.IsVisible = false;
+            ProjectTree.IsVisible = true;
+
+            var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
+            root.IsExpanded = true;
+            _projectRoots.Add(root);
             return;
         }
 
-        SidebarNoProjectHint.IsVisible = false;
-        ProjectTree.IsVisible = true;
+        ProjectTree.IsVisible = false;
 
-        var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
-        root.IsExpanded = true;
-        _projectRoots.Add(root);
+        if (_documentService.CurrentDocument is not null)
+        {
+            SidebarNoProjectHint.IsVisible = false;
+            SidebarOpenSection.IsVisible = true;
+            CurrentFileLabel.Text = _documentService.DisplayName;
+            return;
+        }
+
+        SidebarNoProjectHint.IsVisible = true;
+        SidebarOpenSection.IsVisible = false;
     }
 
     private async void ProjectTree_SelectionChanged(object? sender, SelectionChangedEventArgs e)

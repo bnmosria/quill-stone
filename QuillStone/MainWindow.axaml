@@ -196,11 +196,28 @@
 
                             <TextBlock x:Name="SidebarNoProjectHint"
                                        DockPanel.Dock="Top"
-                                       Text="Open a folder to explore files."
+                                       Text="Open a folder or a file to get started."
                                        Classes="SidebarItem"
                                        Margin="16,8,12,0"
                                        IsVisible="True"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+
+                            <StackPanel x:Name="SidebarOpenSection"
+                                        DockPanel.Dock="Top"
+                                        IsVisible="False"
+                                        Margin="16,8,12,0"
+                                        Spacing="4">
+                                <TextBlock Text="OPEN"
+                                           Classes="SidebarSectionTitle"
+                                           Margin="0"/>
+                                <Border Classes="SidebarActiveItem"
+                                        Background="{DynamicResource Brush.Accent.Muted}">
+                                    <TextBlock x:Name="CurrentFileLabel"
+                                               Classes="SidebarActiveItemText"
+                                               Foreground="{DynamicResource Brush.Accent.Primary}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Border>
+                            </StackPanel>
 
                             <TreeView x:Name="ProjectTree"
                                       Classes="SidebarTree"
