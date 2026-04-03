@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  DARK THEME VARIANT                                         -->
+    <!--  Include this in your App.axaml when dark mode is active    -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://QuillStone/Styles/Theme/EditorTheme.axaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Re-export dark colors as semantic tokens -->
+    <SolidColorBrush x:Key="Brush.Background.Base"     Color="{StaticResource Dark.Background.Base}"/>
+    <SolidColorBrush x:Key="Brush.Background.Surface"  Color="{StaticResource Dark.Background.Surface}"/>
+    <SolidColorBrush x:Key="Brush.Background.Elevated" Color="{StaticResource Dark.Background.Elevated}"/>
+    <SolidColorBrush x:Key="Brush.Background.Overlay"  Color="{StaticResource Dark.Background.Overlay}"/>
+    <SolidColorBrush x:Key="Brush.Background.Sidebar"  Color="{StaticResource Dark.Background.Sidebar}"/>
+    <SolidColorBrush x:Key="Brush.Background.Hover"    Color="{StaticResource Dark.Background.Hover}"/>
+    <SolidColorBrush x:Key="Brush.Background.Active"   Color="{StaticResource Dark.Background.Active}"/>
+
+    <SolidColorBrush x:Key="Brush.Text.Primary"        Color="{StaticResource Dark.Text.Primary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Secondary"      Color="{StaticResource Dark.Text.Secondary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Tertiary"       Color="{StaticResource Dark.Text.Tertiary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Placeholder"    Color="{StaticResource Dark.Text.Placeholder}"/>
+    <SolidColorBrush x:Key="Brush.Text.Inverse"        Color="{StaticResource Dark.Text.Inverse}"/>
+
+    <SolidColorBrush x:Key="Brush.Accent.Primary"      Color="{StaticResource Dark.Accent.Primary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Secondary"    Color="{StaticResource Dark.Accent.Secondary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Tertiary"     Color="{StaticResource Dark.Accent.Tertiary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Muted"        Color="{StaticResource Dark.Accent.Muted}"/>
+
+    <SolidColorBrush x:Key="Brush.Border.Default"      Color="{StaticResource Dark.Border.Default}"/>
+    <SolidColorBrush x:Key="Brush.Border.Strong"       Color="{StaticResource Dark.Border.Strong}"/>
+    <SolidColorBrush x:Key="Brush.Border.Focus"        Color="{StaticResource Dark.Border.Focus}"/>
+    <SolidColorBrush x:Key="Brush.Border.Separator"    Color="{StaticResource Dark.Border.Separator}"/>
+
+    <SolidColorBrush x:Key="Brush.Syntax.Heading"     Color="{StaticResource Dark.Syntax.Heading}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Bold"        Color="{StaticResource Dark.Syntax.Bold}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Italic"      Color="{StaticResource Dark.Syntax.Italic}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Code"        Color="{StaticResource Dark.Syntax.Code}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.CodeBg"      Color="{StaticResource Dark.Syntax.CodeBg}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Link"        Color="{StaticResource Dark.Syntax.Link}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Quote"       Color="{StaticResource Dark.Syntax.Quote}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.QuoteBorder" Color="{StaticResource Dark.Syntax.QuoteBorder}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Marker"      Color="{StaticResource Dark.Syntax.Marker}"/>
+
+    <SolidColorBrush x:Key="Brush.Status.Success"     Color="{StaticResource Dark.Status.Success}"/>
+    <SolidColorBrush x:Key="Brush.Status.Warning"     Color="{StaticResource Dark.Status.Warning}"/>
+    <SolidColorBrush x:Key="Brush.Status.Error"       Color="{StaticResource Dark.Status.Error}"/>
+    <SolidColorBrush x:Key="Brush.Status.Info"        Color="{StaticResource Dark.Status.Info}"/>
+
+</ResourceDictionary>

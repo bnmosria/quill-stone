@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  LIGHT THEME VARIANT                                        -->
+    <!--  Include this in your App.axaml when light mode is active   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://QuillStone/Styles/Theme/EditorTheme.axaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Re-export light colors as semantic tokens -->
+    <SolidColorBrush x:Key="Brush.Background.Base"     Color="{StaticResource Light.Background.Base}"/>
+    <SolidColorBrush x:Key="Brush.Background.Surface"  Color="{StaticResource Light.Background.Surface}"/>
+    <SolidColorBrush x:Key="Brush.Background.Elevated" Color="{StaticResource Light.Background.Elevated}"/>
+    <SolidColorBrush x:Key="Brush.Background.Overlay"  Color="{StaticResource Light.Background.Overlay}"/>
+    <SolidColorBrush x:Key="Brush.Background.Sidebar"  Color="{StaticResource Light.Background.Sidebar}"/>
+    <SolidColorBrush x:Key="Brush.Background.Hover"    Color="{StaticResource Light.Background.Hover}"/>
+    <SolidColorBrush x:Key="Brush.Background.Active"   Color="{StaticResource Light.Background.Active}"/>
+
+    <SolidColorBrush x:Key="Brush.Text.Primary"        Color="{StaticResource Light.Text.Primary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Secondary"      Color="{StaticResource Light.Text.Secondary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Tertiary"       Color="{StaticResource Light.Text.Tertiary}"/>
+    <SolidColorBrush x:Key="Brush.Text.Placeholder"    Color="{StaticResource Light.Text.Placeholder}"/>
+    <SolidColorBrush x:Key="Brush.Text.Inverse"        Color="{StaticResource Light.Text.Inverse}"/>
+
+    <SolidColorBrush x:Key="Brush.Accent.Primary"      Color="{StaticResource Light.Accent.Primary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Secondary"    Color="{StaticResource Light.Accent.Secondary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Tertiary"     Color="{StaticResource Light.Accent.Tertiary}"/>
+    <SolidColorBrush x:Key="Brush.Accent.Muted"        Color="{StaticResource Light.Accent.Muted}"/>
+
+    <SolidColorBrush x:Key="Brush.Border.Default"      Color="{StaticResource Light.Border.Default}"/>
+    <SolidColorBrush x:Key="Brush.Border.Strong"       Color="{StaticResource Light.Border.Strong}"/>
+    <SolidColorBrush x:Key="Brush.Border.Focus"        Color="{StaticResource Light.Border.Focus}"/>
+    <SolidColorBrush x:Key="Brush.Border.Separator"    Color="{StaticResource Light.Border.Separator}"/>
+
+    <SolidColorBrush x:Key="Brush.Syntax.Heading"     Color="{StaticResource Light.Syntax.Heading}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Bold"        Color="{StaticResource Light.Syntax.Bold}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Italic"      Color="{StaticResource Light.Syntax.Italic}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Code"        Color="{StaticResource Light.Syntax.Code}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.CodeBg"      Color="{StaticResource Light.Syntax.CodeBg}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Link"        Color="{StaticResource Light.Syntax.Link}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Quote"       Color="{StaticResource Light.Syntax.Quote}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.QuoteBorder" Color="{StaticResource Light.Syntax.QuoteBorder}"/>
+    <SolidColorBrush x:Key="Brush.Syntax.Marker"      Color="{StaticResource Light.Syntax.Marker}"/>
+
+    <SolidColorBrush x:Key="Brush.Status.Success"     Color="{StaticResource Light.Status.Success}"/>
+    <SolidColorBrush x:Key="Brush.Status.Warning"     Color="{StaticResource Light.Status.Warning}"/>
+    <SolidColorBrush x:Key="Brush.Status.Error"       Color="{StaticResource Light.Status.Error}"/>
+    <SolidColorBrush x:Key="Brush.Status.Info"        Color="{StaticResource Light.Status.Info}"/>
+
+</ResourceDictionary>

@@ -5,14 +5,16 @@
         Title="QuillStone" Height="600" Width="900"
         MinWidth="480" MinHeight="320"
         Closing="Window_Closing"
-        Background="#CCF0F3F5">
+        Background="{DynamicResource Brush.Background.Base}">
 
     <DockPanel>
 
         <!-- Windows custom title bar; hidden on platforms that use native window chrome -->
         <Grid x:Name="TitleBar"
               DockPanel.Dock="Top"
-              Height="40">
+              Height="44"
+              Background="{DynamicResource Brush.Background.Surface}"
+              Margin="0,0,0,1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -25,9 +27,10 @@
                     DoubleTapped="TitleBar_DoubleTapped">
                 <TextBlock Text="{Binding Title, ElementName=RootWindow}"
                            VerticalAlignment="Center"
-                           Margin="14,0,0,0"
-                           FontSize="12"
-                           Opacity="0.72" />
+                           Margin="16,0,0,0"
+                           FontFamily="{StaticResource Font.UI}"
+                           FontSize="{StaticResource FontSize.Base}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}" />
             </Border>
 
             <!-- Right-aligned caption buttons -->
@@ -52,7 +55,7 @@
         </Grid>
 
         <!-- Opaque content area so editor and toolbars are fully readable -->
-        <Border Background="#F0F3F5"
+        <Border Background="{DynamicResource Brush.Background.Surface}"
                 CornerRadius="0">
             <DockPanel>
 
@@ -67,74 +70,136 @@
                     </MenuItem>
                 </Menu>
 
-                <WrapPanel x:Name="FormattingToolbar"
-                           DockPanel.Dock="Top"
-                           Orientation="Horizontal"
-                           Background="#E8EAEC"
-                           Margin="0"
-                           HorizontalAlignment="Stretch">
-                    <Button Content="B" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Bold (Ctrl+B)"
-                            AutomationProperties.Name="Bold"
-                            Focusable="False"
-                            Click="ToolbarBold_Click" Margin="2" />
-                    <Button Content="I" FontStyle="Italic" MinWidth="36" ToolTip.Tip="Italic (Ctrl+I)"
-                            AutomationProperties.Name="Italic"
-                            Focusable="False"
-                            Click="ToolbarItalic_Click" Margin="2" />
-                    <Button Content="` `" FontFamily="Consolas, Courier New, monospace" MinWidth="36" ToolTip.Tip="Inline Code"
-                            AutomationProperties.Name="Inline Code"
-                            Focusable="False"
-                            Click="ToolbarInlineCode_Click" Margin="2" />
-                    <Button Content="🔗" MinWidth="36" ToolTip.Tip="Insert Link (Ctrl+K)"
-                            AutomationProperties.Name="Insert Link"
-                            Focusable="False"
-                            Click="ToolbarLink_Click" Margin="2" />
-                    <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
-                    <Button Content="H1" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 1 (Ctrl+H)"
+                <Border DockPanel.Dock="Top"
+                        Background="{DynamicResource Brush.Background.Overlay}"
+                        BorderBrush="{DynamicResource Brush.Border.Separator}"
+                        BorderThickness="0,1,0,1"
+                        Padding="16,10,14,10">
+                    <WrapPanel x:Name="FormattingToolbar"
+                               Orientation="Horizontal"
+                               HorizontalAlignment="Stretch"
+                               ItemHeight="36"
+                               ItemWidth="52">
+                    <Button Content="H" FontWeight="Bold"
+                            ToolTip.Tip="Heading 1 (Ctrl+H)"
                             AutomationProperties.Name="Heading 1"
-                            Focusable="False"
-                            Click="ToolbarH1_Click" Margin="2" />
-                    <Button Content="H2" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 2"
+                            Click="ToolbarH1_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="B" FontWeight="Bold"
+                            ToolTip.Tip="Bold (Ctrl+B)"
+                            AutomationProperties.Name="Bold"
+                            Click="ToolbarBold_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="I" FontStyle="Italic"
+                            ToolTip.Tip="Italic (Ctrl+I)"
+                            AutomationProperties.Name="Italic"
+                            Click="ToolbarItalic_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="`" FontFamily="{StaticResource Font.Editor}"
+                            ToolTip.Tip="Inline Code"
+                            AutomationProperties.Name="Inline Code"
+                            Click="ToolbarInlineCode_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="[]"
+                            ToolTip.Tip="Insert Link (Ctrl+K)"
+                            AutomationProperties.Name="Insert Link"
+                            Click="ToolbarLink_Click"
+                            Classes="Toolbar Ghost" />
+                    <Separator Classes="ToolbarSeparator" />
+                    <Button Content="H2" FontWeight="Bold"
+                            ToolTip.Tip="Heading 2"
                             AutomationProperties.Name="Heading 2"
-                            Focusable="False"
-                            Click="ToolbarH2_Click" Margin="2" />
-                    <Button Content="H3" FontWeight="Bold" MinWidth="36" ToolTip.Tip="Heading 3"
+                            Click="ToolbarH2_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="H3" FontWeight="Bold"
+                            ToolTip.Tip="Heading 3"
                             AutomationProperties.Name="Heading 3"
-                            Focusable="False"
-                            Click="ToolbarH3_Click" Margin="2" />
-                    <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
-                    <Button Content="• List" MinWidth="52" ToolTip.Tip="Bullet List"
+                            Click="ToolbarH3_Click"
+                            Classes="Toolbar Ghost" />
+                    <Separator Classes="ToolbarSeparator" />
+                    <Button Content="-"
+                            ToolTip.Tip="Bullet List"
                             AutomationProperties.Name="Bullet List"
-                            Focusable="False"
-                            Click="ToolbarBulletList_Click" Margin="2" />
-                    <Button Content="1. List" MinWidth="52" ToolTip.Tip="Numbered List"
+                            Click="ToolbarBulletList_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="1."
+                            ToolTip.Tip="Numbered List"
                             AutomationProperties.Name="Numbered List"
-                            Focusable="False"
-                            Click="ToolbarNumberedList_Click" Margin="2" />
-                    <Separator Width="1" Height="24" Background="#CCCCCC" Margin="4,2" />
-                    <Button Content="❝" MinWidth="36" ToolTip.Tip="Blockquote"
+                            Click="ToolbarNumberedList_Click"
+                            Classes="Toolbar Ghost" />
+                    <Separator Classes="ToolbarSeparator" />
+                    <Button Content="&quot;"
+                            ToolTip.Tip="Blockquote"
                             AutomationProperties.Name="Blockquote"
-                            Focusable="False"
-                            Click="ToolbarBlockquote_Click" Margin="2" />
-                    <Button Content="☑" MinWidth="36" ToolTip.Tip="Checkbox"
+                            Click="ToolbarBlockquote_Click"
+                            Classes="Toolbar Ghost" />
+                    <Button Content="[ ]"
+                            ToolTip.Tip="Checkbox"
                             AutomationProperties.Name="Checkbox"
-                            Focusable="False"
-                            Click="ToolbarCheckbox_Click" Margin="2" />
-                </WrapPanel>
+                            Click="ToolbarCheckbox_Click"
+                            Classes="Toolbar Ghost" />
+                    </WrapPanel>
+                </Border>
 
-                <TextBox x:Name="Editor"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
-                         TextWrapping="NoWrap"
-                         FontFamily="Consolas, Courier New, monospace"
-                         FontSize="14"
-                         VerticalContentAlignment="Top"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                         Padding="8"
-                         CornerRadius="4"
-                         TextChanged="Editor_TextChanged"
-                         KeyDown="Editor_KeyDown" />
+                <Border DockPanel.Dock="Bottom"
+                        Classes="StatusBar">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Ln 1, Col 1  *  UTF-8  *  Markdown"
+                                   Classes="StatusMetaPrimary"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,1" />
+                        <TextBlock Grid.Column="1"
+                                   Text="247 words  *  1.2 min read"
+                                   Classes="StatusMetaSecondary"
+                                   VerticalAlignment="Center"
+                                   Margin="14,0,0,1" />
+                    </Grid>
+                </Border>
+
+                <Grid ColumnDefinitions="210,*">
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource Brush.Background.Sidebar}"
+                            BorderBrush="{DynamicResource Brush.Border.Separator}"
+                            BorderThickness="0,0,1,0"
+                            Padding="16,16,12,14">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="OPEN"
+                                       Classes="SidebarSectionTitle" />
+                            <Border Classes="SidebarActiveItem"
+                                    Background="{DynamicResource Brush.Accent.Muted}">
+                                <TextBlock Text="README"
+                                           Classes="SidebarActiveItemText"
+                                           Foreground="{DynamicResource Brush.Accent.Primary}" />
+                            </Border>
+                            <TextBlock Text="notes"
+                                       Classes="SidebarItem"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                            <TextBlock Text="CHANGELOG"
+                                       Classes="SidebarItem"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                            <TextBlock Text="RECENT"
+                                       Classes="SidebarSectionTitle"
+                                       Margin="0,16,0,0" />
+                            <TextBlock Text="guide"
+                                       Classes="SidebarItem"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBlock Text="blog"
+                                       Classes="SidebarItem"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBox x:Name="Editor"
+                             Grid.Column="1"
+                             Classes="CodeEditor"
+                             AcceptsReturn="True"
+                             AcceptsTab="True"
+                             VerticalContentAlignment="Top"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             TextChanged="Editor_TextChanged"
+                             KeyDown="Editor_KeyDown" />
+                </Grid>
             </DockPanel>
         </Border>
     </DockPanel>

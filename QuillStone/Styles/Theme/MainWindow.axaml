@@ -1,0 +1,519 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MarkdownEditor.ViewModels"
+        x:Class="MarkdownEditor.Views.MainWindow"
+        Title="Vellichor"
+        Width="1280" Height="800"
+        MinWidth="760" MinHeight="500"
+        Background="{DynamicResource Brush.Background.Base}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="0"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  VELLICHOR – MARKDOWN EDITOR                               -->
+    <!--  Root layout: TitleBar / Toolbar / Body / StatusBar        -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Swap between LightTheme.axaml and DarkTheme.axaml at runtime -->
+                <ResourceInclude Source="/Themes/LightTheme.axaml"/>
+                <ResourceInclude Source="/Themes/ControlStyles.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ── CUSTOM TITLEBAR ────────────────────────────────── -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource Brush.Background.Surface}"
+                BorderBrush="{DynamicResource Brush.Border.Separator}"
+                BorderThickness="0,0,0,1"
+                Height="40">
+            <Grid ColumnDefinitions="Auto,*,Auto"
+                  Margin="12,0">
+
+                <!-- App icon + name -->
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <!-- Logo mark -->
+                    <Border Width="22" Height="22"
+                            Background="{DynamicResource Brush.Accent.Primary}"
+                            CornerRadius="6">
+                        <TextBlock Text="V"
+                                   Foreground="White"
+                                   FontFamily="{StaticResource Font.Preview}"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Vellichor"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.SM}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Document name (center) -->
+                <TextBlock Grid.Column="1"
+                           Text="untitled.md"
+                           FontFamily="{StaticResource Font.UI}"
+                           FontSize="{StaticResource FontSize.SM}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                <!-- Window controls -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="4"
+                            VerticalAlignment="Center">
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="New File">
+                        <PathIcon Width="13" Height="13" Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z M15 2V9H22"/>
+                    </Button>
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="Open File">
+                        <PathIcon Width="13" Height="13" Data="M22 19C22 19.5523 21.5523 20 21 20H3C2.44772 20 2 19.5523 2 19V5C2 4.44772 2.44772 4 3 4H9L11 7H21C21.5523 7 22 7.44772 22 8V19Z"/>
+                    </Button>
+                    <Separator Width="1" Height="16" Margin="4,0"/>
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="Toggle Dark Mode"
+                            Name="ThemeToggleButton">
+                        <PathIcon Width="13" Height="13" Data="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+                    </Button>
+                    <Separator Width="1" Height="16" Margin="4,0"/>
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="Minimize">
+                        <PathIcon Width="10" Height="2" Data="M3 12H21"/>
+                    </Button>
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="Maximize">
+                        <PathIcon Width="10" Height="10" Data="M3 3H21V21H3V3Z"/>
+                    </Button>
+                    <Button Classes="Ghost Toolbar" ToolTip.Tip="Close">
+                        <PathIcon Width="10" Height="10" Data="M18 6L6 18M6 6L18 18"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── FORMATTING TOOLBAR ─────────────────────────────── -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource Brush.Background.Overlay}"
+                BorderBrush="{DynamicResource Brush.Border.Separator}"
+                BorderThickness="0,0,0,1"
+                Height="38"
+                Padding="8,0">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="2"
+                        VerticalAlignment="Center">
+
+                <!-- Heading dropdown hint -->
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Heading" Width="52">
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="H" FontFamily="{StaticResource Font.UI}"
+                                   FontWeight="Bold" FontSize="13"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   VerticalAlignment="Center"/>
+                        <PathIcon Width="8" Height="8" Data="M7 10L12 15L17 10"/>
+                    </StackPanel>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="3,0"/>
+
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Bold (Ctrl+B)">
+                    <TextBlock Text="B" FontWeight="Bold" FontSize="13"
+                               FontFamily="{StaticResource Font.UI}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Italic (Ctrl+I)">
+                    <TextBlock Text="I" FontStyle="Italic" FontSize="13"
+                               FontFamily="{StaticResource Font.Preview}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Strikethrough">
+                    <TextBlock Text="S" FontSize="13"
+                               TextDecorations="Strikethrough"
+                               FontFamily="{StaticResource Font.UI}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="3,0"/>
+
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Inline Code">
+                    <PathIcon Width="13" Height="13" Data="M10 20L14 4M17 7L21 11L17 15M7 15L3 11L7 7"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Code Block">
+                    <PathIcon Width="13" Height="13" Data="M4 17L4 7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V17C20 18.1046 19.1046 19 18 19H6C4.89543 19 4 18.1046 4 17Z"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Link">
+                    <PathIcon Width="13" Height="13" Data="M10 13C10.4295 13.5741 10.9774 14.0492 11.6061 14.3929C12.2347 14.7367 12.9291 14.9411 13.6429 14.9923C14.3567 15.0436 15.0737 14.9404 15.7453 14.6898C16.417 14.4392 17.0279 14.047 17.54 13.54L20.54 10.54C21.4508 9.59699 21.9548 8.33397 21.9434 7.02299C21.932 5.71201 21.4061 4.45794 20.4791 3.53087C19.5521 2.6038 18.298 2.07799 16.987 2.0666C15.676 2.0552 14.413 2.55918 13.47 3.46997L11.75 5.17997"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Image">
+                    <PathIcon Width="13" Height="13" Data="M21 15L16 10L5 21M3 21H21V3H3V21ZM8.5 8.5C8.5 9.32843 7.82843 10 7 10C6.17157 10 5.5 9.32843 5.5 8.5C5.5 7.67157 6.17157 7 7 7C7.82843 7 8.5 7.67157 8.5 8.5Z"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="3,0"/>
+
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Bulleted List">
+                    <PathIcon Width="13" Height="13" Data="M8 6H21M8 12H21M8 18H21M3 6H3.01M3 12H3.01M3 18H3.01"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Numbered List">
+                    <PathIcon Width="13" Height="13" Data="M10 6H21M10 12H21M10 18H21M4 6H4.5L3 7.5 M3 11H5V13H3V15H5 M3 17L5 17V18L3 20H5"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Blockquote">
+                    <PathIcon Width="13" Height="13" Data="M3 21C3 21 7 18 7 13V7C7 5.89543 7.89543 5 9 5H10C10 5 10 9 7 13C10 13 10 17 10 17V21H3ZM14 21C14 21 18 18 18 13V7C18 5.89543 18.8954 5 20 5H21C21 5 21 9 18 13C21 13 21 17 21 17V21H14Z"/>
+                </Button>
+                <Button Classes="Toolbar Ghost" ToolTip.Tip="Table">
+                    <PathIcon Width="13" Height="13" Data="M9 3H5C3.89543 3 3 3.89543 3 5V9M9 3H15M9 3V9M15 3H19C20.1046 3 21 3.89543 21 5V9M15 3V9M21 9V15M21 15V19C21 20.1046 20.1046 21 19 21H15M21 15H15M15 21V15M15 21H9M9 21V15M9 21H5C3.89543 21 3 20.1046 3 19V15M9 15H3M3 15V9M3 9H9M9 9H15M9 9V15M15 9H21M15 9V15"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="3,0"/>
+
+                <!-- View mode toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="2" Margin="4,0,0,0">
+                    <Button Classes="Toolbar" Background="{DynamicResource Brush.Background.Active}"
+                            ToolTip.Tip="Edit Mode">
+                        <PathIcon Width="12" Height="12"
+                                  Data="M11 4H4C3.44772 4 3 4.44772 3 5V20C3 20.5523 3.44772 21 4 21H19C19.5523 21 20 20.5523 20 19V12"/>
+                    </Button>
+                    <Button Classes="Toolbar Ghost" ToolTip.Tip="Split View">
+                        <PathIcon Width="12" Height="12"
+                                  Data="M3 4H21V20H3V4ZM12 4V20"/>
+                    </Button>
+                    <Button Classes="Toolbar Ghost" ToolTip.Tip="Preview Mode">
+                        <PathIcon Width="12" Height="12"
+                                  Data="M1 12S5 5 12 5S23 12 23 12 19 19 12 19 1 12 1 12ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Spacer -->
+                <Panel Width="0" HorizontalAlignment="Stretch"/>
+
+                <!-- Right side actions -->
+                <Button Classes="Primary" Padding="12,5" Height="26"
+                        HorizontalAlignment="Right" Margin="0,0,4,0">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <PathIcon Width="11" Height="11" Data="M19 21H5C3.89543 21 3 20.1046 3 19V5C3.89543 4 4.89543 3 6 3H14L21 10V19C21 20.1046 20.1046 21 19 21ZM17 21V13H7V21ZM7 3V8H15"/>
+                        <TextBlock Text="Save" FontFamily="{StaticResource Font.UI}"
+                                   FontSize="{StaticResource FontSize.XS}"
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ── MAIN BODY ───────────────────────────────────────── -->
+        <Grid Grid.Row="2" ColumnDefinitions="220,1,*,1,380">
+
+            <!-- Sidebar -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource Brush.Background.Sidebar}">
+                <Grid RowDefinitions="Auto,*">
+
+                    <!-- Sidebar header -->
+                    <Border Grid.Row="0"
+                            Padding="14,10"
+                            BorderBrush="{DynamicResource Brush.Border.Separator}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="FILES"
+                                       FontFamily="{StaticResource Font.UI}"
+                                       FontSize="{StaticResource FontSize.XS}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       LetterSpacing="1.2"
+                                       VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Classes="Ghost"
+                                    Width="22" Height="22" Padding="4"
+                                    ToolTip.Tip="New File">
+                                <PathIcon Width="10" Height="10"
+                                          Data="M12 4V20M4 12H20"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- File list -->
+                    <ScrollViewer Grid.Row="1" Padding="6,6">
+                        <StackPanel Spacing="0">
+                            <!-- Section: Open Files -->
+                            <TextBlock Text="OPEN"
+                                       Margin="6,4,0,4"
+                                       FontFamily="{StaticResource Font.UI}"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       LetterSpacing="1.5"/>
+                            <ListBoxItem Classes="FileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <PathIcon Width="11" Height="11" Foreground="{DynamicResource Brush.Accent.Primary}"
+                                              Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z"/>
+                                    <TextBlock Text="README.md" FontFamily="{StaticResource Font.UI}" FontSize="12"
+                                               Foreground="{DynamicResource Brush.Accent.Primary}"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Classes="FileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <PathIcon Width="11" Height="11"
+                                              Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z"/>
+                                    <TextBlock Text="notes.md" FontFamily="{StaticResource Font.UI}" FontSize="12"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Classes="FileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <PathIcon Width="11" Height="11"
+                                              Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z"/>
+                                    <TextBlock Text="CHANGELOG.md" FontFamily="{StaticResource Font.UI}" FontSize="12"/>
+                                </StackPanel>
+                            </ListBoxItem>
+
+                            <!-- Section: Recent -->
+                            <TextBlock Text="RECENT"
+                                       Margin="6,12,0,4"
+                                       FontFamily="{StaticResource Font.UI}"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       LetterSpacing="1.5"/>
+                            <ListBoxItem Classes="FileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <PathIcon Width="11" Height="11" Opacity="0.5"
+                                              Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z"/>
+                                    <TextBlock Text="docs/guide.md" FontFamily="{StaticResource Font.UI}" FontSize="12" Opacity="0.7"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Classes="FileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <PathIcon Width="11" Height="11" Opacity="0.5"
+                                              Data="M9 2H3C2.44772 2 2 2.44772 2 3V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V9L15 2H9Z"/>
+                                    <TextBlock Text="blog-post.md" FontFamily="{StaticResource Font.UI}" FontSize="12" Opacity="0.7"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Vertical divider -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource Brush.Border.Separator}"/>
+
+            <!-- ── EDITOR PANE ──────────────────────────────────── -->
+            <Grid Grid.Column="2" RowDefinitions="*">
+                <!-- Line numbers + editor -->
+                <Grid ColumnDefinitions="40,*">
+
+                    <!-- Gutter (line numbers) -->
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource Brush.Background.Overlay}"
+                            BorderBrush="{DynamicResource Brush.Border.Separator}"
+                            BorderThickness="0,0,1,0">
+                        <ItemsControl Margin="0,24,0,0">
+                            <!-- Line numbers would be generated in code-behind -->
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               FontFamily="{StaticResource Font.Editor}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource Brush.Text.Placeholder}"
+                                               HorizontalAlignment="Right"
+                                               Margin="0,0,8,0"
+                                               LineHeight="1.7"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- Editor text area -->
+                    <TextBox Grid.Column="1"
+                             Classes="CodeEditor"
+                             AcceptsReturn="True"
+                             AcceptsTab="True"
+                             TextWrapping="Wrap"
+                             VerticalContentAlignment="Top"
+                             Watermark="Start writing...">
+                        <!-- Sample text for design preview -->
+                    </TextBox>
+                </Grid>
+            </Grid>
+
+            <!-- Vertical divider -->
+            <Border Grid.Column="3"
+                    Background="{DynamicResource Brush.Border.Separator}"/>
+
+            <!-- ── PREVIEW PANE ─────────────────────────────────── -->
+            <Border Grid.Column="4"
+                    Background="{DynamicResource Brush.Background.Elevated}">
+                <ScrollViewer Padding="32,28">
+                    <StackPanel Spacing="0" MaxWidth="640">
+
+                        <!-- Preview label -->
+                        <TextBlock Text="PREVIEW"
+                                   FontFamily="{StaticResource Font.UI}"
+                                   FontSize="9"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   LetterSpacing="1.5"
+                                   Margin="0,0,0,20"/>
+
+                        <!-- H1 -->
+                        <TextBlock Text="The Art of Writing"
+                                   FontFamily="{StaticResource Font.Preview}"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"/>
+
+                        <!-- Subtitle divider -->
+                        <Border Height="2" Width="40"
+                                Background="{DynamicResource Brush.Accent.Primary}"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,20"/>
+
+                        <!-- Body text -->
+                        <TextBlock FontFamily="{StaticResource Font.Preview}"
+                                   FontSize="15.5"
+                                   LineHeight="1.75"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,0,0,16">
+                            Markdown is a lightweight markup language with plain text formatting syntax.
+                            It is designed so that it can be converted to HTML and many other formats.
+                        </TextBlock>
+
+                        <!-- H2 -->
+                        <TextBlock Text="Getting Started"
+                                   FontFamily="{StaticResource Font.Preview}"
+                                   FontSize="22"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}"
+                                   Margin="0,12,0,10"/>
+
+                        <!-- Blockquote -->
+                        <Border BorderBrush="{DynamicResource Brush.Accent.Primary}"
+                                BorderThickness="3,0,0,0"
+                                Background="{DynamicResource Brush.Accent.Muted}"
+                                Padding="14,10"
+                                CornerRadius="0,6,6,0"
+                                Margin="0,0,0,16">
+                            <TextBlock FontFamily="{StaticResource Font.Preview}"
+                                       FontSize="14.5"
+                                       FontStyle="Italic"
+                                       LineHeight="1.6"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}">
+                                The best writing tool is the one that gets out of your way
+                                and lets ideas flow freely onto the page.
+                            </TextBlock>
+                        </Border>
+
+                        <!-- Inline code -->
+                        <TextBlock FontFamily="{StaticResource Font.Preview}"
+                                   FontSize="14.5"
+                                   LineHeight="1.75"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,0,0,16">
+                            Use
+                            <Run Text=" `backticks` " FontFamily="{StaticResource Font.Editor}"
+                                 Foreground="{DynamicResource Brush.Accent.Primary}"
+                                 Background="{DynamicResource Brush.Accent.Muted}"/>
+                            for inline code, and triple backticks for code blocks.
+                        </TextBlock>
+
+                        <!-- Code block -->
+                        <Border Background="{DynamicResource Brush.Background.Overlay}"
+                                BorderBrush="{DynamicResource Brush.Border.Default}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource Radius.MD}"
+                                Margin="0,0,0,16">
+                            <Grid RowDefinitions="Auto,Auto">
+                                <!-- Code block header -->
+                                <Border Grid.Row="0"
+                                        Background="{DynamicResource Brush.Background.Sidebar}"
+                                        BorderBrush="{DynamicResource Brush.Border.Separator}"
+                                        BorderThickness="0,0,0,1"
+                                        Padding="12,6"
+                                        CornerRadius="10,10,0,0">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="markdown"
+                                                   FontFamily="{StaticResource Font.UI}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                                        <Border Classes="Badge">
+                                            <TextBlock Text="syntax"
+                                                       FontFamily="{StaticResource Font.UI}"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource Brush.Accent.Primary}"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Code content -->
+                                <TextBlock Grid.Row="1"
+                                           FontFamily="{StaticResource Font.Editor}"
+                                           FontSize="12.5"
+                                           LineHeight="1.6"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                           Padding="14,10"
+                                           TextWrapping="Wrap">
+                                    # Heading 1&#x0a;## Heading 2&#x0a;&#x0a;**bold** *italic* ~~strike~~&#x0a;&#x0a;- item one&#x0a;- item two&#x0a;  - nested item
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ── STATUS BAR ──────────────────────────────────────── -->
+        <Border Grid.Row="3" Classes="StatusBar">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="16"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Ln 1, Col 1"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.XS}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                    <TextBlock Text="·"
+                               Foreground="{DynamicResource Brush.Border.Strong}"/>
+                    <TextBlock Text="UTF-8"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.XS}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                    <TextBlock Text="·"
+                               Foreground="{DynamicResource Brush.Border.Strong}"/>
+                    <TextBlock Text="Markdown"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.XS}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="12"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="247 words"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.XS}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                    <TextBlock Text="·"
+                               Foreground="{DynamicResource Brush.Border.Strong}"/>
+                    <TextBlock Text="1.2 min read"
+                               FontFamily="{StaticResource Font.UI}"
+                               FontSize="{StaticResource FontSize.XS}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

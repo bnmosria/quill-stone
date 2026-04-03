@@ -1,44 +1,26 @@
 <Application x:Class="QuillStone.App"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
+
+    <!-- Design system entry point (Theme folder) -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://QuillStone/Styles/Theme/LightTheme.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
-        <FluentTheme />
-
-        <!-- Caption button base style: transparent, no border, fixed size -->
-        <Style Selector="Window.platform-windows Button.caption-button">
-            <Setter Property="Width" Value="46" />
-            <Setter Property="Height" Value="40" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-
-        <!-- Hover: subtle dark overlay -->
-        <Style Selector="Window.platform-windows Button.caption-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#18000000" />
-        </Style>
-
-        <!-- Pressed: slightly deeper overlay -->
-        <Style Selector="Window.platform-windows Button.caption-button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#30000000" />
-        </Style>
-
-        <!-- Close button hover: Win11-style red -->
-        <Style Selector="Window.platform-windows Button.caption-close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#C42B1C" />
-        </Style>
-        <Style Selector="Window.platform-windows Button.caption-close:pointerover">
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Style Selector="Window.platform-windows Button.caption-close:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E81123" />
-        </Style>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#C0622A" />
+                <ColorPaletteResources x:Key="Dark" Accent="#E07A3E" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+        <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml" />
     </Application.Styles>
+
 </Application>
 

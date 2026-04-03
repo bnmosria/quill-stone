@@ -1,0 +1,391 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  CONTROL STYLES                                             -->
+    <!--  All controls reference semantic Brush.* tokens            -->
+    <!--  so they work with both Light and Dark themes              -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ── BUTTON ───────────────────────────────────────────────── -->
+    <Style Selector="Button.Primary">
+        <Setter Property="Background"       Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="Foreground"       Value="{DynamicResource Brush.Text.Inverse}"/>
+        <Setter Property="BorderThickness"  Value="0"/>
+        <Setter Property="CornerRadius"     Value="{StaticResource Radius.MD}"/>
+        <Setter Property="Padding"          Value="14,7"/>
+        <Setter Property="FontFamily"       Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"         Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="FontWeight"       Value="SemiBold"/>
+        <Setter Property="Cursor"           Value="Hand"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Secondary}"/>
+    </Style>
+    <Style Selector="Button.Primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="Opacity"    Value="0.85"/>
+    </Style>
+
+    <Style Selector="Button.Secondary">
+        <Setter Property="Background"       Value="Transparent"/>
+        <Setter Property="Foreground"       Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="BorderBrush"      Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness"  Value="1"/>
+        <Setter Property="CornerRadius"     Value="{StaticResource Radius.MD}"/>
+        <Setter Property="Padding"          Value="14,7"/>
+        <Setter Property="FontFamily"       Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"         Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="FontWeight"       Value="Medium"/>
+        <Setter Property="Cursor"           Value="Hand"/>
+    </Style>
+    <Style Selector="Button.Secondary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+    </Style>
+
+    <!-- Ghost / Icon Button -->
+    <Style Selector="Button.Ghost">
+        <Setter Property="Background"       Value="Transparent"/>
+        <Setter Property="Foreground"       Value="{DynamicResource Brush.Text.Tertiary}"/>
+        <Setter Property="BorderThickness"  Value="0"/>
+        <Setter Property="CornerRadius"     Value="{StaticResource Radius.MD}"/>
+        <Setter Property="Padding"          Value="8"/>
+        <Setter Property="Cursor"           Value="Hand"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.1"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.Ghost:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Brush.Text.Primary}"/>
+    </Style>
+    <Style Selector="Button.Ghost:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Active}"/>
+    </Style>
+
+    <!-- Toolbar Icon Button -->
+    <Style Selector="Button.Toolbar">
+        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Foreground"      Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FocusAdorner"    Value="{x:Null}"/>
+        <Setter Property="CornerRadius"    Value="10"/>
+        <Setter Property="Padding"         Value="8,0"/>
+        <Setter Property="MinWidth"        Value="44"/>
+        <Setter Property="Height"          Value="36"/>
+        <Setter Property="MaxWidth"        Value="80"/>
+        <Setter Property="MaxHeight"       Value="60"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment"   Value="Center"/>
+        <Setter Property="Margin"          Value="0,0,2,0"/>
+        <Setter Property="Cursor"          Value="Hand"/>
+    </Style>
+    <Style Selector="Button.Toolbar:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Brush.Accent.Primary}"/>
+    </Style>
+    <Style Selector="Button.Toolbar:focus-visible">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+    </Style>
+    <Style Selector="Button.Toolbar:focus-visible /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Muted}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Brush.Accent.Primary}"/>
+    </Style>
+
+    <Style Selector="Separator.ToolbarSeparator">
+        <Setter Property="Width"      Value="1"/>
+        <Setter Property="Height"     Value="20"/>
+        <Setter Property="Margin"     Value="4"/>
+        <Setter Property="Background" Value="{DynamicResource Brush.Border.Separator}"/>
+    </Style>
+
+    <!-- Windows caption buttons for custom title bar -->
+    <Style Selector="Window.platform-windows Button.caption-button">
+        <Setter Property="Width" Value="46"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Window.platform-windows Button.caption-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+    </Style>
+
+    <Style Selector="Window.platform-windows Button.caption-button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Active}"/>
+    </Style>
+
+    <Style Selector="Window.platform-windows Button.caption-close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#C42B1C"/>
+    </Style>
+
+    <Style Selector="Window.platform-windows Button.caption-close:pointerover">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style Selector="Window.platform-windows Button.caption-close:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#A61B1B"/>
+    </Style>
+
+    <!-- ── TEXTBOX ───────────────────────────────────────────────── -->
+    <Style Selector="TextBox.EditorInput">
+        <Setter Property="Background"          Value="{DynamicResource Brush.Background.Surface}"/>
+        <Setter Property="Foreground"          Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="BorderBrush"         Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness"     Value="1"/>
+        <Setter Property="CornerRadius"        Value="{StaticResource Radius.MD}"/>
+        <Setter Property="Padding"             Value="10,8"/>
+        <Setter Property="FontFamily"          Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"            Value="{StaticResource FontSize.Base}"/>
+        <Setter Property="CaretBrush"          Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="SelectionBrush">
+            <Setter.Value>
+                <SolidColorBrush Color="{DynamicResource Light.Accent.Primary}" Opacity="0.25"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style Selector="TextBox.EditorInput:focus">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+    </Style>
+
+    <!-- Main Code Editor TextBox -->
+    <Style Selector="TextBox.CodeEditor">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Background.Surface}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="Transparent"/>
+        <Setter Property="Padding"         Value="24"/>
+        <Setter Property="FontFamily"      Value="{StaticResource Font.Editor}"/>
+        <Setter Property="FontSize"        Value="{StaticResource FontSize.MD}"/>
+        <Setter Property="LineHeight"      Value="1.7"/>
+        <Setter Property="AcceptsReturn"   Value="True"/>
+        <Setter Property="AcceptsTab"      Value="True"/>
+        <Setter Property="TextWrapping"    Value="Wrap"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="CaretBrush"      Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="FocusAdorner"    Value="{x:Null}"/>
+    </Style>
+    <Style Selector="TextBox.CodeEditor:focus">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+    </Style>
+
+    <!-- ── SCROLLBAR ────────────────────────────────────────────── -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollViewer:pointerover ScrollBar">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background"    Value="{DynamicResource Brush.Border.Strong}"/>
+        <Setter Property="CornerRadius"  Value="4"/>
+        <Setter Property="MinWidth"      Value="6"/>
+        <Setter Property="MinHeight"     Value="6"/>
+        <Setter Property="Margin"        Value="2"/>
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb:pointerover">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Primary}"/>
+    </Style>
+    <Style Selector="ScrollBar /template/ RepeatButton">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+
+    <!-- ── TABCONTROL (Editor / Preview tabs) ───────────────────── -->
+    <Style Selector="TabControl.EditorTabs">
+        <Setter Property="Background"   Value="Transparent"/>
+        <Setter Property="Padding"      Value="0"/>
+    </Style>
+    <Style Selector="TabControl.EditorTabs > TabStrip">
+        <Setter Property="Background"   Value="{DynamicResource Brush.Background.Overlay}"/>
+        <Setter Property="BorderBrush"  Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding"      Value="8,0"/>
+        <Setter Property="Height"       Value="40"/>
+    </Style>
+    <Style Selector="TabItem.EditorTab">
+        <Setter Property="FontFamily"     Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"       Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="FontWeight"     Value="Medium"/>
+        <Setter Property="Foreground"     Value="{DynamicResource Brush.Text.Tertiary}"/>
+        <Setter Property="Padding"        Value="14,0"/>
+        <Setter Property="Height"         Value="38"/>
+        <Setter Property="Cursor"         Value="Hand"/>
+        <Setter Property="Background"     Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0,0,0,2"/>
+        <Setter Property="BorderBrush"    Value="Transparent"/>
+    </Style>
+    <Style Selector="TabItem.EditorTab:selected">
+        <Setter Property="Foreground"  Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="FontWeight"  Value="SemiBold"/>
+    </Style>
+    <Style Selector="TabItem.EditorTab:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}"/>
+    </Style>
+
+    <!-- ── MENU ─────────────────────────────────────────────────── -->
+    <Style Selector="Menu">
+        <Setter Property="Background"     Value="{DynamicResource Brush.Background.Surface}"/>
+        <Setter Property="FontFamily"     Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"       Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="BorderBrush"    Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding"        Value="12,0"/>
+        <Setter Property="Height"         Value="34"/>
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground"     Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="Padding"        Value="10,0"/>
+        <Setter Property="CornerRadius"   Value="{StaticResource Radius.SM}"/>
+        <Setter Property="FontFamily"     Value="{StaticResource Font.UI}"/>
+        <Setter Property="Height"         Value="30"/>
+        <Setter Property="FocusAdorner"   Value="{x:Null}"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+    </Style>
+    <Style Selector="MenuItem:focus-visible /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Muted}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Focus}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ── TOOLTIP ──────────────────────────────────────────────── -->
+    <Style Selector="ToolTip">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Background.Elevated}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="{StaticResource Radius.SM}"/>
+        <Setter Property="Padding"         Value="8,5"/>
+        <Setter Property="FontFamily"      Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"        Value="{StaticResource FontSize.XS}"/>
+    </Style>
+
+    <!-- ── SEPARATOR ────────────────────────────────────────────── -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="Height"     Value="1"/>
+        <Setter Property="Margin"     Value="0,4"/>
+    </Style>
+
+    <!-- ── LISTBOXITEM (File tree) ──────────────────────────────── -->
+    <Style Selector="ListBoxItem.FileItem">
+        <Setter Property="Background"   Value="Transparent"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="Padding"      Value="10,5"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Radius.SM}"/>
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="Margin"       Value="0,1"/>
+        <Setter Property="Cursor"       Value="Hand"/>
+    </Style>
+    <Style Selector="ListBoxItem.FileItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+    </Style>
+    <Style Selector="ListBoxItem.FileItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Muted}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Brush.Accent.Primary}"/>
+    </Style>
+
+    <!-- ── EXPANDER (Sidebar sections) ─────────────────────────── -->
+    <Style Selector="Expander.SidebarSection">
+        <Setter Property="Background"   Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding"      Value="0"/>
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.XS}"/>
+        <Setter Property="FontWeight"   Value="SemiBold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Tertiary}"/>
+    </Style>
+
+    <!-- ── PROGRESSBAR (Word count / loading) ───────────────────── -->
+    <Style Selector="ProgressBar.Slim">
+        <Setter Property="Height"          Value="2"/>
+        <Setter Property="Background"      Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="CornerRadius"    Value="1"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- ── STATUSBAR ────────────────────────────────────────────── -->
+    <Style Selector="Border.StatusBar">
+        <Setter Property="Background"     Value="{DynamicResource Brush.Background.Overlay}"/>
+        <Setter Property="BorderBrush"    Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="Height"         Value="34"/>
+        <Setter Property="Padding"        Value="14,0,14,2"/>
+    </Style>
+
+    <Style Selector="TextBlock.StatusMetaPrimary">
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="FontWeight"   Value="Medium"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Tertiary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.StatusMetaSecondary">
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.SM}"/>
+        <Setter Property="FontWeight"   Value="Normal"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Tertiary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.SidebarSectionTitle">
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.XS}"/>
+        <Setter Property="FontWeight"   Value="SemiBold"/>
+        <Setter Property="LetterSpacing" Value="1.2"/>
+        <Setter Property="Margin"       Value="0,2,0,4"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Tertiary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.SidebarItem">
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.Base}"/>
+        <Setter Property="Height"       Value="28"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin"       Value="8,0,0,0"/>
+    </Style>
+
+    <Style Selector="Border.SidebarActiveItem">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Height"       Value="30"/>
+        <Setter Property="Padding"      Value="10,0"/>
+    </Style>
+
+    <Style Selector="TextBlock.SidebarActiveItemText">
+        <Setter Property="FontFamily"   Value="{StaticResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{StaticResource FontSize.Base}"/>
+        <Setter Property="FontWeight"   Value="Medium"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ── INLINE BADGE ─────────────────────────────────────────── -->
+    <Style Selector="Border.Badge">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Accent.Muted}"/>
+        <Setter Property="Padding"         Value="6,2"/>
+        <Setter Property="CornerRadius"    Value="{StaticResource Radius.Full}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+</Styles>
