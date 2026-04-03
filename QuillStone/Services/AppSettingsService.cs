@@ -32,7 +32,6 @@ public sealed class AppSettingsService : IAppSettingsService
         if (!File.Exists(_settingsPath))
         {
             Settings = new AppSettings();
-            RemoveStale();
             return;
         }
 

@@ -693,7 +693,11 @@ public partial class MainWindow : Window
         if (path is null || !Directory.Exists(path))
             return;
 
-        string name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? path;
+        var recentEntry = _settingsService.Settings.RecentProjects
+            .FirstOrDefault(p => string.Equals(p.Path, path, StringComparison.OrdinalIgnoreCase));
+        string name = recentEntry?.Name
+            ?? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            ?? path;
         _projectService.RestoreProject(name, path);
 
         await RunWithEditorUpdateGuardAsync(() =>
@@ -728,6 +732,7 @@ public partial class MainWindow : Window
         {
             var capturedProject = project;
             var item = new MenuItem { Header = project.Name };
+            ToolTip.SetTip(item, project.Path);
             item.Click += async (_, _) =>
             {
                 if (!await TrySwitchProjectAsync(async () =>
