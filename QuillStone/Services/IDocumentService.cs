@@ -15,5 +15,6 @@ public interface IDocumentService
     Task LoadAsync(IStorageFile file);
     void NewDocument();
     void MarkDirty(bool dirty);
+    void SyncDirtyState(string content);
 }
 

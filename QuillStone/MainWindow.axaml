@@ -58,8 +58,11 @@
         </Grid>
 
         <!-- Opaque content area so editor and toolbars are fully readable -->
-        <Border Background="{DynamicResource Brush.Background.Surface}"
-                CornerRadius="0">
+        <Border x:Name="WindowSurface"
+            Background="{DynamicResource Brush.Background.Surface}"
+            CornerRadius="0"
+            Focusable="True"
+            PointerPressed="WindowSurface_PointerPressed">
             <DockPanel>
 
                 <Menu DockPanel.Dock="Top">
@@ -194,16 +197,24 @@
                                            Margin="0"/>
                             </Border>
 
-                            <TextBlock x:Name="SidebarNoProjectHint"
-                                       DockPanel.Dock="Top"
-                                       Text="Open a folder or a file"
+                                <StackPanel x:Name="SidebarNoProjectActions"
+                                    DockPanel.Dock="Top"
+                                    Margin="16,8,12,0"
+                                    IsVisible="True"
+                                    Spacing="4">
+                                <TextBlock Text="Open File"
                                        Classes="SidebarItem"
-                                       Margin="16,8,12,0"
-                                       IsVisible="True"
                                        Cursor="Hand"
                                        TextDecorations="Underline"
                                        Foreground="{DynamicResource Brush.Accent.Primary}"
-                                       Tapped="SidebarHint_Tapped"/>
+                                       Tapped="SidebarOpenFile_Tapped"/>
+                                <TextBlock Text="Open Folder"
+                                       Classes="SidebarItem"
+                                       Cursor="Hand"
+                                       TextDecorations="Underline"
+                                       Foreground="{DynamicResource Brush.Accent.Primary}"
+                                       Tapped="SidebarOpenFolder_Tapped"/>
+                                </StackPanel>
 
                             <StackPanel x:Name="SidebarOpenSection"
                                         DockPanel.Dock="Top"
@@ -231,7 +242,7 @@
                                 <TreeView.DataTemplates>
                                     <TreeDataTemplate DataType="vm:FolderNodeViewModel"
                                                       ItemsSource="{Binding Children}">
-                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
                                             <PathIcon Data="{DynamicResource Icon.Folder}"
                                                       Width="12" Height="12"
                                                       VerticalAlignment="Center"
@@ -241,7 +252,7 @@
                                         </StackPanel>
                                     </TreeDataTemplate>
                                     <DataTemplate DataType="vm:FileNodeViewModel">
-                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
                                             <PathIcon Data="{DynamicResource Icon.File}"
                                                       Width="12" Height="12"
                                                       VerticalAlignment="Center"

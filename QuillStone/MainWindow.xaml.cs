@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using System.Collections.ObjectModel;
 using QuillStone.Models;
 using QuillStone.Services;
@@ -76,7 +77,7 @@ public partial class MainWindow : Window
             return;
 
         _editorService.UpdateSelection();
-        _documentService.MarkDirty(true);
+        _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
     }
 
@@ -86,7 +87,7 @@ public partial class MainWindow : Window
         {
             if (_editorService.HandleEnterKey())
             {
-                _documentService.MarkDirty(true);
+                _documentService.SyncDirtyState(_editorService.GetEditorText());
                 UpdateWindowTitle();
                 e.Handled = true;
             }
@@ -102,25 +103,25 @@ public partial class MainWindow : Window
             {
                 case Key.B:
                     _formatHandler.ApplyBold();
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
                 case Key.I:
                     _formatHandler.ApplyItalic();
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
                 case Key.K:
                     e.Handled = true;
                     await _formatHandler.InsertLinkAsync(this);
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     break;
                 case Key.H:
                     _formatHandler.ApplyHeading(1);
-                    _documentService.MarkDirty(true);
+                    _documentService.SyncDirtyState(_editorService.GetEditorText());
                     UpdateWindowTitle();
                     e.Handled = true;
                     break;
@@ -212,11 +213,18 @@ public partial class MainWindow : Window
         RefreshSidebar();
     }
 
-    private async void SidebarHint_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private async void SidebarOpenFile_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
-        UpdateWindowTitle();
         RefreshSidebar();
+        UpdateWindowTitle();
+    }
+
+    private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        await _projectService.OpenFolderAsync(this);
+        RefreshSidebar();
+        UpdateWindowTitle();
     }
 
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
@@ -293,7 +301,7 @@ public partial class MainWindow : Window
 
         if (_projectService.CurrentProject is { } project)
         {
-            SidebarNoProjectHint.IsVisible = false;
+            SidebarNoProjectActions.IsVisible = false;
             SidebarOpenSection.IsVisible = false;
             ProjectTree.IsVisible = true;
 
@@ -307,13 +315,13 @@ public partial class MainWindow : Window
 
         if (_documentService.CurrentDocument is not null)
         {
-            SidebarNoProjectHint.IsVisible = false;
+            SidebarNoProjectActions.IsVisible = false;
             SidebarOpenSection.IsVisible = true;
             CurrentFileLabel.Text = _documentService.DisplayName;
             return;
         }
 
-        SidebarNoProjectHint.IsVisible = true;
+        SidebarNoProjectActions.IsVisible = true;
         SidebarOpenSection.IsVisible = false;
     }
 
@@ -324,11 +332,15 @@ public partial class MainWindow : Window
             await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
             UpdateWindowTitle();
         }
+
+        // Clear selection so every subsequent click always fires a new SelectionChanged,
+        // regardless of whether the same item or a folder was previously selected.
+        ProjectTree.SelectedItem = null;
     }
 
     private void MarkDirty()
     {
-        _documentService.MarkDirty(true);
+        _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
     }
 
@@ -357,6 +369,24 @@ public partial class MainWindow : Window
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         _editorService.UpdateSelection();
+    }
+
+    private void WindowSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is not Visual sourceVisual)
+            return;
+
+        if (sourceVisual == Editor || Editor.IsVisualAncestorOf(sourceVisual))
+            return;
+
+        if (sourceVisual.FindAncestorOfType<Button>() is not null
+            || sourceVisual.FindAncestorOfType<MenuItem>() is not null
+            || sourceVisual.FindAncestorOfType<TreeViewItem>() is not null)
+        {
+            return;
+        }
+
+        WindowSurface.Focus();
     }
 
     // ── Window chrome ─────────────────────────────────────────────────────────
