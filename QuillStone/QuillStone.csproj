@@ -15,4 +15,11 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Design mock file, not part of the runtime window types -->
+    <AvaloniaXaml Remove="Styles/Theme/MainWindow.axaml" />
+    <AvaloniaResource Remove="Styles/Theme/MainWindow.axaml" />
+    <None Include="Styles/Theme/MainWindow.axaml" />
+  </ItemGroup>
+
 </Project>
