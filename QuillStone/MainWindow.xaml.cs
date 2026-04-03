@@ -591,8 +591,7 @@ public partial class MainWindow : Window
             return false;
 
         var normalizedCurrent = Path.GetFullPath(currentPath);
-        var normalizedFolder = Path.GetFullPath(folder.FullPath)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        var normalizedFolder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder.FullPath))
             + Path.DirectorySeparatorChar;
 
         return normalizedCurrent.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase);
