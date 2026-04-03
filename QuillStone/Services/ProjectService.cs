@@ -10,7 +10,7 @@ public sealed class ProjectService : IProjectService
 
     public ProjectState? CurrentProject { get; private set; }
 
-    public async Task OpenFolderAsync(Window owner)
+    public async Task<bool> OpenFolderAsync(Window owner)
     {
         var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
@@ -19,15 +19,16 @@ public sealed class ProjectService : IProjectService
         });
 
         if (folders.Count == 0)
-            return;
+            return false;
 
         var folder = folders[0];
         string? localPath = folder.TryGetLocalPath();
         string name = DeriveFolderName(localPath) ?? folder.Name;
         CurrentProject = new ProjectState(name, localPath ?? folder.Name);
+        return true;
     }
 
-    public async Task NewProjectAsync(Window owner, IWindowDialogService dialogService)
+    public async Task<bool> NewProjectAsync(Window owner, IWindowDialogService dialogService)
     {
         string? name = await dialogService.ShowInputDialogAsync(
             owner,
@@ -36,7 +37,7 @@ public sealed class ProjectService : IProjectService
             "MyProject");
 
         if (string.IsNullOrWhiteSpace(name))
-            return;
+            return false;
 
         var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
@@ -45,7 +46,7 @@ public sealed class ProjectService : IProjectService
         });
 
         if (folders.Count == 0)
-            return;
+            return false;
 
         var parentFolder = folders[0];
         string? parentPath = parentFolder.TryGetLocalPath();
@@ -56,7 +57,7 @@ public sealed class ProjectService : IProjectService
                 owner,
                 AppName,
                 "The selected location is not accessible. Please choose a local folder.");
-            return;
+            return false;
         }
 
         string projectPath = Path.Combine(parentPath, name.Trim());
@@ -71,10 +72,11 @@ public sealed class ProjectService : IProjectService
                 owner,
                 AppName,
                 $"Could not create project folder. Check permissions and try again.\n\nDetails: {ex.Message}");
-            return;
+            return false;
         }
 
         CurrentProject = new ProjectState(name.Trim(), projectPath);
+        return true;
     }
 
     private static string? DeriveFolderName(string? localPath)

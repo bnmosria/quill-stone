@@ -223,7 +223,9 @@ public partial class MainWindow : Window
 
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        await _projectService.OpenFolderAsync(this);
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+            return;
+
         RefreshSidebar();
         UpdateWindowTitle();
     }
@@ -246,14 +248,18 @@ public partial class MainWindow : Window
 
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
-        await _projectService.OpenFolderAsync(this);
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+            return;
+
         RefreshSidebar();
         UpdateWindowTitle();
     }
 
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
-        await _projectService.NewProjectAsync(this, _dialogService);
+        if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService)))
+            return;
+
         RefreshSidebar();
         UpdateWindowTitle();
     }
@@ -494,12 +500,7 @@ public partial class MainWindow : Window
         if (GetContextMenuNode<FileNodeViewModel>(sender) is not { } fileNode)
             return;
 
-        if (IsCurrentlyOpenFile(fileNode))
-        {
-            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
-                "Cannot rename the file that is currently open in the editor.");
-            return;
-        }
+        bool isCurrentFile = IsCurrentlyOpenFile(fileNode);
 
         var newName = await _dialogService.ShowInputDialogAsync(this, "Rename File", "New name:", fileNode.Name);
         if (string.IsNullOrWhiteSpace(newName) || newName == fileNode.Name)
@@ -523,6 +524,16 @@ public partial class MainWindow : Window
         try
         {
             File.Move(fileNode.FullPath, newPath);
+
+            if (isCurrentFile)
+            {
+                bool rebound = await _documentService.RebindCurrentFileAsync(this, newPath, _editorService.GetEditorText());
+                if (!rebound)
+                    return;
+
+                UpdateWindowTitle();
+            }
+
             RefreshFolderOrSidebar(fileNode.ParentFolder);
         }
         catch (Exception ex)
@@ -626,6 +637,27 @@ public partial class MainWindow : Window
         {
             _isUpdatingEditorText = false;
         }
+    }
+
+    private async Task<bool> TrySwitchProjectAsync(Func<Task<bool>> operation)
+    {
+        if (!await _documentService.TrySaveIfDirtyAsync(this, _editorService.GetEditorText()))
+            return false;
+
+        bool changed = await operation();
+        if (!changed)
+            return false;
+
+        await RunWithEditorUpdateGuardAsync(() =>
+        {
+            _documentService.NewDocument();
+            _editorService.SetEditorText(string.Empty);
+            _editorService.SetCaretIndex(0);
+            _editorService.UpdateSelection();
+            return Task.CompletedTask;
+        });
+
+        return true;
     }
 
     private void UpdateWindowTitle()
