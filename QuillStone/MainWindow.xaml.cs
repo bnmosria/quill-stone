@@ -28,6 +28,10 @@ public partial class MainWindow : Window
 
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
+    private FileSystemNodeViewModel? _pendingDragSource;
+    private Point _pendingDragStartPoint;
+    private FileSystemNodeViewModel? _activeDragSource;
+
     public MainWindow()
         : this(
             new DocumentState(),
@@ -68,6 +72,10 @@ public partial class MainWindow : Window
         _settingsService = settingsService;
 
         ProjectTree.ItemsSource = _projectRoots;
+        ProjectTree.AddHandler(InputElement.PointerPressedEvent, ProjectTree_PointerPressed, RoutingStrategies.Tunnel);
+        ProjectTree.AddHandler(InputElement.PointerMovedEvent, ProjectTree_PointerMoved, RoutingStrategies.Tunnel);
+        ProjectTree.AddHandler(DragDrop.DropEvent, ProjectTree_Drop);
+        ProjectTree.AddHandler(DragDrop.DragOverEvent, ProjectTree_DragOver);
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         _editorService.UpdateSelection();
         UpdateWindowTitle();
@@ -873,6 +881,245 @@ public partial class MainWindow : Window
         if (MaximizeButton is not null)
             ToolTip.SetTip(MaximizeButton, WindowState == WindowState.Maximized ? "Restore" : "Maximize");
     }
+
+    // ── Drag & drop ──────────────────────────────────────────────────────────
+
+    private const string DragNodeFormat = "QuillStone.Node";
+    private const double DragThreshold = 8.0;
+
+    private void ProjectTree_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+            return;
+
+        var node = GetNodeFromVisual(e.Source as Visual);
+        if (node is null)
+            return;
+
+        if (node is FolderNodeViewModel folder && IsProjectRoot(folder))
+            return;
+
+        _pendingDragSource = node;
+        _pendingDragStartPoint = e.GetCurrentPoint(ProjectTree).Position;
+    }
+
+    private async void ProjectTree_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pendingDragSource is null)
+            return;
+
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+        {
+            _pendingDragSource = null;
+            return;
+        }
+
+        var current = e.GetCurrentPoint(ProjectTree).Position;
+        var dx = current.X - _pendingDragStartPoint.X;
+        var dy = current.Y - _pendingDragStartPoint.Y;
+
+        if (Math.Abs(dx) < DragThreshold && Math.Abs(dy) < DragThreshold)
+            return;
+
+        var source = _pendingDragSource;
+        _pendingDragSource = null;
+        _activeDragSource = source;
+
+        try
+        {
+            var data = new DataObject();
+            data.Set(DragNodeFormat, source);
+            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"An unexpected error occurred while starting the drag.\n\n{ex.Message}");
+        }
+        finally
+        {
+            _activeDragSource = null;
+        }
+    }
+
+    private void ProjectTree_DragOver(object? sender, DragEventArgs e)
+    {
+        var target = GetDropTargetFolder(e.Source as Visual);
+
+        if (_activeDragSource is null || target is null || !IsValidDropTarget(_activeDragSource, target))
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Move;
+        e.Handled = true;
+    }
+
+    private async void ProjectTree_Drop(object? sender, DragEventArgs e)
+    {
+        var source = _activeDragSource;
+        var target = GetDropTargetFolder(e.Source as Visual);
+
+        if (source is null || target is null || !IsValidDropTarget(source, target))
+            return;
+
+        e.Handled = true;
+
+        try
+        {
+            await MoveNodeToFolderAsync(source, target);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"An unexpected error occurred during the drop.\n\n{ex.Message}");
+        }
+    }
+
+    private static FileSystemNodeViewModel? GetNodeFromVisual(Visual? visual)
+    {
+        if (visual is null)
+            return null;
+
+        var item = visual.FindAncestorOfType<TreeViewItem>(includeSelf: true);
+        return item?.DataContext as FileSystemNodeViewModel;
+    }
+
+    private static FolderNodeViewModel? GetDropTargetFolder(Visual? visual)
+    {
+        var node = GetNodeFromVisual(visual);
+        return node switch
+        {
+            FolderNodeViewModel folder => folder,
+            FileNodeViewModel file => file.ParentFolder,
+            _ => null
+        };
+    }
+
+    private bool IsValidDropTarget(FileSystemNodeViewModel source, FolderNodeViewModel target)
+    {
+        // Prevent dropping onto the same folder the item already lives in.
+        var sourceParentPath = source.ParentFolder?.FullPath;
+        if (sourceParentPath is not null
+            && string.Equals(sourceParentPath, target.FullPath, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // Prevent dropping a folder into itself or any of its descendants.
+        if (source is FolderNodeViewModel sourceFolder
+            && IsFolderDescendantOrSelf(sourceFolder, target))
+            return false;
+
+        return true;
+    }
+
+    private static bool IsFolderDescendantOrSelf(FolderNodeViewModel candidate, FolderNodeViewModel target)
+    {
+        var candidatePath = Path.GetFullPath(candidate.FullPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var targetPath = Path.GetFullPath(target.FullPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return targetPath.StartsWith(
+            candidatePath + Path.DirectorySeparatorChar,
+            StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidatePath, targetPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task MoveNodeToFolderAsync(FileSystemNodeViewModel source, FolderNodeViewModel target)
+    {
+        var destPath = Path.Combine(target.FullPath, source.Name);
+        var sourcePath = source.FullPath;
+
+        bool isFolder = source is FolderNodeViewModel;
+        bool destExists = isFolder ? Directory.Exists(destPath) : File.Exists(destPath);
+
+        if (destExists)
+        {
+            var choice = await _dialogService.ShowConfirmDialogAsync(
+                this,
+                "QuillStone",
+                $"'{source.Name}' already exists in the target folder. What would you like to do?",
+                "Overwrite",
+                "Skip",
+                "Cancel");
+
+            if (choice != DialogChoice.Primary)
+                return;
+
+            try
+            {
+                if (isFolder)
+                    Directory.Delete(destPath, recursive: true);
+                else
+                    File.Delete(destPath);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                    $"Could not remove the existing item before moving.\n\n{ex.Message}");
+                return;
+            }
+        }
+
+        var sourceParent = source.ParentFolder;
+        string? newOpenFilePath = isFolder
+            ? GetNewOpenFilePathAfterFolderMove(sourcePath, destPath)
+            : null;
+        bool isCurrentFile = !isFolder
+            && source is FileNodeViewModel fileVm
+            && IsCurrentlyOpenFile(fileVm);
+
+        try
+        {
+            if (isFolder)
+                Directory.Move(sourcePath, destPath);
+            else
+                File.Move(sourcePath, destPath);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                $"Could not move '{source.Name}'.\n\n{ex.Message}");
+            return;
+        }
+
+        if (isCurrentFile)
+        {
+            bool rebound = await _documentService.RebindCurrentFileAsync(this, destPath, _editorService.GetEditorText());
+            if (rebound)
+                UpdateWindowTitle();
+        }
+        else if (newOpenFilePath is not null)
+        {
+            bool rebound = await _documentService.RebindCurrentFileAsync(this, newOpenFilePath, _editorService.GetEditorText());
+            if (rebound)
+                UpdateWindowTitle();
+        }
+
+        sourceParent?.Refresh();
+
+        var targetIsSameAsSource = sourceParent is not null
+            && string.Equals(sourceParent.FullPath, target.FullPath, StringComparison.OrdinalIgnoreCase);
+
+        if (!targetIsSameAsSource)
+            target.Refresh();
+    }
+
+    private string? GetNewOpenFilePathAfterFolderMove(string sourceFolderPath, string destFolderPath)
+    {
+        var currentPath = _documentService.CurrentDocument?.LocalPath;
+        if (currentPath is null)
+            return null;
+
+        var normalizedCurrent = Path.GetFullPath(currentPath);
+        var normalizedSource = Path.TrimEndingDirectorySeparator(Path.GetFullPath(sourceFolderPath))
+            + Path.DirectorySeparatorChar;
+
+        if (!normalizedCurrent.StartsWith(normalizedSource, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var relative = normalizedCurrent[normalizedSource.Length..];
+        return Path.Combine(destFolderPath, relative);
+    }
 }
-
-
