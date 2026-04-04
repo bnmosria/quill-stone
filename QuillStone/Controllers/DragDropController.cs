@@ -50,16 +50,20 @@ internal sealed class DragDropController
     }
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+            return;
         var node = TreeViewHelper.GetNodeFromVisual(e.Source as Visual);
-        if (node is null) return;
-        if (node is FolderNodeViewModel folder && IsProjectRoot(folder)) return;
+        if (node is null)
+            return;
+        if (node is FolderNodeViewModel folder && IsProjectRoot(folder))
+            return;
         _pendingDragSource = node;
         _pendingDragStartPoint = e.GetCurrentPoint(_projectTree).Position;
     }
     private async void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_pendingDragSource is null) return;
+        if (_pendingDragSource is null)
+            return;
         if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
         {
             _pendingDragSource = null;
@@ -68,7 +72,8 @@ internal sealed class DragDropController
         var current = e.GetCurrentPoint(_projectTree).Position;
         var dx = current.X - _pendingDragStartPoint.X;
         var dy = current.Y - _pendingDragStartPoint.Y;
-        if (Math.Abs(dx) < DragThreshold && Math.Abs(dy) < DragThreshold) return;
+        if (Math.Abs(dx) < DragThreshold && Math.Abs(dy) < DragThreshold)
+            return;
         var source = _pendingDragSource;
         _pendingDragSource = null;
         _activeDragSource = source;
@@ -100,9 +105,11 @@ internal sealed class DragDropController
     {
         var source = _activeDragSource;
         var target = TreeViewHelper.GetDropTargetFolder(e.Source as Visual);
-        if (source is null || target is null || !IsValidDropTarget(source, target)) return;
+        if (source is null || target is null || !IsValidDropTarget(source, target))
+            return;
         e.Handled = true;
-        try { await MoveNodeToFolderAsync(source, target); }
+        try
+        { await MoveNodeToFolderAsync(source, target); }
         catch (Exception ex)
         {
             await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone",
@@ -121,11 +128,14 @@ internal sealed class DragDropController
                 _owner, "QuillStone",
                 $"'{source.Name}' already exists in the target folder. What would you like to do?",
                 "Overwrite", "Skip", "Cancel");
-            if (choice != DialogChoice.Primary) return;
+            if (choice != DialogChoice.Primary)
+                return;
             try
             {
-                if (isFolder) Directory.Delete(destPath, recursive: true);
-                else File.Delete(destPath);
+                if (isFolder)
+                    Directory.Delete(destPath, recursive: true);
+                else
+                    File.Delete(destPath);
             }
             catch (Exception ex)
             {
@@ -139,8 +149,10 @@ internal sealed class DragDropController
         bool isCurrentFile = !isFolder && source is FileNodeViewModel fileVm && IsCurrentlyOpenFile(fileVm);
         try
         {
-            if (isFolder) Directory.Move(sourcePath, destPath);
-            else File.Move(sourcePath, destPath);
+            if (isFolder)
+                Directory.Move(sourcePath, destPath);
+            else
+                File.Move(sourcePath, destPath);
         }
         catch (Exception ex)
         {
@@ -154,7 +166,8 @@ internal sealed class DragDropController
             _onTitleUpdateNeeded();
         sourceParent?.Refresh();
         var targetIsSameAsSource = sourceParent is not null && string.Equals(sourceParent.FullPath, target.FullPath, StringComparison.OrdinalIgnoreCase);
-        if (!targetIsSameAsSource) target.Refresh();
+        if (!targetIsSameAsSource)
+            target.Refresh();
         _onMoveCompleted(sourceParent);
     }
     private bool IsValidDropTarget(FileSystemNodeViewModel source, FolderNodeViewModel target)
@@ -184,11 +197,13 @@ internal sealed class DragDropController
     private string? GetNewOpenFilePathAfterFolderMove(string sourceFolderPath, string destFolderPath)
     {
         var currentPath = _documentService.CurrentDocument?.LocalPath;
-        if (currentPath is null) return null;
+        if (currentPath is null)
+            return null;
         var normalizedCurrent = Path.GetFullPath(currentPath);
         var normalizedSource = Path.TrimEndingDirectorySeparator(Path.GetFullPath(sourceFolderPath))
             + Path.DirectorySeparatorChar;
-        if (!normalizedCurrent.StartsWith(normalizedSource, StringComparison.OrdinalIgnoreCase)) return null;
+        if (!normalizedCurrent.StartsWith(normalizedSource, StringComparison.OrdinalIgnoreCase))
+            return null;
         var relative = normalizedCurrent[normalizedSource.Length..];
         return Path.Combine(destFolderPath, relative);
     }

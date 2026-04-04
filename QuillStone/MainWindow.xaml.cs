@@ -19,7 +19,6 @@ public partial class MainWindow : Window
     private readonly IWindowLifecycleManager _lifecycleManager;
     private readonly IProjectService _projectService;
     private readonly IWindowDialogService _dialogService;
-    private readonly IAppSettingsService _settingsService;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
@@ -31,6 +30,7 @@ public partial class MainWindow : Window
     private readonly DragDropController _dragDropController;
     private readonly StatusBarController _statusBarController;
     private readonly WindowChromeController _windowChromeController;
+    private readonly RecentProjectsController _recentProjectsController;
     public MainWindow()
         : this(
             new DocumentState(),
@@ -59,7 +59,8 @@ public partial class MainWindow : Window
         _formatHandler = new FormatCommandHandler(_editorService, markdownFormatter, dialogService);
         _menuHandler = new MenuCommandHandler(_editorService, _documentService, dialogService, this);
         _lifecycleManager = new WindowLifecycleManager(_documentService, _editorService, this);
-        _projectService = projectService; _dialogService = dialogService; _settingsService = settingsService;
+        _projectService = projectService;
+        _dialogService = dialogService;
 
         _previewController = new PreviewController(PreviewContainer, PreviewPane, renderService, _editorService, this);
         _viewModeController = new ViewModeController(
@@ -72,14 +73,21 @@ public partial class MainWindow : Window
             onFileOpened: async p =>
             {
                 await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(p));
-                UpdateWindowTitle(); _previewController.RenderIfVisible();
+                UpdateWindowTitle();
+                _previewController.RenderIfVisible();
             },
             onTitleUpdateNeeded: UpdateWindowTitle);
         _dragDropController = new DragDropController(projectService, _documentService, _editorService, dialogService, this,
             onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
         _statusBarController = new StatusBarController(StatusMeta, StatusWordCount, Editor);
         _windowChromeController = new WindowChromeController(this, TitleBar, MinimizeButton, MaximizeButton, CloseButton);
-        _windowChromeController.Configure(); _windowChromeController.OnWindowStateChanged();
+        _windowChromeController.Configure();
+        _windowChromeController.OnWindowStateChanged();
+        _recentProjectsController = new RecentProjectsController(
+            RecentProjectsMenuItem, settingsService, projectService, dialogService, this,
+            trySwitchProject: TrySwitchProjectAsync,
+            resetEditor: () => RunWithEditorUpdateGuardAsync(ResetEditorAsync),
+            onProjectOpened: () => { _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); });
 
         ProjectTree.ItemsSource = _projectTreeController.ProjectRoots;
         ProjectTree.SelectionChanged += _projectTreeController.OnSelectionChanged;
@@ -87,9 +95,11 @@ public partial class MainWindow : Window
         FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
         Editor.PointerReleased += (_, _) => _statusBarController.UpdateMeta();
         Editor.KeyUp += (_, _) => _statusBarController.UpdateMeta();
-        _editorService.UpdateSelection(); UpdateWindowTitle();
-        _viewModeController.Apply(ViewMode.EditorOnly); _statusBarController.UpdateWordCount();
-        Loaded += async (_, _) => await InitializeSettingsAsync();
+        _editorService.UpdateSelection();
+        UpdateWindowTitle();
+        _viewModeController.Apply(ViewMode.EditorOnly);
+        _statusBarController.UpdateWordCount();
+        Loaded += async (_, _) => await _recentProjectsController.InitializeAsync();
     }
 
     private void Editor_TextChanged(object? sender, TextChangedEventArgs e)
@@ -100,7 +110,8 @@ public partial class MainWindow : Window
         _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
         _previewController.OnEditorTextChanged();
-        _statusBarController.UpdateMeta(); _statusBarController.UpdateWordCount();
+        _statusBarController.UpdateMeta();
+        _statusBarController.UpdateWordCount();
     }
 
     private async void Editor_KeyDown(object? sender, KeyEventArgs e)
@@ -110,32 +121,46 @@ public partial class MainWindow : Window
             if (_editorService.HandleEnterKey())
             {
                 _documentService.SyncDirtyState(_editorService.GetEditorText());
-                UpdateWindowTitle(); e.Handled = true;
+                UpdateWindowTitle();
+                e.Handled = true;
             }
             return;
         }
-        if (e.KeyModifiers != KeyModifiers.Control) return;
+        if (e.KeyModifiers != KeyModifiers.Control)
+            return;
         _editorService.UpdateSelection();
         switch (e.Key)
         {
-            case Key.B: _formatHandler.ApplyBold(); e.Handled = true; break;
-            case Key.I: _formatHandler.ApplyItalic(); e.Handled = true; break;
-            case Key.K: e.Handled = true; await _formatHandler.InsertLinkAsync(this); break;
-            case Key.H: _formatHandler.ApplyHeading(1); e.Handled = true; break;
+            case Key.B:
+                _formatHandler.ApplyBold();
+                e.Handled = true;
+                break;
+            case Key.I:
+                _formatHandler.ApplyItalic();
+                e.Handled = true;
+                break;
+            case Key.K:
+                e.Handled = true;
+                await _formatHandler.InsertLinkAsync(this);
+                break;
+            case Key.H:
+                _formatHandler.ApplyHeading(1);
+                e.Handled = true;
+                break;
         }
     }
 
-    private void ToolbarBold_Click(object? s, RoutedEventArgs e)         => _formatHandler.ApplyBold();
-    private void ToolbarItalic_Click(object? s, RoutedEventArgs e)       => _formatHandler.ApplyItalic();
-    private void ToolbarInlineCode_Click(object? s, RoutedEventArgs e)   => _formatHandler.ApplyInlineCode();
-    private async void ToolbarLink_Click(object? s, RoutedEventArgs e)   => await _formatHandler.InsertLinkAsync(this);
-    private void ToolbarH1_Click(object? s, RoutedEventArgs e)           => _formatHandler.ApplyHeading(1);
-    private void ToolbarH2_Click(object? s, RoutedEventArgs e)           => _formatHandler.ApplyHeading(2);
-    private void ToolbarH3_Click(object? s, RoutedEventArgs e)           => _formatHandler.ApplyHeading(3);
-    private void ToolbarBulletList_Click(object? s, RoutedEventArgs e)   => _formatHandler.ApplyBulletList();
+    private void ToolbarBold_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyBold();
+    private void ToolbarItalic_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyItalic();
+    private void ToolbarInlineCode_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyInlineCode();
+    private async void ToolbarLink_Click(object? s, RoutedEventArgs e) => await _formatHandler.InsertLinkAsync(this);
+    private void ToolbarH1_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(1);
+    private void ToolbarH2_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(2);
+    private void ToolbarH3_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(3);
+    private void ToolbarBulletList_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyBulletList();
     private void ToolbarNumberedList_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyNumberedList();
-    private void ToolbarBlockquote_Click(object? s, RoutedEventArgs e)   => _formatHandler.ApplyBlockquote();
-    private void ToolbarCheckbox_Click(object? s, RoutedEventArgs e)     => _formatHandler.ApplyCheckbox();
+    private void ToolbarBlockquote_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyBlockquote();
+    private void ToolbarCheckbox_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyCheckbox();
 
     private async void MenuNew_Click(object? sender, RoutedEventArgs e)
     { await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(); _projectTreeController.RefreshSidebar(); }
@@ -145,8 +170,11 @@ public partial class MainWindow : Window
     { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); _previewController.RenderIfVisible(); }
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this))) return;
-        await RecordCurrentProjectAndSaveAsync(); _projectTreeController.RefreshSidebar(); UpdateWindowTitle();
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+            return;
+        await _recentProjectsController.RecordAndSaveAsync();
+        _projectTreeController.RefreshSidebar();
+        UpdateWindowTitle();
     }
     private async void MenuSave_Click(object? sender, RoutedEventArgs e)
     { await _menuHandler.SaveDocumentAsync(); UpdateWindowTitle(); _projectTreeController.RefreshSidebar(); }
@@ -155,13 +183,19 @@ public partial class MainWindow : Window
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this))) return;
-        await RecordCurrentProjectAndSaveAsync(); _projectTreeController.RefreshSidebar(); UpdateWindowTitle();
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+            return;
+        await _recentProjectsController.RecordAndSaveAsync();
+        _projectTreeController.RefreshSidebar();
+        UpdateWindowTitle();
     }
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService))) return;
-        await RecordCurrentProjectAndSaveAsync(); _projectTreeController.RefreshSidebar(); UpdateWindowTitle();
+        if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService)))
+            return;
+        await _recentProjectsController.RecordAndSaveAsync();
+        _projectTreeController.RefreshSidebar();
+        UpdateWindowTitle();
     }
 
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
@@ -174,113 +208,66 @@ public partial class MainWindow : Window
     private async void MenuAbout_Click(object? sender, RoutedEventArgs e)
     { await new Views.AboutDialog().ShowDialog(this); }
 
-    private void ViewEditorOnly_Click(object? sender, RoutedEventArgs e)  => _viewModeController.Apply(ViewMode.EditorOnly);
-    private void ViewSplit_Click(object? sender, RoutedEventArgs e)        => _viewModeController.Apply(ViewMode.Split);
+    private void ViewEditorOnly_Click(object? sender, RoutedEventArgs e) => _viewModeController.Apply(ViewMode.EditorOnly);
+    private void ViewSplit_Click(object? sender, RoutedEventArgs e) => _viewModeController.Apply(ViewMode.Split);
     private void ViewFullPreview_Click(object? sender, RoutedEventArgs e) => _viewModeController.Apply(ViewMode.FullPreview);
 
-    private void FolderContextMenu_NewFile_Click(object? sender, RoutedEventArgs e)   => _projectTreeController.OnFolderNewFile(sender, e);
+    private void FolderContextMenu_NewFile_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFolderNewFile(sender, e);
     private void FolderContextMenu_NewFolder_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFolderNewFolder(sender, e);
-    private void FolderContextMenu_Rename_Click(object? sender, RoutedEventArgs e)    => _projectTreeController.OnFolderRename(sender, e);
-    private void FolderContextMenu_Delete_Click(object? sender, RoutedEventArgs e)    => _projectTreeController.OnFolderDelete(sender, e);
-    private void FileContextMenu_Rename_Click(object? sender, RoutedEventArgs e)      => _projectTreeController.OnFileRename(sender, e);
-    private void FileContextMenu_Delete_Click(object? sender, RoutedEventArgs e)      => _projectTreeController.OnFileDelete(sender, e);
+    private void FolderContextMenu_Rename_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFolderRename(sender, e);
+    private void FolderContextMenu_Delete_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFolderDelete(sender, e);
+    private void FileContextMenu_Rename_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFileRename(sender, e);
+    private void FileContextMenu_Delete_Click(object? sender, RoutedEventArgs e) => _projectTreeController.OnFileDelete(sender, e);
 
     private async void Window_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (_closeConfirmed || !_documentService.IsDirty) return;
+        if (_closeConfirmed || !_documentService.IsDirty)
+            return;
         e.Cancel = true;
-        if (_closingPromptOpen) return;
+        if (_closingPromptOpen)
+            return;
         _closingPromptOpen = true;
         try
         {
-            if (await _lifecycleManager.HandleClosingAsync()) { _closeConfirmed = true; Close(); }
+            if (await _lifecycleManager.HandleClosingAsync())
+            { _closeConfirmed = true; Close(); }
         }
         finally { _closingPromptOpen = false; }
     }
-    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)  => _windowChromeController.OnTitleBarPointerPressed(sender, e);
-    private void TitleBar_DoubleTapped(object? sender, TappedEventArgs e)             => _windowChromeController.OnTitleBarDoubleTapped(sender, e);
-    private void CaptionMinimize_Click(object? sender, RoutedEventArgs e)             => _windowChromeController.OnMinimize(sender, e);
-    private void CaptionMaximize_Click(object? sender, RoutedEventArgs e)             => _windowChromeController.OnMaximize(sender, e);
-    private void CaptionClose_Click(object? sender, RoutedEventArgs e)                => _windowChromeController.OnClose(sender, e);
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e) => _windowChromeController.OnTitleBarPointerPressed(sender, e);
+    private void TitleBar_DoubleTapped(object? sender, TappedEventArgs e) => _windowChromeController.OnTitleBarDoubleTapped(sender, e);
+    private void CaptionMinimize_Click(object? sender, RoutedEventArgs e) => _windowChromeController.OnMinimize(sender, e);
+    private void CaptionMaximize_Click(object? sender, RoutedEventArgs e) => _windowChromeController.OnMaximize(sender, e);
+    private void CaptionClose_Click(object? sender, RoutedEventArgs e) => _windowChromeController.OnClose(sender, e);
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == WindowStateProperty) _windowChromeController.OnWindowStateChanged();
+        if (change.Property == WindowStateProperty)
+            _windowChromeController.OnWindowStateChanged();
     }
     private async Task RunWithEditorUpdateGuardAsync(Func<Task> op)
     {
         _isUpdatingEditorText = true;
-        try { await op(); }
+        try
+        { await op(); }
         finally { _isUpdatingEditorText = false; }
     }
     private Task ResetEditorAsync()
     {
         _documentService.NewDocument();
-        _editorService.SetEditorText(string.Empty); _editorService.SetCaretIndex(0); _editorService.UpdateSelection();
+        _editorService.SetEditorText(string.Empty);
+        _editorService.SetCaretIndex(0);
+        _editorService.UpdateSelection();
         return Task.CompletedTask;
     }
     private async Task<bool> TrySwitchProjectAsync(Func<Task<bool>> operation)
     {
-        if (!await _documentService.TrySaveIfDirtyAsync(this, _editorService.GetEditorText())) return false;
-        if (!await operation()) return false;
+        if (!await _documentService.TrySaveIfDirtyAsync(this, _editorService.GetEditorText()))
+            return false;
+        if (!await operation())
+            return false;
         await RunWithEditorUpdateGuardAsync(ResetEditorAsync);
         return true;
-    }
-    private async Task RecordCurrentProjectAndSaveAsync()
-    {
-        if (_projectService.CurrentProject is not { } project) return;
-        _settingsService.RecordProject(project.ProjectName, project.RootPath);
-        try { await _settingsService.SaveAsync(); } catch { /* settings save failures are non-fatal */ }
-        PopulateRecentProjectsMenu();
-    }
-    private async Task InitializeSettingsAsync()
-    { await _settingsService.LoadAsync(); PopulateRecentProjectsMenu(); await TryRestoreLastProjectAsync(); }
-    private async Task TryRestoreLastProjectAsync()
-    {
-        var path = _settingsService.Settings.LastOpenedProjectPath;
-        if (path is null || !Directory.Exists(path)) return;
-        var recent = _settingsService.Settings.RecentProjects
-            .FirstOrDefault(p => string.Equals(p.Path, path, StringComparison.OrdinalIgnoreCase));
-        string name = recent?.Name ?? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? path;
-        _projectService.RestoreProject(name, path);
-        await RunWithEditorUpdateGuardAsync(ResetEditorAsync);
-        _projectTreeController.RefreshSidebar(); UpdateWindowTitle();
-    }
-
-    private void PopulateRecentProjectsMenu()
-    {
-        RecentProjectsMenuItem.Items.Clear();
-        var recent = _settingsService.Settings.RecentProjects;
-        if (recent.Count == 0)
-        {
-            RecentProjectsMenuItem.Items.Add(new MenuItem { Header = "(No recent projects)", IsEnabled = false });
-            return;
-        }
-        foreach (var project in recent)
-        {
-            var capturedProject = project;
-            var item = new MenuItem { Header = project.Name };
-            ToolTip.SetTip(item, project.Path);
-            item.Click += async (_, _) =>
-            {
-                if (!await TrySwitchProjectAsync(async () =>
-                {
-                    if (!Directory.Exists(capturedProject.Path))
-                    {
-                        await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
-                            $"The project folder no longer exists:\n{capturedProject.Path}");
-                        _settingsService.Settings.RecentProjects.RemoveAll(p =>
-                            string.Equals(p.Path, capturedProject.Path, StringComparison.OrdinalIgnoreCase));
-                        try { await _settingsService.SaveAsync(); } catch { /* non-fatal */ }
-                        PopulateRecentProjectsMenu(); return false;
-                    }
-                    _projectService.RestoreProject(capturedProject.Name, capturedProject.Path); return true;
-                })) return;
-                await RecordCurrentProjectAndSaveAsync();
-                _projectTreeController.RefreshSidebar(); UpdateWindowTitle();
-            };
-            RecentProjectsMenuItem.Items.Add(item);
-        }
     }
     private void UpdateWindowTitle()
     {
@@ -291,9 +278,12 @@ public partial class MainWindow : Window
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e) => _editorService.UpdateSelection();
     private void WindowSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.Source is not Visual v) return;
-        if (v == Editor || Editor.IsVisualAncestorOf(v)) return;
-        if (v.FindAncestorOfType<Button>() is not null || v.FindAncestorOfType<MenuItem>() is not null || v.FindAncestorOfType<TreeViewItem>() is not null) return;
+        if (e.Source is not Visual v)
+            return;
+        if (v == Editor || Editor.IsVisualAncestorOf(v))
+            return;
+        if (v.FindAncestorOfType<Button>() is not null || v.FindAncestorOfType<MenuItem>() is not null || v.FindAncestorOfType<TreeViewItem>() is not null)
+            return;
         WindowSurface.Focus();
     }
 }

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -10,9 +9,7 @@ internal sealed class WindowChromeController
 {
     private readonly Window _owner;
     private readonly Grid _titleBar;
-    private readonly Button _minimizeButton;
     private readonly Button _maximizeButton;
-    private readonly Button _closeButton;
 
     internal WindowChromeController(
         Window owner,
@@ -23,9 +20,9 @@ internal sealed class WindowChromeController
     {
         _owner = owner;
         _titleBar = titleBar;
-        _minimizeButton = minimizeButton;
         _maximizeButton = maximizeButton;
-        _closeButton = closeButton;
+        _ = minimizeButton;
+        _ = closeButton;
     }
 
     public void Configure()
