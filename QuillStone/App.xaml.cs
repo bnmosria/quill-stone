@@ -46,7 +46,7 @@ public partial class App : Application
         // ── Dialog (window-scoped, owner set post-resolve) ────────────
         services.AddTransient<IWindowDialogService, WindowDialogService>();
 
-        // ── Controllers (Ticket 1) ────────────────────────────────────
+        // ── Controllers ──────────────────────────────────────────────
         services.AddTransient<ViewModeController>();
         services.AddTransient<PreviewController>();
         services.AddTransient<ProjectTreeController>();
