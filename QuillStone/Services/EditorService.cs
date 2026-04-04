@@ -37,8 +37,9 @@ public sealed class EditorService : IEditorService
 
     public void UpdateSelection()
     {
-        if (_editor != null)
-            _savedSelection = new TextSelectionRange(_editor.SelectionStart, _editor.SelectionEnd);
+        if (_editor == null || !_editor.IsFocused)
+            return;
+        _savedSelection = new TextSelectionRange(_editor.SelectionStart, _editor.SelectionEnd);
     }
 
     public TextSelectionRange GetSavedSelection() => _savedSelection;
