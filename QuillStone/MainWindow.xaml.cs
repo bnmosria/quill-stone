@@ -92,9 +92,8 @@ public partial class MainWindow : Window
         ProjectTree.ItemsSource = _projectTreeController.ProjectRoots;
         ProjectTree.SelectionChanged += _projectTreeController.OnSelectionChanged;
         _dragDropController.Register(ProjectTree);
-        FormattingToolbar.AddHandler(InputElement.PointerPressedEvent, Toolbar_PointerPressed, RoutingStrategies.Tunnel);
-        Editor.PointerReleased += (_, _) => _statusBarController.UpdateMeta();
-        Editor.KeyUp += (_, _) => _statusBarController.UpdateMeta();
+        Editor.PointerReleased += (_, _) => { _editorService.UpdateSelection(); _statusBarController.UpdateMeta(); };
+        Editor.KeyUp += (_, _) => { _editorService.UpdateSelection(); _statusBarController.UpdateMeta(); };
         _editorService.UpdateSelection();
         UpdateWindowTitle();
         _viewModeController.Apply(ViewMode.EditorOnly);
@@ -275,7 +274,6 @@ public partial class MainWindow : Window
         var doc = $"{_documentService.DisplayName}{dirty}";
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
     }
-    private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e) => _editorService.UpdateSelection();
     private void WindowSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.Source is not Visual v)
