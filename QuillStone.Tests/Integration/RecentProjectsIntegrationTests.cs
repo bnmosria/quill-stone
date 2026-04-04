@@ -37,8 +37,6 @@ public sealed class RecentProjectsIntegrationTests : IDisposable
         return dir;
     }
 
-    // ── Recording projects ────────────────────────────────────────────────────
-
     [Fact]
     public void RecordProject_AppearsInRecentProjects()
     {
@@ -120,8 +118,6 @@ public sealed class RecentProjectsIntegrationTests : IDisposable
 
         Assert.Single(svc.Settings.RecentProjects);
     }
-
-    // ── Menu population ───────────────────────────────────────────────────────
 
     [AvaloniaFact]
     public void Populate_WithProjects_AddsMenuItemsForEach()

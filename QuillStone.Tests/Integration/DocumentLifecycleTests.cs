@@ -28,8 +28,6 @@ public sealed class DocumentLifecycleTests
         return mock;
     }
 
-    // ── New document ──────────────────────────────────────────────────────────
-
     [Fact]
     public void NewDocument_DisplayNameIsUntitled()
     {
@@ -61,8 +59,6 @@ public sealed class DocumentLifecycleTests
         Assert.Null(svc.CurrentDocument);
     }
 
-    // ── Open file ─────────────────────────────────────────────────────────────
-
     [Fact]
     public async Task LoadAsync_ContentMatchesFile_TitleUpdatesToFileName()
     {
@@ -91,8 +87,6 @@ public sealed class DocumentLifecycleTests
 
         Assert.False(svc.IsDirty);
     }
-
-    // ── Edit → dirty ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task SyncDirtyState_AfterEdit_SetsDirtyTrue()
@@ -149,8 +143,6 @@ public sealed class DocumentLifecycleTests
         Assert.StartsWith("Untitled", title);
     }
 
-    // ── Save → clean ──────────────────────────────────────────────────────────
-
     [Fact]
     public async Task SaveAsync_ClearsDirtyState()
     {
@@ -187,8 +179,6 @@ public sealed class DocumentLifecycleTests
 
         Assert.Equal(content, svc.CurrentDocument?.Content);
     }
-
-    // ── Full lifecycle ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task FullLifecycle_NewOpenEditSave_TitleAndDirtyCorrect()
