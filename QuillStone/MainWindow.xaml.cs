@@ -8,7 +8,7 @@ using System.IO;
 using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
-
+using QuillStone.Views;
 namespace QuillStone;
 
 public partial class MainWindow : Window
@@ -25,6 +25,9 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+    private bool _isSplitViewActive;
+
+    private PreviewWindow? _previewWindow;
 
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
@@ -94,6 +97,7 @@ public partial class MainWindow : Window
         _editorService.UpdateSelection();
         _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
     }
 
     private async void Editor_KeyDown(object? sender, KeyEventArgs e)
@@ -218,6 +222,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
         RefreshSidebar();
     }
 
@@ -225,6 +230,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
         RefreshSidebar();
     }
 
@@ -233,6 +239,7 @@ public partial class MainWindow : Window
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         RefreshSidebar();
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
     }
 
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
@@ -283,7 +290,14 @@ public partial class MainWindow : Window
     }
 
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
-        => QuillStone.Styles.Theme.ThemeManager.Toggle();
+    {
+        QuillStone.Styles.Theme.ThemeManager.Toggle();
+        UpdatePreview(_editorService.GetEditorText());
+    }
+
+    private void MenuSplitView_Click(object? sender, RoutedEventArgs e) => ToggleSplitView();
+
+    private void MenuPreviewWindow_Click(object? sender, RoutedEventArgs e) => TogglePreviewWindow();
 
     private async void MenuAbout_Click(object? sender, RoutedEventArgs e)
     {
@@ -356,6 +370,7 @@ public partial class MainWindow : Window
         {
             await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
             UpdateWindowTitle();
+            UpdatePreview(_editorService.GetEditorText());
         }
 
         // Clear selection so every subsequent click always fires a new SelectionChanged,
@@ -776,6 +791,50 @@ public partial class MainWindow : Window
         Title = _projectService.CurrentProject is { } project
             ? $"{docPart} - {project.ProjectName} - QuillStone"
             : $"{docPart} - QuillStone";
+    }
+
+    // ── Preview helpers ───────────────────────────────────────────────────────
+
+    private const string SplitViewActiveHeader   = "✓ _Split View";
+    private const string SplitViewInactiveHeader = "_Split View";
+
+    private void ToggleSplitView()
+    {
+        _isSplitViewActive = !_isSplitViewActive;
+        MenuSplitView.Header = _isSplitViewActive ? SplitViewActiveHeader : SplitViewInactiveHeader;
+
+        PreviewSplitter.IsVisible = _isSplitViewActive;
+        PreviewPane.IsVisible = _isSplitViewActive;
+
+        var cols = EditorPreviewGrid.ColumnDefinitions;
+        cols[2].Width = _isSplitViewActive
+            ? new GridLength(1, GridUnitType.Star)
+            : new GridLength(0, GridUnitType.Pixel);
+
+        if (_isSplitViewActive)
+            SplitPreviewTextBox.Text = _editorService.GetEditorText();
+    }
+
+    private void TogglePreviewWindow()
+    {
+        if (_previewWindow is not null)
+        {
+            _previewWindow.Close();
+            return;
+        }
+
+        _previewWindow = new PreviewWindow();
+        _previewWindow.Closed += (_, _) => _previewWindow = null;
+        _previewWindow.Show(this);
+        _previewWindow.UpdateContent(_editorService.GetEditorText());
+    }
+
+    private void UpdatePreview(string text)
+    {
+        if (_isSplitViewActive)
+            SplitPreviewTextBox.Text = text;
+
+        _previewWindow?.UpdateContent(text);
     }
 
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)

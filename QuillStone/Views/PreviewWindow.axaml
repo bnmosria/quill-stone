@@ -1,0 +1,20 @@
+<Window x:Class="QuillStone.Views.PreviewWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Preview – QuillStone"
+        Width="720" Height="800"
+        MinWidth="400" MinHeight="300"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://QuillStone/Assets/Icons/icon.png"
+        Background="{DynamicResource Brush.Background.Elevated}">
+
+    <TextBox x:Name="PreviewTextBox"
+             Classes="CodeEditor"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             AcceptsTab="True"
+             VerticalContentAlignment="Top"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+
+</Window>
