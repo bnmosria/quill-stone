@@ -82,6 +82,14 @@
                     </MenuItem>
                     <MenuItem Header="_View">
                         <MenuItem Header="Toggle _Theme" HotKey="Ctrl+Shift+T" Click="MenuToggleTheme_Click" />
+                        <Separator />
+                        <MenuItem x:Name="MenuSplitView"
+                                  Header="_Split View"
+                                  HotKey="Ctrl+Shift+V"
+                                  Click="MenuSplitView_Click" />
+                        <MenuItem Header="_Preview Window"
+                                  HotKey="Ctrl+Shift+P"
+                                  Click="MenuPreviewWindow_Click" />
                     </MenuItem>
                     <MenuItem Header="_Help">
                         <MenuItem Header="_About QuillStone..." Click="MenuAbout_Click" />
@@ -185,6 +193,8 @@
                 </Border>
 
                 <Grid ColumnDefinitions="210,*">
+                    <!-- Outer grid: sidebar (col 0) + editor/preview area (col 1) -->
+                    <!-- The inner EditorPreviewGrid handles the split -->
                     <Border Grid.Column="0"
                             Background="{DynamicResource Brush.Background.Sidebar}"
                             BorderBrush="{DynamicResource Brush.Border.Separator}"
@@ -289,16 +299,45 @@
                         </DockPanel>
                     </Border>
 
-                    <TextBox x:Name="Editor"
-                             Grid.Column="1"
-                             Classes="CodeEditor"
-                             AcceptsReturn="True"
-                             AcceptsTab="True"
-                             VerticalContentAlignment="Top"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                             TextChanged="Editor_TextChanged"
-                             KeyDown="Editor_KeyDown" />
+                    <Grid x:Name="EditorPreviewGrid"
+                          Grid.Column="1"
+                          ColumnDefinitions="*,Auto,0">
+
+                        <TextBox x:Name="Editor"
+                                 Grid.Column="0"
+                                 Classes="CodeEditor"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 VerticalContentAlignment="Top"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 TextChanged="Editor_TextChanged"
+                                 KeyDown="Editor_KeyDown" />
+
+                        <!-- Resizable splitter; hidden until split view is activated -->
+                        <GridSplitter x:Name="PreviewSplitter"
+                                      Grid.Column="1"
+                                      Width="5"
+                                      IsVisible="False"
+                                      Background="{DynamicResource Brush.Border.Separator}"
+                                      ResizeDirection="Columns" />
+
+                        <!-- Preview pane; hidden until split view is activated -->
+                        <Border x:Name="PreviewPane"
+                                Grid.Column="2"
+                                IsVisible="False"
+                                Background="{DynamicResource Brush.Background.Elevated}"
+                                BorderBrush="{DynamicResource Brush.Border.Separator}"
+                                BorderThickness="0">
+                            <ScrollViewer Padding="32,24">
+                                <StackPanel x:Name="SplitPreviewContent"
+                                            Spacing="0"
+                                            MaxWidth="640"
+                                            HorizontalAlignment="Left" />
+                            </ScrollViewer>
+                        </Border>
+
+                    </Grid>
                 </Grid>
             </DockPanel>
         </Border>

@@ -8,6 +8,7 @@ using System.IO;
 using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
+using QuillStone.Views;
 
 namespace QuillStone;
 
@@ -25,6 +26,10 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+    private bool _isSplitViewActive;
+
+    private readonly IMarkdownRenderer _markdownRenderer;
+    private PreviewWindow? _previewWindow;
 
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
@@ -39,7 +44,8 @@ public partial class MainWindow : Window
             new WindowDialogService(),
             new MarkdownFormatter(),
             new ProjectService(),
-            new AppSettingsService())
+            new AppSettingsService(),
+            new MarkdownRenderer())
     {
     }
 
@@ -49,7 +55,8 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter,
         IProjectService projectService,
-        IAppSettingsService settingsService)
+        IAppSettingsService settingsService,
+        IMarkdownRenderer markdownRenderer)
     {
         InitializeComponent();
         ConfigureWindowChromeForPlatform();
@@ -70,6 +77,7 @@ public partial class MainWindow : Window
         _projectService = projectService;
         _dialogService = dialogService;
         _settingsService = settingsService;
+        _markdownRenderer = markdownRenderer;
 
         ProjectTree.ItemsSource = _projectRoots;
         ProjectTree.AddHandler(InputElement.PointerPressedEvent, ProjectTree_PointerPressed, RoutingStrategies.Tunnel);
@@ -94,6 +102,7 @@ public partial class MainWindow : Window
         _editorService.UpdateSelection();
         _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
     }
 
     private async void Editor_KeyDown(object? sender, KeyEventArgs e)
@@ -218,6 +227,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
         RefreshSidebar();
     }
 
@@ -225,6 +235,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
         RefreshSidebar();
     }
 
@@ -233,6 +244,7 @@ public partial class MainWindow : Window
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         RefreshSidebar();
         UpdateWindowTitle();
+        UpdatePreview(_editorService.GetEditorText());
     }
 
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
@@ -283,7 +295,14 @@ public partial class MainWindow : Window
     }
 
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
-        => QuillStone.Styles.Theme.ThemeManager.Toggle();
+    {
+        QuillStone.Styles.Theme.ThemeManager.Toggle();
+        UpdatePreview(_editorService.GetEditorText());
+    }
+
+    private void MenuSplitView_Click(object? sender, RoutedEventArgs e) => ToggleSplitView();
+
+    private void MenuPreviewWindow_Click(object? sender, RoutedEventArgs e) => TogglePreviewWindow();
 
     private async void MenuAbout_Click(object? sender, RoutedEventArgs e)
     {
@@ -356,6 +375,7 @@ public partial class MainWindow : Window
         {
             await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
             UpdateWindowTitle();
+            UpdatePreview(_editorService.GetEditorText());
         }
 
         // Clear selection so every subsequent click always fires a new SelectionChanged,
@@ -776,6 +796,63 @@ public partial class MainWindow : Window
         Title = _projectService.CurrentProject is { } project
             ? $"{docPart} - {project.ProjectName} - QuillStone"
             : $"{docPart} - QuillStone";
+    }
+
+    // ── Preview helpers ───────────────────────────────────────────────────────
+
+    private void ToggleSplitView()
+    {
+        _isSplitViewActive = !_isSplitViewActive;
+        MenuSplitView.Header = _isSplitViewActive ? "✓ _Split View" : "_Split View";
+
+        PreviewSplitter.IsVisible = _isSplitViewActive;
+        PreviewPane.IsVisible = _isSplitViewActive;
+
+        var cols = EditorPreviewGrid.ColumnDefinitions;
+        cols[2].Width = _isSplitViewActive
+            ? new GridLength(1, GridUnitType.Star)
+            : new GridLength(0, GridUnitType.Pixel);
+
+        if (_isSplitViewActive)
+            RenderIntoSplitPane(_editorService.GetEditorText());
+    }
+
+    private void TogglePreviewWindow()
+    {
+        if (_previewWindow is not null)
+        {
+            _previewWindow.Close();
+            return;
+        }
+
+        _previewWindow = new PreviewWindow(_markdownRenderer);
+        _previewWindow.Closed += (_, _) => _previewWindow = null;
+        _previewWindow.Show(this);
+        _previewWindow.UpdateContent(_editorService.GetEditorText());
+    }
+
+    private void UpdatePreview(string text)
+    {
+        if (_isSplitViewActive)
+            RenderIntoSplitPane(text);
+
+        _previewWindow?.UpdateContent(text);
+    }
+
+    private void RenderIntoSplitPane(string text)
+    {
+        SplitPreviewContent.Children.Clear();
+        var rendered = _markdownRenderer.Render(text);
+
+        if (rendered is Panel panel)
+        {
+            foreach (var child in panel.Children.ToList())
+                SplitPreviewContent.Children.Add(child);
+        }
+        else
+        {
+            SplitPreviewContent.Children.Add(rendered);
+        }
     }
 
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
