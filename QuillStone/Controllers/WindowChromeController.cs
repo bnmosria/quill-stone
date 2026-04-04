@@ -7,11 +7,11 @@ namespace QuillStone.Controllers;
 
 internal sealed class WindowChromeController
 {
-    private readonly Window _owner;
-    private readonly Grid _titleBar;
-    private readonly Button _maximizeButton;
+    private Window _owner = null!;
+    private Grid _titleBar = null!;
+    private Button _maximizeButton = null!;
 
-    internal WindowChromeController(
+    internal void Wire(
         Window owner,
         Grid titleBar,
         Button minimizeButton,

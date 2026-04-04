@@ -6,21 +6,21 @@ internal sealed class ViewModeController
 {
     private ViewMode _viewMode = ViewMode.EditorOnly;
 
-    private readonly Grid _editorPreviewGrid;
-    private readonly Control _editor;
-    private readonly Border _previewPane;
-    private readonly Control _previewSplitter;
-    private readonly Button _viewEditorOnlyButton;
-    private readonly Button _viewSplitButton;
-    private readonly Button _viewFullPreviewButton;
-    private readonly MenuItem _menuSplitView;
-    private readonly MenuItem _menuFullPreview;
-    private readonly Action _onEnterPreview;
-    private readonly Action _onEnterEditorOnly;
+    private Grid _editorPreviewGrid = null!;
+    private Control _editor = null!;
+    private Border _previewPane = null!;
+    private Control _previewSplitter = null!;
+    private Button _viewEditorOnlyButton = null!;
+    private Button _viewSplitButton = null!;
+    private Button _viewFullPreviewButton = null!;
+    private MenuItem _menuSplitView = null!;
+    private MenuItem _menuFullPreview = null!;
+    private Action _onEnterPreview = null!;
+    private Action _onEnterEditorOnly = null!;
 
     public ViewMode CurrentMode => _viewMode;
 
-    internal ViewModeController(
+    internal void Wire(
         Grid editorPreviewGrid,
         Control editor,
         Border previewPane,

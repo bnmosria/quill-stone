@@ -7,28 +7,27 @@ namespace QuillStone.Controllers;
 
 internal sealed class PreviewController
 {
-    private readonly Panel _previewContainer;
-    private readonly Border _previewPane;
+    private Panel _previewContainer = null!;
+    private Border _previewPane = null!;
     private readonly IMarkdownRenderService _renderService;
     private readonly IEditorService _editorService;
-    private readonly Window _owner;
+    private Window _owner = null!;
 
     private CancellationTokenSource _renderCts = new();
     private PreviewWindow? _previewWindow;
 
     public bool IsPreviewVisible => _previewPane.IsVisible;
 
-    internal PreviewController(
-        Panel previewContainer,
-        Border previewPane,
-        IMarkdownRenderService renderService,
-        IEditorService editorService,
-        Window owner)
+    internal PreviewController(IMarkdownRenderService renderService, IEditorService editorService)
+    {
+        _renderService = renderService;
+        _editorService = editorService;
+    }
+
+    internal void Wire(Panel previewContainer, Border previewPane, Window owner)
     {
         _previewContainer = previewContainer;
         _previewPane = previewPane;
-        _renderService = renderService;
-        _editorService = editorService;
         _owner = owner;
     }
 

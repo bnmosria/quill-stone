@@ -10,29 +10,45 @@ namespace QuillStone.Controllers;
 internal sealed class ProjectTreeController
 {
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
-    private readonly TreeView _projectTree; private readonly StackPanel _sidebarNoProjectActions;
-    private readonly StackPanel _sidebarOpenSection; private readonly TextBlock _currentFileLabel;
-    private readonly IProjectService _projectService; private readonly IDocumentService _documentService;
-    private readonly IEditorService _editorService; private readonly IWindowDialogService _dialogService;
-    private readonly Window _owner; private readonly Func<string, Task> _onFileOpened;
-    private readonly Action _onTitleUpdateNeeded;
+    private TreeView _projectTree = null!;
+    private StackPanel _sidebarNoProjectActions = null!;
+    private StackPanel _sidebarOpenSection = null!;
+    private TextBlock _currentFileLabel = null!;
+    private readonly IProjectService _projectService;
+    private readonly IDocumentService _documentService;
+    private readonly IEditorService _editorService;
+    private readonly IWindowDialogService _dialogService;
+    private Window _owner = null!;
+    private Func<string, Task> _onFileOpened = null!;
+    private Action _onTitleUpdateNeeded = null!;
 
     public ObservableCollection<FolderNodeViewModel> ProjectRoots => _projectRoots;
 
     internal ProjectTreeController(
-        TreeView projectTree, StackPanel sidebarNoProjectActions, StackPanel sidebarOpenSection,
-        TextBlock currentFileLabel, IProjectService projectService, IDocumentService documentService,
-        IEditorService editorService, IWindowDialogService dialogService, Window owner,
-        Func<string, Task> onFileOpened, Action onTitleUpdateNeeded)
+        IProjectService projectService,
+        IDocumentService documentService,
+        IEditorService editorService,
+        IWindowDialogService dialogService)
+    {
+        _projectService = projectService;
+        _documentService = documentService;
+        _editorService = editorService;
+        _dialogService = dialogService;
+    }
+
+    internal void Wire(
+        TreeView projectTree,
+        StackPanel sidebarNoProjectActions,
+        StackPanel sidebarOpenSection,
+        TextBlock currentFileLabel,
+        Window owner,
+        Func<string, Task> onFileOpened,
+        Action onTitleUpdateNeeded)
     {
         _projectTree = projectTree;
         _sidebarNoProjectActions = sidebarNoProjectActions;
         _sidebarOpenSection = sidebarOpenSection;
         _currentFileLabel = currentFileLabel;
-        _projectService = projectService;
-        _documentService = documentService;
-        _editorService = editorService;
-        _dialogService = dialogService;
         _owner = owner;
         _onFileOpened = onFileOpened;
         _onTitleUpdateNeeded = onTitleUpdateNeeded;

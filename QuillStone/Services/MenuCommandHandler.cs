@@ -11,19 +11,19 @@ public sealed class MenuCommandHandler : IMenuCommandHandler
     private readonly IEditorService _editorService;
     private readonly IDocumentService _documentService;
     private readonly IWindowDialogService _dialogService;
-    private readonly Window _owner;
+    private Window _owner = null!;
 
     public MenuCommandHandler(
         IEditorService editorService,
         IDocumentService documentService,
-        IWindowDialogService dialogService,
-        Window owner)
+        IWindowDialogService dialogService)
     {
         _editorService = editorService;
         _documentService = documentService;
         _dialogService = dialogService;
-        _owner = owner;
     }
+
+    public void SetOwner(Window owner) => _owner = owner;
 
     public async Task NewDocumentAsync()
     {

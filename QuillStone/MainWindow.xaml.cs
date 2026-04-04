@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly IWindowLifecycleManager _lifecycleManager;
     private readonly IProjectService _projectService;
     private readonly IWindowDialogService _dialogService;
+    private readonly IAppSettingsService _settingsService;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
@@ -31,45 +32,57 @@ public partial class MainWindow : Window
     private readonly StatusBarController _statusBarController;
     private readonly WindowChromeController _windowChromeController;
     private readonly RecentProjectsController _recentProjectsController;
-    public MainWindow()
-        : this(
-            new DocumentState(),
-            new MarkdownFileService(),
-            new WindowDialogService(),
-            new MarkdownFormatter(),
-            new ProjectService(),
-            new AppSettingsService(),
-            new MarkdownRenderService())
-    { }
 
     internal MainWindow(
-        DocumentState documentState,
-        IMarkdownFileService fileService,
-        IWindowDialogService dialogService,
-        IMarkdownFormatter markdownFormatter,
+        IEditorService editorService,
+        IDocumentService documentService,
+        IFormatCommandHandler formatHandler,
+        IMenuCommandHandler menuHandler,
+        IWindowLifecycleManager lifecycleManager,
         IProjectService projectService,
+        IWindowDialogService dialogService,
         IAppSettingsService settingsService,
-        IMarkdownRenderService renderService)
+        ViewModeController viewModeController,
+        PreviewController previewController,
+        ProjectTreeController projectTreeController,
+        DragDropController dragDropController,
+        StatusBarController statusBarController,
+        WindowChromeController windowChromeController)
     {
         InitializeComponent();
-        var editorService = new EditorService(markdownFormatter);
+
+        // SetEditor() must be called after InitializeComponent()
+        // because Editor is an AXAML-named control
         editorService.SetEditor(Editor);
+
         _editorService = editorService;
-        _documentService = new DocumentService(fileService, dialogService, documentState);
-        _formatHandler = new FormatCommandHandler(_editorService, markdownFormatter, dialogService);
-        _menuHandler = new MenuCommandHandler(_editorService, _documentService, dialogService, this);
-        _lifecycleManager = new WindowLifecycleManager(_documentService, _editorService, this);
+        _documentService = documentService;
+        _formatHandler = formatHandler;
+        _menuHandler = menuHandler;
+        _lifecycleManager = lifecycleManager;
         _projectService = projectService;
         _dialogService = dialogService;
+        _settingsService = settingsService;
+        _viewModeController = viewModeController;
+        _previewController = previewController;
+        _projectTreeController = projectTreeController;
+        _dragDropController = dragDropController;
+        _statusBarController = statusBarController;
+        _windowChromeController = windowChromeController;
 
-        _previewController = new PreviewController(PreviewContainer, PreviewPane, renderService, _editorService, this);
-        _viewModeController = new ViewModeController(
+        // Set owner on services that need a Window reference
+        _menuHandler.SetOwner(this);
+        _lifecycleManager.SetOwner(this);
+
+        // Wire controllers to AXAML controls
+        _windowChromeController.Wire(this, TitleBar, MinimizeButton, MaximizeButton, CloseButton);
+        _previewController.Wire(PreviewContainer, PreviewPane, this);
+        _viewModeController.Wire(
             EditorPreviewGrid, Editor, PreviewPane, PreviewSplitter,
             ViewEditorOnlyButton, ViewSplitButton, ViewFullPreviewButton, MenuSplitView, MenuFullPreview,
             onEnterPreview: _previewController.RenderIfEmpty, onEnterEditorOnly: _previewController.CancelPendingRender);
-        _projectTreeController = new ProjectTreeController(
-            ProjectTree, SidebarNoProjectActions, SidebarOpenSection, CurrentFileLabel,
-            projectService, _documentService, _editorService, dialogService, this,
+        _projectTreeController.Wire(
+            ProjectTree, SidebarNoProjectActions, SidebarOpenSection, CurrentFileLabel, this,
             onFileOpened: async p =>
             {
                 await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(p));
@@ -77,14 +90,11 @@ public partial class MainWindow : Window
                 _previewController.RenderIfVisible();
             },
             onTitleUpdateNeeded: UpdateWindowTitle);
-        _dragDropController = new DragDropController(projectService, _documentService, _editorService, dialogService, this,
-            onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
-        _statusBarController = new StatusBarController(StatusMeta, StatusWordCount, Editor);
-        _windowChromeController = new WindowChromeController(this, TitleBar, MinimizeButton, MaximizeButton, CloseButton);
-        _windowChromeController.Configure();
-        _windowChromeController.OnWindowStateChanged();
+        _dragDropController.Wire(this, onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
+        _statusBarController.Wire(StatusMeta, StatusWordCount, Editor);
+
         _recentProjectsController = new RecentProjectsController(
-            RecentProjectsMenuItem, settingsService, projectService, dialogService, this,
+            RecentProjectsMenuItem, _settingsService, _projectService, _dialogService, this,
             trySwitchProject: TrySwitchProjectAsync,
             resetEditor: () => RunWithEditorUpdateGuardAsync(ResetEditorAsync),
             onProjectOpened: () => { _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); });
@@ -98,6 +108,8 @@ public partial class MainWindow : Window
         UpdateWindowTitle();
         _viewModeController.Apply(ViewMode.EditorOnly);
         _statusBarController.UpdateWordCount();
+        _windowChromeController.Configure();
+        _windowChromeController.OnWindowStateChanged();
         Loaded += async (_, _) => await _recentProjectsController.InitializeAsync();
     }
 
