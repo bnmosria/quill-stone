@@ -350,7 +350,7 @@
 
                     <Grid x:Name="EditorPreviewGrid"
                           Grid.Column="1"
-                          ColumnDefinitions="2*,Auto,0">
+                          ColumnDefinitions="1*,Auto,0">
 
                         <TextBox x:Name="Editor"
                                  Grid.Column="0"

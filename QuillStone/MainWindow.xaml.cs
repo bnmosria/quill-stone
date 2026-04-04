@@ -821,13 +821,15 @@ public partial class MainWindow : Window
             case ViewMode.EditorOnly:
                 cols[0].Width = new GridLength(2, GridUnitType.Star);
                 cols[2].Width = new GridLength(0, GridUnitType.Pixel);
+                Editor.IsVisible = true;
                 PreviewPane.IsVisible = false;
                 PreviewSplitter.IsVisible = false;
                 break;
 
             case ViewMode.Split:
-                cols[0].Width = new GridLength(2, GridUnitType.Star);
+                cols[0].Width = new GridLength(1, GridUnitType.Star);
                 cols[2].Width = new GridLength(1, GridUnitType.Star);
+                Editor.IsVisible = true;
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = true;
                 SplitPreviewTextBox.Text = _editorService.GetEditorText();
@@ -836,6 +838,7 @@ public partial class MainWindow : Window
             case ViewMode.FullPreview:
                 cols[0].Width = new GridLength(0, GridUnitType.Pixel);
                 cols[2].Width = new GridLength(1, GridUnitType.Star);
+                Editor.IsVisible = false;
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = false;
                 SplitPreviewTextBox.Text = _editorService.GetEditorText();
