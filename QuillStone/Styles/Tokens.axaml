@@ -67,4 +67,14 @@
     <StreamGeometry x:Key="Icon.Folder">M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.File">M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z</StreamGeometry>
 
+    <!-- ── VIEW MODE ICONS (bottom bar toggle buttons) ────────── -->
+    <!-- EditorOnly: wide left panel + narrow right panel outline -->
+    <StreamGeometry x:Key="Icon.ViewEditorOnly">M3,3H15V21H3V3M5,5V19H13V5H5M16,3H21V21H16V3M17,5V19H20V5H17Z</StreamGeometry>
+    <!-- Split: two equal-width panels -->
+    <StreamGeometry x:Key="Icon.ViewSplit">M3,3H11V21H3V3M5,5V19H9V5H5M13,3H21V21H13V3M15,5V19H19V5H15Z</StreamGeometry>
+    <!-- FullPreview: narrow left panel outline + wide right panel -->
+    <StreamGeometry x:Key="Icon.ViewFullPreview">M3,3H8V21H3V3M4,5V19H7V5H4M9,3H21V21H9V3M11,5V19H19V5H11Z</StreamGeometry>
+    <!-- Moon: crescent for theme toggle -->
+    <StreamGeometry x:Key="Icon.Moon">M21,12.79A9,9 0 1,1 11.21,3 7,7 0 0,0 21,12.79Z</StreamGeometry>
+
 </ResourceDictionary>

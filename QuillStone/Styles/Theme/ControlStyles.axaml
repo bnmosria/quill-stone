@@ -69,6 +69,10 @@
     <Style Selector="Button.Ghost:pressed /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource Brush.Background.Active}"/>
     </Style>
+    <Style Selector="Button.Ghost.ViewModeActive /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Active}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Brush.Text.Primary}"/>
+    </Style>
 
     <!-- Toolbar Icon Button -->
     <Style Selector="Button.Toolbar">
