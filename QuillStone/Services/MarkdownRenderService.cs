@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Markdig;
 using Markdig.Syntax;
 using MdCodeInline = Markdig.Syntax.Inlines.CodeInline;
@@ -20,7 +21,7 @@ public class MarkdownRenderService : IMarkdownRenderService
     private static readonly MarkdownPipeline _pipeline =
         new MarkdownPipelineBuilder().Build();
 
-    public IReadOnlyList<Control> Render(string markdown)
+    public IReadOnlyList<Control> Render(string markdown, string? basePath = null)
     {
         if (string.IsNullOrEmpty(markdown))
             return [];
@@ -32,7 +33,7 @@ public class MarkdownRenderService : IMarkdownRenderService
 
             foreach (var block in document)
             {
-                var control = RenderBlock(block);
+                var control = RenderBlock(block, basePath);
                 if (control is not null)
                     controls.Add(control);
             }
@@ -46,14 +47,14 @@ public class MarkdownRenderService : IMarkdownRenderService
         }
     }
 
-    private Control? RenderBlock(Block block) => block switch
+    private Control? RenderBlock(Block block, string? basePath) => block switch
     {
         HeadingBlock h => RenderHeading(h),
-        ParagraphBlock p => RenderParagraph(p),
-        QuoteBlock q => RenderQuote(q),
+        ParagraphBlock p => RenderParagraph(p, basePath),
+        QuoteBlock q => RenderQuote(q, basePath),
         FencedCodeBlock f => RenderFencedCode(f),
         CodeBlock c => RenderGenericCode(c),
-        ListBlock l => RenderList(l),
+        ListBlock l => RenderList(l, basePath),
         ThematicBreakBlock => RenderHr(),
         _ => RenderFallback(block),
     };
@@ -72,20 +73,87 @@ public class MarkdownRenderService : IMarkdownRenderService
         return tb;
     }
 
-    private static TextBlock RenderParagraph(ParagraphBlock paragraph)
+    private static Control RenderParagraph(ParagraphBlock paragraph, string? basePath)
     {
+        if (TryGetSingleImageLink(paragraph, out var imageLink))
+            return RenderImage(imageLink!, basePath);
+
         var tb = new TextBlock();
         tb.Classes.Add("MdBody");
         PopulateInlines(tb, paragraph.Inline);
         return tb;
     }
 
-    private Border RenderQuote(QuoteBlock quote)
+    private static bool TryGetSingleImageLink(ParagraphBlock paragraph, out MdLinkInline? imageLink)
+    {
+        imageLink = null;
+        if (paragraph.Inline is null)
+            return false;
+
+        var inlines = paragraph.Inline.ToList();
+        if (inlines.Count == 1 && inlines[0] is MdLinkInline link && link.IsImage)
+        {
+            imageLink = link;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Control RenderImage(MdLinkInline imageLink, string? basePath)
+    {
+        string url = imageLink.Url ?? string.Empty;
+        string alt = GetRawText(imageLink);
+
+        string? resolvedPath = ResolveImagePath(url, basePath);
+        if (resolvedPath is not null)
+        {
+            try
+            {
+                var bitmap = new Bitmap(resolvedPath);
+                return new Image
+                {
+                    Source = bitmap,
+                    Stretch = Stretch.Uniform,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[MarkdownRenderService] Image load error: {ex.Message}");
+            }
+        }
+
+        var fallback = new TextBlock { Text = string.IsNullOrEmpty(alt) ? url : $"[{alt}]" };
+        fallback.Classes.Add("MdBody");
+        return fallback;
+    }
+
+    private static string? ResolveImagePath(string url, string? basePath)
+    {
+        if (string.IsNullOrEmpty(url) || basePath is null)
+            return null;
+
+        if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            return null;
+
+        try
+        {
+            string fullPath = Path.GetFullPath(url, basePath);
+            return File.Exists(fullPath) ? fullPath : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private Border RenderQuote(QuoteBlock quote, string? basePath)
     {
         var inner = new StackPanel { Spacing = 6 };
         foreach (var block in quote)
         {
-            var control = RenderBlock(block);
+            var control = RenderBlock(block, basePath);
             if (control is not null)
                 inner.Children.Add(control);
         }
@@ -125,7 +193,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         return border;
     }
 
-    private StackPanel RenderList(ListBlock list)
+    private StackPanel RenderList(ListBlock list, string? basePath)
     {
         var panel = new StackPanel { Spacing = 4 };
 
@@ -145,7 +213,7 @@ public class MarkdownRenderService : IMarkdownRenderService
             var marker = new TextBlock { Text = markerText };
             marker.Classes.Add(markerClass);
 
-            Control itemContent = BuildListItemContent(listItem);
+            Control itemContent = BuildListItemContent(listItem, basePath);
 
             var row = new Grid
             {
@@ -163,7 +231,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         return panel;
     }
 
-    private Control BuildListItemContent(ListItemBlock listItem)
+    private Control BuildListItemContent(ListItemBlock listItem, string? basePath)
     {
         var blocks = listItem.OfType<Block>().ToList();
 
@@ -178,7 +246,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         var inner = new StackPanel { Spacing = 4 };
         foreach (var block in blocks)
         {
-            var control = RenderBlock(block);
+            var control = RenderBlock(block, basePath);
             if (control is not null)
                 inner.Children.Add(control);
         }
@@ -245,6 +313,10 @@ public class MarkdownRenderService : IMarkdownRenderService
                 {
                     FontFamily = new FontFamily("avares://QuillStone/Assets/Fonts#JetBrains Mono, Consolas, monospace"),
                 };
+
+            case MdLinkInline link when link.IsImage:
+                var alt = GetRawText(link);
+                return new Run(string.IsNullOrEmpty(alt) ? link.Url ?? string.Empty : $"[{alt}]");
 
             case MdLinkInline link:
                 return new Run(GetRawText(link));

@@ -196,4 +196,67 @@ public sealed class MarkdownRenderServiceTests
 
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void Render_ImageOnlyParagraph_NoBasePath_ReturnsFallbackTextBlock()
+    {
+        var result = _service.Render("![alt text](image.png)");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.Contains("MdBody", tb.Classes);
+        Assert.Equal("[alt text]", tb.Text);
+    }
+
+    [Fact]
+    public void Render_ImageOnlyParagraph_MissingFile_ReturnsFallbackTextBlock()
+    {
+        var result = _service.Render("![alt text](missing.png)", "/nonexistent/dir");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.Contains("MdBody", tb.Classes);
+        Assert.Equal("[alt text]", tb.Text);
+    }
+
+    [Fact]
+    public void Render_ImageOnlyParagraph_NoAltAndMissingFile_ReturnsFallbackWithUrl()
+    {
+        var result = _service.Render("![](image.png)", "/nonexistent/dir");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.Contains("MdBody", tb.Classes);
+        Assert.Equal("image.png", tb.Text);
+    }
+
+    [Fact]
+    public void Render_ImageOnlyParagraph_ExistingFile_ReturnsControl()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(dir);
+        string imgPath = Path.Combine(dir, "test.png");
+        try
+        {
+            File.WriteAllBytes(imgPath, MinimalPng);
+
+            var exception = Record.Exception(() => _service.Render("![photo](test.png)", dir));
+
+            Assert.Null(exception);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Render_AbsoluteImageUrl_ReturnsFallback()
+    {
+        var result = _service.Render("![remote](https://example.com/image.png)", "/some/dir");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.Contains("MdBody", tb.Classes);
+    }
+
+    // Minimal 1×1 transparent PNG (67 bytes) used for image load tests.
+    private static readonly byte[] MinimalPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
 }
