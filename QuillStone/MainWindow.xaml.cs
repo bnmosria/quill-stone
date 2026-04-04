@@ -245,7 +245,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
-        await RenderPreviewIfVisibleAsync();
+        RenderPreviewIfVisible();
         RefreshSidebar();
     }
 
@@ -253,7 +253,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         UpdateWindowTitle();
-        await RenderPreviewIfVisibleAsync();
+        RenderPreviewIfVisible();
         RefreshSidebar();
     }
 
@@ -262,7 +262,7 @@ public partial class MainWindow : Window
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         RefreshSidebar();
         UpdateWindowTitle();
-        await RenderPreviewIfVisibleAsync();
+        RenderPreviewIfVisible();
     }
 
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
@@ -316,7 +316,7 @@ public partial class MainWindow : Window
     {
         QuillStone.Styles.Theme.ThemeManager.Toggle();
         if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
-            _ = RenderPreviewImmediateAsync();
+            RenderPreviewImmediate();
     }
 
     private void MenuSplitView_Click(object? sender, RoutedEventArgs e)
@@ -398,7 +398,7 @@ public partial class MainWindow : Window
         {
             await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
             UpdateWindowTitle();
-            await RenderPreviewIfVisibleAsync();
+            RenderPreviewIfVisible();
         }
 
         // Clear selection so every subsequent click always fires a new SelectionChanged,
@@ -850,7 +850,7 @@ public partial class MainWindow : Window
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = true;
                 if (PreviewContainer.Children.Count == 0)
-                    _ = RenderPreviewImmediateAsync();
+                    RenderPreviewImmediate();
                 break;
 
             case ViewMode.FullPreview:
@@ -860,7 +860,7 @@ public partial class MainWindow : Window
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = false;
                 if (PreviewContainer.Children.Count == 0)
-                    _ = RenderPreviewImmediateAsync();
+                    RenderPreviewImmediate();
                 break;
         }
 
@@ -923,40 +923,32 @@ public partial class MainWindow : Window
         try
         {
             await Task.Delay(300, token);
-            var markdown = _editorService.GetEditorText();
-            var controls = await Task.Run(() => _renderService.Render(markdown), token);
             if (token.IsCancellationRequested)
                 return;
+            var markdown = _editorService.GetEditorText();
+            var controls = _renderService.Render(markdown);
             PopulatePreviewContainer(controls);
         }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
     }
 
-    private async Task RenderPreviewImmediateAsync()
+    private void RenderPreviewImmediate()
     {
         var oldCts = _renderCts;
         _renderCts = new CancellationTokenSource();
-        var token = _renderCts.Token;
         oldCts.Cancel();
         oldCts.Dispose();
 
-        try
-        {
-            var markdown = _editorService.GetEditorText();
-            var controls = await Task.Run(() => _renderService.Render(markdown), token);
-            if (token.IsCancellationRequested)
-                return;
-            PopulatePreviewContainer(controls);
-        }
-        catch (OperationCanceledException) { }
-        catch (ObjectDisposedException) { }
+        var markdown = _editorService.GetEditorText();
+        var controls = _renderService.Render(markdown);
+        PopulatePreviewContainer(controls);
     }
 
-    private async Task RenderPreviewIfVisibleAsync()
+    private void RenderPreviewIfVisible()
     {
         if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
-            await RenderPreviewImmediateAsync();
+            RenderPreviewImmediate();
     }
 
     private void PopulatePreviewContainer(IReadOnlyList<Control> controls)
