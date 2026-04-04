@@ -11,6 +11,7 @@
             </FluentTheme.Palettes>
         </FluentTheme>
         <StyleInclude Source="avares://QuillStone/Styles/Theme/ControlStyles.axaml"/>
+        <StyleInclude Source="avares://QuillStone/Styles/PreviewStyles.axaml"/>
     </Application.Styles>
 
     <Application.Resources>

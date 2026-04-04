@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Threading;
 using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private readonly IProjectService _projectService;
     private readonly IWindowDialogService _dialogService;
     private readonly IAppSettingsService _settingsService;
+    private readonly IMarkdownRenderService _renderService;
 
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
@@ -31,6 +33,8 @@ public partial class MainWindow : Window
     private ViewMode _viewMode = ViewMode.EditorOnly;
 
     private PreviewWindow? _previewWindow;
+
+    private CancellationTokenSource _renderCts = new();
 
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
 
@@ -45,7 +49,8 @@ public partial class MainWindow : Window
             new WindowDialogService(),
             new MarkdownFormatter(),
             new ProjectService(),
-            new AppSettingsService())
+            new AppSettingsService(),
+            new MarkdownRenderService())
     {
     }
 
@@ -55,7 +60,8 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter,
         IProjectService projectService,
-        IAppSettingsService settingsService)
+        IAppSettingsService settingsService,
+        IMarkdownRenderService renderService)
     {
         InitializeComponent();
         ConfigureWindowChromeForPlatform();
@@ -76,6 +82,7 @@ public partial class MainWindow : Window
         _projectService = projectService;
         _dialogService = dialogService;
         _settingsService = settingsService;
+        _renderService = renderService;
 
         ProjectTree.ItemsSource = _projectRoots;
         ProjectTree.AddHandler(InputElement.PointerPressedEvent, ProjectTree_PointerPressed, RoutingStrategies.Tunnel);
@@ -106,7 +113,12 @@ public partial class MainWindow : Window
         _editorService.UpdateSelection();
         _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
-        UpdatePreview(_editorService.GetEditorText());
+
+        if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
+            _ = SchedulePreviewUpdateAsync();
+
+        _previewWindow?.UpdateContent(_editorService.GetEditorText());
+
         UpdateStatusMeta();
         UpdateStatusWordCount();
     }
@@ -233,7 +245,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
         UpdateWindowTitle();
-        UpdatePreview(_editorService.GetEditorText());
+        await RenderPreviewIfVisibleAsync();
         RefreshSidebar();
     }
 
@@ -241,7 +253,7 @@ public partial class MainWindow : Window
     {
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         UpdateWindowTitle();
-        UpdatePreview(_editorService.GetEditorText());
+        await RenderPreviewIfVisibleAsync();
         RefreshSidebar();
     }
 
@@ -250,7 +262,7 @@ public partial class MainWindow : Window
         await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
         RefreshSidebar();
         UpdateWindowTitle();
-        UpdatePreview(_editorService.GetEditorText());
+        await RenderPreviewIfVisibleAsync();
     }
 
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
@@ -303,7 +315,8 @@ public partial class MainWindow : Window
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
     {
         QuillStone.Styles.Theme.ThemeManager.Toggle();
-        UpdatePreview(_editorService.GetEditorText());
+        if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
+            _ = RenderPreviewImmediateAsync();
     }
 
     private void MenuSplitView_Click(object? sender, RoutedEventArgs e)
@@ -385,7 +398,7 @@ public partial class MainWindow : Window
         {
             await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(fileNode.FullPath));
             UpdateWindowTitle();
-            UpdatePreview(_editorService.GetEditorText());
+            await RenderPreviewIfVisibleAsync();
         }
 
         // Clear selection so every subsequent click always fires a new SelectionChanged,
@@ -824,6 +837,7 @@ public partial class MainWindow : Window
                 Editor.IsVisible = true;
                 PreviewPane.IsVisible = false;
                 PreviewSplitter.IsVisible = false;
+                _renderCts.Cancel();
                 break;
 
             case ViewMode.Split:
@@ -832,7 +846,8 @@ public partial class MainWindow : Window
                 Editor.IsVisible = true;
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = true;
-                SplitPreviewTextBox.Text = _editorService.GetEditorText();
+                if (PreviewContainer.Children.Count == 0)
+                    _ = RenderPreviewImmediateAsync();
                 break;
 
             case ViewMode.FullPreview:
@@ -841,7 +856,8 @@ public partial class MainWindow : Window
                 Editor.IsVisible = false;
                 PreviewPane.IsVisible = true;
                 PreviewSplitter.IsVisible = false;
-                SplitPreviewTextBox.Text = _editorService.GetEditorText();
+                if (PreviewContainer.Children.Count == 0)
+                    _ = RenderPreviewImmediateAsync();
                 break;
         }
 
@@ -893,12 +909,52 @@ public partial class MainWindow : Window
         _previewWindow.UpdateContent(_editorService.GetEditorText());
     }
 
-    private void UpdatePreview(string text)
+    private async Task SchedulePreviewUpdateAsync()
+    {
+        _renderCts.Cancel();
+        _renderCts = new CancellationTokenSource();
+        var token = _renderCts.Token;
+
+        try
+        {
+            await Task.Delay(300, token);
+            var markdown = _editorService.GetEditorText();
+            var controls = await Task.Run(() => _renderService.Render(markdown), token);
+            if (token.IsCancellationRequested)
+                return;
+            PopulatePreviewContainer(controls);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task RenderPreviewImmediateAsync()
+    {
+        _renderCts.Cancel();
+        _renderCts = new CancellationTokenSource();
+        var token = _renderCts.Token;
+
+        try
+        {
+            var markdown = _editorService.GetEditorText();
+            var controls = await Task.Run(() => _renderService.Render(markdown), token);
+            if (token.IsCancellationRequested)
+                return;
+            PopulatePreviewContainer(controls);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task RenderPreviewIfVisibleAsync()
     {
         if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
-            SplitPreviewTextBox.Text = text;
+            await RenderPreviewImmediateAsync();
+    }
 
-        _previewWindow?.UpdateContent(text);
+    private void PopulatePreviewContainer(IReadOnlyList<Control> controls)
+    {
+        PreviewContainer.Children.Clear();
+        foreach (var control in controls)
+            PreviewContainer.Children.Add(control);
     }
 
     private void UpdateStatusMeta()
