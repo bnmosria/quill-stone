@@ -116,6 +116,12 @@ public sealed class PreviewController
 
     private void PopulateContainer(IReadOnlyList<Control> controls)
     {
+        foreach (var child in _previewContainer.Children)
+        {
+            if (child is Image { Source: IDisposable bitmap })
+                bitmap.Dispose();
+        }
+
         _previewContainer.Children.Clear();
         foreach (var control in controls)
             _previewContainer.Children.Add(control);
