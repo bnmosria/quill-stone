@@ -8,12 +8,13 @@
         Icon="avares://QuillStone/Assets/Icons/icon.png"
         Background="{DynamicResource Brush.Background.Elevated}">
 
-    <ScrollViewer x:Name="PreviewScrollViewer"
-                  Padding="40,32">
-        <StackPanel x:Name="PreviewContent"
-                    Spacing="0"
-                    MaxWidth="680"
-                    HorizontalAlignment="Left" />
-    </ScrollViewer>
+    <TextBox x:Name="PreviewTextBox"
+             Classes="CodeEditor"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             AcceptsTab="True"
+             VerticalContentAlignment="Top"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto" />
 
 </Window>

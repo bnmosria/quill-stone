@@ -9,7 +9,6 @@ using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
 using QuillStone.Views;
-
 namespace QuillStone;
 
 public partial class MainWindow : Window
@@ -28,7 +27,6 @@ public partial class MainWindow : Window
     private bool _closingPromptOpen;
     private bool _isSplitViewActive;
 
-    private readonly IMarkdownRenderer _markdownRenderer;
     private PreviewWindow? _previewWindow;
 
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
@@ -44,8 +42,7 @@ public partial class MainWindow : Window
             new WindowDialogService(),
             new MarkdownFormatter(),
             new ProjectService(),
-            new AppSettingsService(),
-            new MarkdownRenderer())
+            new AppSettingsService())
     {
     }
 
@@ -55,8 +52,7 @@ public partial class MainWindow : Window
         IWindowDialogService dialogService,
         IMarkdownFormatter markdownFormatter,
         IProjectService projectService,
-        IAppSettingsService settingsService,
-        IMarkdownRenderer markdownRenderer)
+        IAppSettingsService settingsService)
     {
         InitializeComponent();
         ConfigureWindowChromeForPlatform();
@@ -77,7 +73,6 @@ public partial class MainWindow : Window
         _projectService = projectService;
         _dialogService = dialogService;
         _settingsService = settingsService;
-        _markdownRenderer = markdownRenderer;
 
         ProjectTree.ItemsSource = _projectRoots;
         ProjectTree.AddHandler(InputElement.PointerPressedEvent, ProjectTree_PointerPressed, RoutingStrategies.Tunnel);
@@ -817,7 +812,7 @@ public partial class MainWindow : Window
             : new GridLength(0, GridUnitType.Pixel);
 
         if (_isSplitViewActive)
-            RenderIntoSplitPane(_editorService.GetEditorText());
+            SplitPreviewTextBox.Text = _editorService.GetEditorText();
     }
 
     private void TogglePreviewWindow()
@@ -828,7 +823,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _previewWindow = new PreviewWindow(_markdownRenderer);
+        _previewWindow = new PreviewWindow();
         _previewWindow.Closed += (_, _) => _previewWindow = null;
         _previewWindow.Show(this);
         _previewWindow.UpdateContent(_editorService.GetEditorText());
@@ -837,25 +832,9 @@ public partial class MainWindow : Window
     private void UpdatePreview(string text)
     {
         if (_isSplitViewActive)
-            RenderIntoSplitPane(text);
+            SplitPreviewTextBox.Text = text;
 
         _previewWindow?.UpdateContent(text);
-    }
-
-    private void RenderIntoSplitPane(string text)
-    {
-        SplitPreviewContent.Children.Clear();
-        var rendered = _markdownRenderer.Render(text);
-
-        if (rendered is Panel panel)
-        {
-            foreach (var child in panel.Children.ToList())
-                SplitPreviewContent.Children.Add(child);
-        }
-        else
-        {
-            SplitPreviewContent.Children.Add(rendered);
-        }
     }
 
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)

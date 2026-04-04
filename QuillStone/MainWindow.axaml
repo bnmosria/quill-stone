@@ -326,15 +326,16 @@
                         <Border x:Name="PreviewPane"
                                 Grid.Column="2"
                                 IsVisible="False"
-                                Background="{DynamicResource Brush.Background.Elevated}"
                                 BorderBrush="{DynamicResource Brush.Border.Separator}"
-                                BorderThickness="0">
-                            <ScrollViewer Padding="32,24">
-                                <StackPanel x:Name="SplitPreviewContent"
-                                            Spacing="0"
-                                            MaxWidth="640"
-                                            HorizontalAlignment="Left" />
-                            </ScrollViewer>
+                                BorderThickness="1,0,0,0">
+                            <TextBox x:Name="SplitPreviewTextBox"
+                                     Classes="CodeEditor"
+                                     IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     AcceptsTab="True"
+                                     VerticalContentAlignment="Top"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto" />
                         </Border>
 
                     </Grid>
