@@ -85,11 +85,12 @@
                         <Separator />
                         <MenuItem x:Name="MenuSplitView"
                                   Header="_Split View"
-                                  HotKey="Ctrl+Shift+V"
-                                  Click="MenuSplitView_Click" />
-                        <MenuItem Header="_Preview Window"
                                   HotKey="Ctrl+Shift+P"
-                                  Click="MenuPreviewWindow_Click" />
+                                  Click="MenuSplitView_Click" />
+                        <MenuItem x:Name="MenuFullPreview"
+                                  Header="_Full Preview"
+                                  HotKey="Ctrl+Shift+F"
+                                  Click="MenuFullPreview_Click" />
                     </MenuItem>
                     <MenuItem Header="_Help">
                         <MenuItem Header="_About QuillStone..." Click="MenuAbout_Click" />
@@ -179,16 +180,64 @@
 
                 <Border DockPanel.Dock="Bottom"
                         Classes="StatusBar">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="Ln 1, Col 1  *  UTF-8  *  Markdown"
-                                   Classes="StatusMetaPrimary"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,0,1" />
-                        <TextBlock Grid.Column="1"
-                                   Text="247 words  *  1.2 min read"
-                                   Classes="StatusMetaSecondary"
-                                   VerticalAlignment="Center"
-                                   Margin="14,0,0,1" />
+                    <Grid ColumnDefinitions="*,Auto,*">
+
+                        <!-- Left: line, column, encoding, file type -->
+                        <TextBlock x:Name="StatusMeta"
+                                   Text="Ln 1, Col 1  ·  UTF-8  ·  Markdown"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.XS}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   VerticalAlignment="Center" />
+
+                        <!-- Centre: three view-mode toggle buttons -->
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="2"
+                                    VerticalAlignment="Center">
+                            <Button x:Name="ViewEditorOnlyButton"
+                                    ToolTip.Tip="Editor Only"
+                                    Click="ViewEditorOnly_Click"
+                                    Classes="Ghost"
+                                    Padding="5">
+                                <PathIcon Data="{DynamicResource Icon.ViewEditorOnly}" Width="14" Height="14"/>
+                            </Button>
+                            <Button x:Name="ViewSplitButton"
+                                    ToolTip.Tip="Split View"
+                                    Click="ViewSplit_Click"
+                                    Classes="Ghost"
+                                    Padding="5">
+                                <PathIcon Data="{DynamicResource Icon.ViewSplit}" Width="14" Height="14"/>
+                            </Button>
+                            <Button x:Name="ViewFullPreviewButton"
+                                    ToolTip.Tip="Full Preview"
+                                    Click="ViewFullPreview_Click"
+                                    Classes="Ghost"
+                                    Padding="5">
+                                <PathIcon Data="{DynamicResource Icon.ViewFullPreview}" Width="14" Height="14"/>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Right: word count + reading time + theme toggle -->
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="4"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="StatusWordCount"
+                                       Text="0 words · 0 min read"
+                                       FontFamily="{DynamicResource Font.UI}"
+                                       FontSize="{DynamicResource FontSize.XS}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       VerticalAlignment="Center" />
+                            <Button ToolTip.Tip="Toggle Theme"
+                                    Click="MenuToggleTheme_Click"
+                                    Classes="Ghost"
+                                    Padding="5">
+                                <PathIcon Data="{DynamicResource Icon.Moon}" Width="14" Height="14"/>
+                            </Button>
+                        </StackPanel>
+
                     </Grid>
                 </Border>
 
@@ -301,7 +350,7 @@
 
                     <Grid x:Name="EditorPreviewGrid"
                           Grid.Column="1"
-                          ColumnDefinitions="*,Auto,0">
+                          ColumnDefinitions="2*,Auto,0">
 
                         <TextBox x:Name="Editor"
                                  Grid.Column="0"

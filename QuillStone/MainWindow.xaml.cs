@@ -11,6 +11,8 @@ using QuillStone.ViewModels;
 using QuillStone.Views;
 namespace QuillStone;
 
+public enum ViewMode { EditorOnly, Split, FullPreview }
+
 public partial class MainWindow : Window
 {
     private readonly IEditorService _editorService;
@@ -25,7 +27,8 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
-    private bool _isSplitViewActive;
+
+    private ViewMode _viewMode = ViewMode.EditorOnly;
 
     private PreviewWindow? _previewWindow;
 
@@ -84,6 +87,12 @@ public partial class MainWindow : Window
         UpdateWindowTitle();
         UpdateMaximizeButtonTooltip();
 
+        Editor.PointerReleased += (_, _) => UpdateStatusMeta();
+        Editor.KeyUp += (_, _) => UpdateStatusMeta();
+
+        ApplyViewMode(ViewMode.EditorOnly);
+        UpdateStatusWordCount();
+
         Loaded += async (_, _) => await InitializeSettingsAsync();
     }
 
@@ -98,6 +107,8 @@ public partial class MainWindow : Window
         _documentService.SyncDirtyState(_editorService.GetEditorText());
         UpdateWindowTitle();
         UpdatePreview(_editorService.GetEditorText());
+        UpdateStatusMeta();
+        UpdateStatusWordCount();
     }
 
     private async void Editor_KeyDown(object? sender, KeyEventArgs e)
@@ -295,7 +306,11 @@ public partial class MainWindow : Window
         UpdatePreview(_editorService.GetEditorText());
     }
 
-    private void MenuSplitView_Click(object? sender, RoutedEventArgs e) => ToggleSplitView();
+    private void MenuSplitView_Click(object? sender, RoutedEventArgs e)
+        => ApplyViewMode(_viewMode == ViewMode.Split ? ViewMode.EditorOnly : ViewMode.Split);
+
+    private void MenuFullPreview_Click(object? sender, RoutedEventArgs e)
+        => ApplyViewMode(_viewMode == ViewMode.FullPreview ? ViewMode.EditorOnly : ViewMode.FullPreview);
 
     private void MenuPreviewWindow_Click(object? sender, RoutedEventArgs e) => TogglePreviewWindow();
 
@@ -795,25 +810,71 @@ public partial class MainWindow : Window
 
     // ── Preview helpers ───────────────────────────────────────────────────────
 
-    private const string SplitViewActiveHeader   = "✓ _Split View";
-    private const string SplitViewInactiveHeader = "_Split View";
-
-    private void ToggleSplitView()
+    private void ApplyViewMode(ViewMode mode)
     {
-        _isSplitViewActive = !_isSplitViewActive;
-        MenuSplitView.Header = _isSplitViewActive ? SplitViewActiveHeader : SplitViewInactiveHeader;
-
-        PreviewSplitter.IsVisible = _isSplitViewActive;
-        PreviewPane.IsVisible = _isSplitViewActive;
+        _viewMode = mode;
 
         var cols = EditorPreviewGrid.ColumnDefinitions;
-        cols[2].Width = _isSplitViewActive
-            ? new GridLength(1, GridUnitType.Star)
-            : new GridLength(0, GridUnitType.Pixel);
 
-        if (_isSplitViewActive)
-            SplitPreviewTextBox.Text = _editorService.GetEditorText();
+        switch (mode)
+        {
+            case ViewMode.EditorOnly:
+                cols[0].Width = new GridLength(2, GridUnitType.Star);
+                cols[2].Width = new GridLength(0, GridUnitType.Pixel);
+                PreviewPane.IsVisible = false;
+                PreviewSplitter.IsVisible = false;
+                break;
+
+            case ViewMode.Split:
+                cols[0].Width = new GridLength(2, GridUnitType.Star);
+                cols[2].Width = new GridLength(1, GridUnitType.Star);
+                PreviewPane.IsVisible = true;
+                PreviewSplitter.IsVisible = true;
+                SplitPreviewTextBox.Text = _editorService.GetEditorText();
+                break;
+
+            case ViewMode.FullPreview:
+                cols[0].Width = new GridLength(0, GridUnitType.Pixel);
+                cols[2].Width = new GridLength(1, GridUnitType.Star);
+                PreviewPane.IsVisible = true;
+                PreviewSplitter.IsVisible = false;
+                SplitPreviewTextBox.Text = _editorService.GetEditorText();
+                break;
+        }
+
+        UpdateViewModeButtons();
+        UpdateViewMenuHeaders();
     }
+
+    private void UpdateViewModeButtons()
+    {
+        SetViewModeActiveClass(ViewEditorOnlyButton, _viewMode == ViewMode.EditorOnly);
+        SetViewModeActiveClass(ViewSplitButton, _viewMode == ViewMode.Split);
+        SetViewModeActiveClass(ViewFullPreviewButton, _viewMode == ViewMode.FullPreview);
+    }
+
+    private static void SetViewModeActiveClass(Button button, bool active)
+    {
+        if (active && !button.Classes.Contains("ViewModeActive"))
+            button.Classes.Add("ViewModeActive");
+        else if (!active)
+            button.Classes.Remove("ViewModeActive");
+    }
+
+    private void UpdateViewMenuHeaders()
+    {
+        MenuSplitView.Header = _viewMode == ViewMode.Split ? "✓ _Split View" : "_Split View";
+        MenuFullPreview.Header = _viewMode == ViewMode.FullPreview ? "✓ _Full Preview" : "_Full Preview";
+    }
+
+    private void ViewEditorOnly_Click(object? sender, RoutedEventArgs e)
+        => ApplyViewMode(ViewMode.EditorOnly);
+
+    private void ViewSplit_Click(object? sender, RoutedEventArgs e)
+        => ApplyViewMode(ViewMode.Split);
+
+    private void ViewFullPreview_Click(object? sender, RoutedEventArgs e)
+        => ApplyViewMode(ViewMode.FullPreview);
 
     private void TogglePreviewWindow()
     {
@@ -831,10 +892,42 @@ public partial class MainWindow : Window
 
     private void UpdatePreview(string text)
     {
-        if (_isSplitViewActive)
+        if (_viewMode is ViewMode.Split or ViewMode.FullPreview)
             SplitPreviewTextBox.Text = text;
 
         _previewWindow?.UpdateContent(text);
+    }
+
+    private void UpdateStatusMeta()
+    {
+        var text = Editor.Text ?? string.Empty;
+        var caret = Math.Clamp(Editor.CaretIndex, 0, text.Length);
+
+        int line = 1, col = 1;
+        for (int i = 0; i < caret; i++)
+        {
+            if (text[i] == '\n')
+            {
+                line++;
+                col = 1;
+            }
+            else if (text[i] != '\r')
+            {
+                col++;
+            }
+        }
+
+        StatusMeta.Text = $"Ln {line}, Col {col}  ·  UTF-8  ·  Markdown";
+    }
+
+    private void UpdateStatusWordCount()
+    {
+        var text = Editor.Text ?? string.Empty;
+        var wordCount = string.IsNullOrWhiteSpace(text)
+            ? 0
+            : text.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        var readingMinutes = (int)Math.Ceiling(wordCount / 200.0);
+        StatusWordCount.Text = $"{wordCount} words · {readingMinutes} min read";
     }
 
     private void Toolbar_PointerPressed(object? sender, PointerPressedEventArgs e)
