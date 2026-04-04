@@ -241,7 +241,10 @@ public class MarkdownRenderService : IMarkdownRenderService
                 return span;
 
             case MdCodeInline code:
-                return new Run(code.Content) { FontFamily = new FontFamily("JetBrains Mono, Consolas, monospace") };
+                return new Run(code.Content)
+                {
+                    FontFamily = new FontFamily("avares://QuillStone/Assets/Fonts#JetBrains Mono, Consolas, monospace"),
+                };
 
             case MdLinkInline link:
                 return new Run(GetRawText(link));

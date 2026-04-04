@@ -837,7 +837,10 @@ public partial class MainWindow : Window
                 Editor.IsVisible = true;
                 PreviewPane.IsVisible = false;
                 PreviewSplitter.IsVisible = false;
-                _renderCts.Cancel();
+                var oldCts = _renderCts;
+                _renderCts = new CancellationTokenSource();
+                oldCts.Cancel();
+                oldCts.Dispose();
                 break;
 
             case ViewMode.Split:
@@ -911,9 +914,11 @@ public partial class MainWindow : Window
 
     private async Task SchedulePreviewUpdateAsync()
     {
-        _renderCts.Cancel();
+        var oldCts = _renderCts;
         _renderCts = new CancellationTokenSource();
         var token = _renderCts.Token;
+        oldCts.Cancel();
+        oldCts.Dispose();
 
         try
         {
@@ -925,13 +930,16 @@ public partial class MainWindow : Window
             PopulatePreviewContainer(controls);
         }
         catch (OperationCanceledException) { }
+        catch (ObjectDisposedException) { }
     }
 
     private async Task RenderPreviewImmediateAsync()
     {
-        _renderCts.Cancel();
+        var oldCts = _renderCts;
         _renderCts = new CancellationTokenSource();
         var token = _renderCts.Token;
+        oldCts.Cancel();
+        oldCts.Dispose();
 
         try
         {
@@ -942,6 +950,7 @@ public partial class MainWindow : Window
             PopulatePreviewContainer(controls);
         }
         catch (OperationCanceledException) { }
+        catch (ObjectDisposedException) { }
     }
 
     private async Task RenderPreviewIfVisibleAsync()
