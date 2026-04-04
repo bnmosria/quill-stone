@@ -7,7 +7,7 @@ using QuillStone.ViewModels;
 
 namespace QuillStone.Controllers;
 
-internal sealed class ProjectTreeController
+public sealed class ProjectTreeController
 {
     private readonly ObservableCollection<FolderNodeViewModel> _projectRoots = [];
     private TreeView _projectTree = null!;
@@ -24,7 +24,7 @@ internal sealed class ProjectTreeController
 
     public ObservableCollection<FolderNodeViewModel> ProjectRoots => _projectRoots;
 
-    internal ProjectTreeController(
+    public ProjectTreeController(
         IProjectService projectService,
         IDocumentService documentService,
         IEditorService editorService,

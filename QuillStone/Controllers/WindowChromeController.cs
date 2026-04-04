@@ -5,7 +5,7 @@ using Avalonia.Platform;
 
 namespace QuillStone.Controllers;
 
-internal sealed class WindowChromeController
+public sealed class WindowChromeController
 {
     private Window _owner = null!;
     private Grid _titleBar = null!;

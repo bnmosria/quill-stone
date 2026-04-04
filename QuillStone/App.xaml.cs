@@ -24,29 +24,23 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
 
-        // ── Infrastructure ───────────────────────────────────────────
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
         services.AddSingleton<IMarkdownFileService, MarkdownFileService>();
         services.AddSingleton<IMarkdownFormatter, MarkdownFormatter>();
         services.AddSingleton<IMarkdownRenderService, MarkdownRenderService>();
 
-        // ── Document ─────────────────────────────────────────────────
         services.AddSingleton<DocumentState>();
         services.AddSingleton<IDocumentService, DocumentService>();
 
-        // ── Project ──────────────────────────────────────────────────
         services.AddSingleton<IProjectService, ProjectService>();
 
-        // ── Editor ───────────────────────────────────────────────────
         services.AddSingleton<IEditorService, EditorService>();
         services.AddSingleton<IFormatCommandHandler, FormatCommandHandler>();
         services.AddSingleton<IMenuCommandHandler, MenuCommandHandler>();
         services.AddSingleton<IWindowLifecycleManager, WindowLifecycleManager>();
 
-        // ── Dialog (window-scoped, owner set post-resolve) ────────────
         services.AddTransient<IWindowDialogService, WindowDialogService>();
 
-        // ── Controllers ──────────────────────────────────────────────
         services.AddTransient<ViewModeController>();
         services.AddTransient<PreviewController>();
         services.AddTransient<ProjectTreeController>();
@@ -54,7 +48,6 @@ public partial class App : Application
         services.AddTransient<StatusBarController>();
         services.AddTransient<WindowChromeController>();
 
-        // ── Window ────────────────────────────────────────────────────
         services.AddTransient<MainWindow>();
 
         _provider = services.BuildServiceProvider();
