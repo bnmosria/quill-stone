@@ -60,43 +60,45 @@ public sealed class EditorService : IEditorService
         if (_editor == null)
             return false;
 
-        string editorText = GetEditorText();
-        int cursorPos = GetCaretIndex();
-
-        string? nextPrefix = _formatter.GetNextListItemPrefix(editorText, cursorPos);
-        if (nextPrefix is null)
+        var edit = ComputeEnterKeyEdit(GetEditorText(), GetCaretIndex(), _formatter);
+        if (edit is null)
             return false;
 
-        int lineStart = cursorPos == 0 ? 0 : editorText.LastIndexOf('\n', cursorPos - 1) + 1;
-        int lineEnd = editorText.IndexOf('\n', cursorPos);
-        if (lineEnd == -1)
-            lineEnd = editorText.Length;
+        SetEditorText(edit.Value.NewText);
+        SetCaretIndex(edit.Value.NewCaretIndex);
+        UpdateSelection();
+        return true;
+    }
 
-        string currentLine = editorText[lineStart..lineEnd];
-        string contentAfterCursor = editorText[cursorPos..lineEnd];
+    internal static (string NewText, int NewCaretIndex)? ComputeEnterKeyEdit(
+        string text, int cursorPos, IMarkdownFormatter formatter)
+    {
+        string? nextPrefix = formatter.GetNextListItemPrefix(text, cursorPos);
+        if (nextPrefix is null)
+            return null;
+
+        int lineStart = cursorPos == 0 ? 0 : text.LastIndexOf('\n', cursorPos - 1) + 1;
+        int lineEnd = text.IndexOf('\n', cursorPos);
+        if (lineEnd == -1)
+            lineEnd = text.Length;
+
+        string currentLine = text[lineStart..lineEnd];
+        string contentAfterCursor = text[cursorPos..lineEnd];
 
         string lineContent = currentLine.TrimStart();
-        string afterListMarker = _formatter.StripListPrefix(lineContent);
+        string afterListMarker = formatter.StripListPrefix(lineContent);
 
         if (string.IsNullOrWhiteSpace(afterListMarker))
         {
             int lineStartOffset = currentLine.Length - lineContent.Length;
             int deleteUntilPos = lineStart + lineStartOffset;
-            string newText = editorText[..deleteUntilPos] + editorText[lineEnd..];
-
-            SetEditorText(newText);
-            SetCaretIndex(deleteUntilPos);
-            UpdateSelection();
-            return true;
+            string newText = text[..deleteUntilPos] + text[lineEnd..];
+            return (newText, deleteUntilPos);
         }
 
         string insertText = "\n" + nextPrefix;
-        string newEditorText = editorText[..cursorPos] + insertText + contentAfterCursor;
-
-        SetEditorText(newEditorText);
-        SetCaretIndex(cursorPos + insertText.Length);
-        UpdateSelection();
-        return true;
+        string newEditorText = text[..cursorPos] + insertText + contentAfterCursor;
+        return (newEditorText, cursorPos + insertText.Length);
     }
 }
 

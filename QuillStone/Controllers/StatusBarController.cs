@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace QuillStone.Controllers;
 
-internal sealed class StatusBarController
+public sealed class StatusBarController
 {
     private TextBlock _statusMeta = null!;
     private TextBlock _statusWordCount = null!;

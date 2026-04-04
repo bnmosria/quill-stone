@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace QuillStone.Controllers;
 
-internal sealed class ViewModeController
+public sealed class ViewModeController
 {
     private ViewMode _viewMode = ViewMode.EditorOnly;
 

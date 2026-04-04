@@ -33,7 +33,7 @@ public partial class MainWindow : Window
     private readonly WindowChromeController _windowChromeController;
     private readonly RecentProjectsController _recentProjectsController;
 
-    internal MainWindow(
+    public MainWindow(
         IEditorService editorService,
         IDocumentService documentService,
         IFormatCommandHandler formatHandler,

@@ -8,7 +8,7 @@ using QuillStone.ViewModels;
 
 namespace QuillStone.Controllers;
 
-internal sealed class DragDropController
+public sealed class DragDropController
 {
     private readonly IProjectService _projectService;
     private readonly IDocumentService _documentService;
@@ -24,7 +24,7 @@ internal sealed class DragDropController
     private const string DragNodeFormat = "QuillStone.Node";
     private const double DragThreshold = 8.0;
 
-    internal DragDropController(
+    public DragDropController(
         IProjectService projectService,
         IDocumentService documentService,
         IEditorService editorService,

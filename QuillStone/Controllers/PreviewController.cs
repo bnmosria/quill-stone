@@ -5,7 +5,7 @@ using QuillStone.Views;
 
 namespace QuillStone.Controllers;
 
-internal sealed class PreviewController
+public sealed class PreviewController
 {
     private Panel _previewContainer = null!;
     private Border _previewPane = null!;
@@ -18,7 +18,7 @@ internal sealed class PreviewController
 
     public bool IsPreviewVisible => _previewPane.IsVisible;
 
-    internal PreviewController(IMarkdownRenderService renderService, IEditorService editorService)
+    public PreviewController(IMarkdownRenderService renderService, IEditorService editorService)
     {
         _renderService = renderService;
         _editorService = editorService;
