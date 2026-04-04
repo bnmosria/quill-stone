@@ -1,0 +1,116 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  PREVIEW PANE STYLES                                        -->
+    <!--  Used by MarkdownRenderService to style rendered controls   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ── Headings ─────────────────────────────────────────────── -->
+    <Style Selector="TextBlock.MdH1">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.3XL}"/>
+        <Setter Property="FontWeight"   Value="Bold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Syntax.Heading}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdH2">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.2XL}"/>
+        <Setter Property="FontWeight"   Value="Bold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Syntax.Heading}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdH3">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.XL}"/>
+        <Setter Property="FontWeight"   Value="SemiBold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Syntax.Heading}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdH4">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.LG}"/>
+        <Setter Property="FontWeight"   Value="SemiBold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Syntax.Heading}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- ── Body paragraph ───────────────────────────────────────── -->
+    <Style Selector="TextBlock.MdBody">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.MD}"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="LineHeight"   Value="26"/>
+    </Style>
+
+    <!-- ── Blockquote ───────────────────────────────────────────── -->
+    <Style Selector="Border.MdBlockquote">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Background.Overlay}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Syntax.QuoteBorder}"/>
+        <Setter Property="BorderThickness" Value="3,0,0,0"/>
+        <Setter Property="Padding"         Value="14,10"/>
+        <Setter Property="CornerRadius"    Value="0,4,4,0"/>
+    </Style>
+
+    <!-- ── Fenced / indented code block ─────────────────────────── -->
+    <Style Selector="Border.MdCodeBlock">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Syntax.CodeBg}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource Radius.MD}"/>
+        <Setter Property="Padding"         Value="14,10"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdCodeLang">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Editor}"/>
+        <Setter Property="FontSize"   Value="{DynamicResource FontSize.XS}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Tertiary}"/>
+        <Setter Property="Margin"     Value="0,0,0,6"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdCodeText">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Editor}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Syntax.Code}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- ── List: bullet marker ───────────────────────────────────── -->
+    <Style Selector="TextBlock.MdListBullet">
+        <Setter Property="FontFamily"        Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"          Value="{DynamicResource FontSize.MD}"/>
+        <Setter Property="Foreground"        Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="Margin"            Value="0,0,8,0"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+    </Style>
+
+    <!-- ── List: number marker ───────────────────────────────────── -->
+    <Style Selector="TextBlock.MdListNum">
+        <Setter Property="FontFamily"        Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"          Value="{DynamicResource FontSize.MD}"/>
+        <Setter Property="Foreground"        Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="Margin"            Value="0,0,8,0"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+    </Style>
+
+    <!-- ── List: item text ───────────────────────────────────────── -->
+    <Style Selector="TextBlock.MdListText">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.MD}"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- ── Horizontal rule ──────────────────────────────────────── -->
+    <Style Selector="Border.MdHr">
+        <Setter Property="Height"     Value="1"/>
+        <Setter Property="Background" Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="Margin"     Value="0,8"/>
+    </Style>
+
+</Styles>
