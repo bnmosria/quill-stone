@@ -4,11 +4,11 @@ namespace QuillStone.Controllers;
 
 internal sealed class StatusBarController
 {
-    private readonly TextBlock _statusMeta;
-    private readonly TextBlock _statusWordCount;
-    private readonly TextBox _editor;
+    private TextBlock _statusMeta = null!;
+    private TextBlock _statusWordCount = null!;
+    private TextBox _editor = null!;
 
-    internal StatusBarController(TextBlock statusMeta, TextBlock statusWordCount, TextBox editor)
+    internal void Wire(TextBlock statusMeta, TextBlock statusWordCount, TextBox editor)
     {
         _statusMeta = statusMeta;
         _statusWordCount = statusWordCount;

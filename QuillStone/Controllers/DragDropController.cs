@@ -14,28 +14,33 @@ internal sealed class DragDropController
     private readonly IDocumentService _documentService;
     private readonly IEditorService _editorService;
     private readonly IWindowDialogService _dialogService;
-    private readonly Window _owner;
-    private readonly Action<FolderNodeViewModel?> _onMoveCompleted;
-    private readonly Action _onTitleUpdateNeeded;
+    private Window _owner = null!;
+    private Action<FolderNodeViewModel?> _onMoveCompleted = null!;
+    private Action _onTitleUpdateNeeded = null!;
     private TreeView? _projectTree;
     private FileSystemNodeViewModel? _pendingDragSource;
     private Point _pendingDragStartPoint;
     private FileSystemNodeViewModel? _activeDragSource;
     private const string DragNodeFormat = "QuillStone.Node";
     private const double DragThreshold = 8.0;
+
     internal DragDropController(
         IProjectService projectService,
         IDocumentService documentService,
         IEditorService editorService,
-        IWindowDialogService dialogService,
-        Window owner,
-        Action<FolderNodeViewModel?> onMoveCompleted,
-        Action onTitleUpdateNeeded)
+        IWindowDialogService dialogService)
     {
         _projectService = projectService;
         _documentService = documentService;
         _editorService = editorService;
         _dialogService = dialogService;
+    }
+
+    internal void Wire(
+        Window owner,
+        Action<FolderNodeViewModel?> onMoveCompleted,
+        Action onTitleUpdateNeeded)
+    {
         _owner = owner;
         _onMoveCompleted = onMoveCompleted;
         _onTitleUpdateNeeded = onTitleUpdateNeeded;

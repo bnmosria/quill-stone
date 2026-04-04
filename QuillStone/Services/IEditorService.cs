@@ -1,9 +1,11 @@
+using Avalonia.Controls;
 using QuillStone.Models;
 
 namespace QuillStone.Services;
 
 public interface IEditorService
 {
+    void SetEditor(TextBox editor);
     string GetEditorText();
     void SetEditorText(string text);
     int GetCaretIndex();
