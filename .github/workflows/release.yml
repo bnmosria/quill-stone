@@ -15,9 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest # Apple Silicon
+          - os: macos-15
             arch: arm64
-          - os: macos-13 # Intel
+          - os: macos-15 # cross-compile for Intel
             arch: x64
 
     runs-on: ${{ matrix.os }}

@@ -32,9 +32,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest # Apple Silicon
+          - os: macos-15
             rid: osx-arm64
-          - os: macos-13 # Intel
+          - os: macos-15 # cross-compile for Intel
             rid: osx-x64
           - os: windows-latest
             rid: win-x64

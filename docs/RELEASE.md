@@ -66,11 +66,10 @@ Two workflows live in `.github/workflows/`.
 **What it does:** builds the project for all three platform targets in parallel to catch compilation
 failures early.
 
-| Runner                         | Runtime ID  |
-| ------------------------------ | ----------- |
-| `macos-latest` (Apple Silicon) | `osx-arm64` |
-| `macos-13` (Intel)             | `osx-x64`   |
-| `windows-latest`               | `win-x64`   |
+| Runner           | Runtime ID                              |
+| ---------------- | --------------------------------------- |
+| `macos-15`       | `osx-arm64`, `osx-x64` (cross-compiled) |
+| `windows-latest` | `win-x64`                               |
 
 No artifacts are uploaded — CI is a build gate only.
 
