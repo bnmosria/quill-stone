@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly IDocumentService _documentService;
     private readonly IFormatCommandHandler _formatHandler;
     private readonly IMenuCommandHandler _menuHandler;
+    private readonly IProjectCommandHandler _projectCommandHandler;
     private readonly IWindowLifecycleManager _lifecycleManager;
     private readonly IProjectService _projectService;
     private readonly IWindowDialogService _dialogService;
@@ -38,6 +39,7 @@ public partial class MainWindow : Window
         IDocumentService documentService,
         IFormatCommandHandler formatHandler,
         IMenuCommandHandler menuHandler,
+        IProjectCommandHandler projectCommandHandler,
         IWindowLifecycleManager lifecycleManager,
         IProjectService projectService,
         IWindowDialogService dialogService,
@@ -59,6 +61,7 @@ public partial class MainWindow : Window
         _documentService = documentService;
         _formatHandler = formatHandler;
         _menuHandler = menuHandler;
+        _projectCommandHandler = projectCommandHandler;
         _lifecycleManager = lifecycleManager;
         _projectService = projectService;
         _dialogService = dialogService;
@@ -72,6 +75,7 @@ public partial class MainWindow : Window
 
         // Set owner on services that need a Window reference
         _menuHandler.SetOwner(this);
+        _projectCommandHandler.SetOwner(this);
         _lifecycleManager.SetOwner(this);
 
         // Wire controllers to AXAML controls
@@ -181,7 +185,7 @@ public partial class MainWindow : Window
     { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); _previewController.RenderIfVisible(); }
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+        if (!await _projectCommandHandler.OpenFolderAsync())
             return;
         await _recentProjectsController.RecordAndSaveAsync();
         _projectTreeController.RefreshSidebar();
@@ -194,7 +198,7 @@ public partial class MainWindow : Window
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+        if (!await _projectCommandHandler.OpenFolderAsync())
             return;
         await _recentProjectsController.RecordAndSaveAsync();
         _projectTreeController.RefreshSidebar();
@@ -202,7 +206,7 @@ public partial class MainWindow : Window
     }
     private async void MenuNewProject_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService)))
+        if (!await _projectCommandHandler.NewProjectAsync())
             return;
         await _recentProjectsController.RecordAndSaveAsync();
         _projectTreeController.RefreshSidebar();
@@ -210,7 +214,7 @@ public partial class MainWindow : Window
     }
 
     private void MenuToggleTheme_Click(object? sender, RoutedEventArgs e)
-    { QuillStone.Styles.Theme.ThemeManager.Toggle(); _previewController.RenderIfVisible(); }
+    { _viewModeController.ToggleTheme(); _previewController.RenderIfVisible(); }
     private void MenuSplitView_Click(object? sender, RoutedEventArgs e)
         => _viewModeController.Apply(_viewModeController.CurrentMode == ViewMode.Split ? ViewMode.EditorOnly : ViewMode.Split);
     private void MenuFullPreview_Click(object? sender, RoutedEventArgs e)
@@ -271,15 +275,8 @@ public partial class MainWindow : Window
         _editorService.UpdateSelection();
         return Task.CompletedTask;
     }
-    private async Task<bool> TrySwitchProjectAsync(Func<Task<bool>> operation)
-    {
-        if (!await _documentService.TrySaveIfDirtyAsync(this, _editorService.GetEditorText()))
-            return false;
-        if (!await operation())
-            return false;
-        await RunWithEditorUpdateGuardAsync(ResetEditorAsync);
-        return true;
-    }
+    private Task<bool> TrySwitchProjectAsync(Func<Task<bool>> operation)
+        => _projectCommandHandler.SwitchProjectAsync(operation);
     private void UpdateWindowTitle()
     {
         var dirty = _documentService.IsDirty ? "*" : string.Empty;

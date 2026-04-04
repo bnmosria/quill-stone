@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using QuillStone.Styles.Theme;
 
 namespace QuillStone.Controllers;
 
@@ -105,4 +106,6 @@ internal sealed class ViewModeController
         _menuSplitView.Header = _viewMode == ViewMode.Split ? "✓ _Split View" : "_Split View";
         _menuFullPreview.Header = _viewMode == ViewMode.FullPreview ? "✓ _Full Preview" : "_Full Preview";
     }
+
+    public void ToggleTheme() => ThemeManager.Toggle();
 }

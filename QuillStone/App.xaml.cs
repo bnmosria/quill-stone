@@ -41,6 +41,7 @@ public partial class App : Application
         services.AddSingleton<IEditorService, EditorService>();
         services.AddSingleton<IFormatCommandHandler, FormatCommandHandler>();
         services.AddSingleton<IMenuCommandHandler, MenuCommandHandler>();
+        services.AddSingleton<IProjectCommandHandler, ProjectCommandHandler>();
         services.AddSingleton<IWindowLifecycleManager, WindowLifecycleManager>();
 
         // ── Dialog (window-scoped, owner set post-resolve) ────────────
