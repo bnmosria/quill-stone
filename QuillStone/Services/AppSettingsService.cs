@@ -27,6 +27,11 @@ public sealed class AppSettingsService : IAppSettingsService
         _settingsPath = Path.Combine(configDir, "settings.json");
     }
 
+    internal AppSettingsService(string settingsPath)
+    {
+        _settingsPath = settingsPath;
+    }
+
     public async Task LoadAsync()
     {
         if (!File.Exists(_settingsPath))
@@ -84,5 +89,19 @@ public sealed class AppSettingsService : IAppSettingsService
 
         if (Settings.LastOpenedProjectPath is not null && !Directory.Exists(Settings.LastOpenedProjectPath))
             Settings.LastOpenedProjectPath = null;
+    }
+
+    public async Task ResetToDefaultsAsync()
+    {
+        var preserved = Settings.RecentProjects;
+        var lastPath = Settings.LastOpenedProjectPath;
+
+        Settings = new AppSettings
+        {
+            RecentProjects = preserved,
+            LastOpenedProjectPath = lastPath,
+        };
+
+        await SaveAsync();
     }
 }
