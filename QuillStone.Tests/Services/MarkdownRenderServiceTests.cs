@@ -9,8 +9,6 @@ public sealed class MarkdownRenderServiceTests
 {
     private readonly MarkdownRenderService _service = new();
 
-    // ── Empty / null input ─────────────────────────────────────────────────
-
     [Fact]
     public void Render_EmptyString_ReturnsEmptyList()
     {
@@ -26,8 +24,6 @@ public sealed class MarkdownRenderServiceTests
 
         Assert.Empty(result);
     }
-
-    // ── Headings ───────────────────────────────────────────────────────────
 
     [Fact]
     public void Render_H1_ReturnsTextBlockWithMdH1Class()
@@ -65,8 +61,6 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdH4", tb.Classes);
     }
 
-    // ── Paragraph ──────────────────────────────────────────────────────────
-
     [Fact]
     public void Render_Paragraph_ReturnsTextBlockWithMdBodyClass()
     {
@@ -75,8 +69,6 @@ public sealed class MarkdownRenderServiceTests
         var tb = Assert.IsType<TextBlock>(Assert.Single(result));
         Assert.Contains("MdBody", tb.Classes);
     }
-
-    // ── Bold / italic inlines ──────────────────────────────────────────────
 
     [Fact]
     public void Render_BoldText_SpanHasBoldFontWeight()
@@ -102,8 +94,6 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(FontStyle.Italic, span!.FontStyle);
     }
 
-    // ── Blockquote ─────────────────────────────────────────────────────────
-
     [Fact]
     public void Render_Blockquote_ReturnsBorderWithMdBlockquoteClass()
     {
@@ -121,8 +111,6 @@ public sealed class MarkdownRenderServiceTests
         var border = Assert.IsType<Border>(Assert.Single(result));
         Assert.IsType<StackPanel>(border.Child);
     }
-
-    // ── Code block ─────────────────────────────────────────────────────────
 
     [Fact]
     public void Render_FencedCodeBlock_ReturnsBorderWithMdCodeBlockClass()
@@ -154,8 +142,6 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdCodeBlock", border.Classes);
     }
 
-    // ── Horizontal rule ────────────────────────────────────────────────────
-
     [Fact]
     public void Render_HorizontalRule_ReturnsBorderWithMdHrClass()
     {
@@ -164,8 +150,6 @@ public sealed class MarkdownRenderServiceTests
         var border = Assert.IsType<Border>(Assert.Single(result));
         Assert.Contains("MdHr", border.Classes);
     }
-
-    // ── Lists ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void Render_UnorderedList_ReturnsStackPanel()
@@ -184,8 +168,6 @@ public sealed class MarkdownRenderServiceTests
         var panel = Assert.IsType<StackPanel>(Assert.Single(result));
         Assert.Equal(2, panel.Children.Count);
     }
-
-    // ── Malformed / edge-case markdown ────────────────────────────────────
 
     [Fact]
     public void Render_MalformedMarkdown_DoesNotThrow()

@@ -24,8 +24,6 @@ public sealed class AppSettingsServiceTests : IDisposable
 
     private AppSettingsService CreateService() => new(_settingsPath);
 
-    // ── LoadAsync ──────────────────────────────────────────────────────────
-
     [Fact]
     public async Task LoadAsync_MissingFile_ReturnsDefaults()
     {
@@ -78,8 +76,6 @@ public sealed class AppSettingsServiceTests : IDisposable
         Assert.Equal("My Book", svc.Settings.RecentProjects[0].Name);
     }
 
-    // ── SaveAsync ──────────────────────────────────────────────────────────
-
     [Fact]
     public async Task SaveAsync_WritesSettingsToDisk()
     {
@@ -102,8 +98,6 @@ public sealed class AppSettingsServiceTests : IDisposable
 
         Assert.False(File.Exists(_settingsPath + ".tmp"));
     }
-
-    // ── RecordProject ──────────────────────────────────────────────────────
 
     [Fact]
     public void RecordProject_AddsProjectToRecentList()
@@ -173,8 +167,6 @@ public sealed class AppSettingsServiceTests : IDisposable
         Assert.Equal("/projects/my-book", svc.Settings.LastOpenedProjectPath);
     }
 
-    // ── RemoveStale ────────────────────────────────────────────────────────
-
     [Fact]
     public void RemoveStale_RemovesNonExistentPaths()
     {
@@ -219,8 +211,6 @@ public sealed class AppSettingsServiceTests : IDisposable
 
         Assert.Equal(_tempDir, svc.Settings.LastOpenedProjectPath);
     }
-
-    // ── ResetToDefaultsAsync ───────────────────────────────────────────────
 
     [Fact]
     public async Task ResetToDefaultsAsync_PreservesRecentProjects()

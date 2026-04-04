@@ -11,8 +11,6 @@ public sealed class MarkdownFormatterTests
 
     private static TextSelectionRange Selection(int start, int end) => new(start, end);
 
-    // ── WrapSelection ──────────────────────────────────────────────────────
-
     [Fact]
     public void WrapSelection_NoSelection_InsertsPlaceholder()
     {
@@ -57,8 +55,6 @@ public sealed class MarkdownFormatterTests
         Assert.Equal("`text`", result.Text);
     }
 
-    // ── InsertLink ─────────────────────────────────────────────────────────
-
     [Fact]
     public void InsertLink_NoSelection_InsertsPlaceholderLinkText()
     {
@@ -77,8 +73,6 @@ public sealed class MarkdownFormatterTests
         Assert.Equal("[click here](https://example.com)", result.Text);
         Assert.Equal(33, result.SelectionStart);
     }
-
-    // ── PrefixSelectedLines ────────────────────────────────────────────────
 
     [Fact]
     public void PrefixSelectedLines_BulletList_PrefixesSingleLine()
@@ -111,8 +105,6 @@ public sealed class MarkdownFormatterTests
 
         Assert.Equal("- old item", result.Text);
     }
-
-    // ── ApplyHeadingToSelectedLines ────────────────────────────────────────
 
     [Fact]
     public void ApplyHeading_H1_AddsHash()
@@ -153,8 +145,6 @@ public sealed class MarkdownFormatterTests
             _formatter.ApplyHeadingToSelectedLines("text", NoSelection(), 0));
     }
 
-    // ── ApplyNumberedListToSelectedLines ───────────────────────────────────
-
     [Fact]
     public void ApplyNumberedList_SingleLine_PrefixesWithOne()
     {
@@ -170,8 +160,6 @@ public sealed class MarkdownFormatterTests
 
         Assert.Equal("1. Alpha\n2. Beta\n3. Gamma", result.Text);
     }
-
-    // ── GetNextListItemPrefix ──────────────────────────────────────────────
 
     [Fact]
     public void GetNextListItemPrefix_BulletLine_ReturnsBulletPrefix()
@@ -216,8 +204,6 @@ public sealed class MarkdownFormatterTests
 
         Assert.Null(prefix);
     }
-
-    // ── StripListPrefix ────────────────────────────────────────────────────
 
     [Fact]
     public void StripListPrefix_BulletLine_StripsPrefix()

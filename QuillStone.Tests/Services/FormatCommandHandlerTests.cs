@@ -24,8 +24,6 @@ public sealed class FormatCommandHandlerTests
         _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()));
     }
 
-    // ── Bold ───────────────────────────────────────────────────────────────
-
     [Fact]
     public void ApplyBold_WithSelection_WrapsBold()
     {
@@ -54,8 +52,6 @@ public sealed class FormatCommandHandlerTests
         Assert.Equal("**bold text**", result!.Text);
     }
 
-    // ── Italic ─────────────────────────────────────────────────────────────
-
     [Fact]
     public void ApplyItalic_WithSelection_WrapsItalic()
     {
@@ -70,8 +66,6 @@ public sealed class FormatCommandHandlerTests
         Assert.Equal("*word*", result!.Text);
     }
 
-    // ── Inline Code ────────────────────────────────────────────────────────
-
     [Fact]
     public void ApplyInlineCode_WithSelection_WrapsCode()
     {
@@ -85,8 +79,6 @@ public sealed class FormatCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal("`var x`", result!.Text);
     }
-
-    // ── Headings ───────────────────────────────────────────────────────────
 
     [Fact]
     public void ApplyHeading_H1_AddsSingleHash()
@@ -130,8 +122,6 @@ public sealed class FormatCommandHandlerTests
         Assert.Equal("### Section", result!.Text);
     }
 
-    // ── Bullet List ────────────────────────────────────────────────────────
-
     [Fact]
     public void ApplyBulletList_PrefixesLine()
     {
@@ -145,8 +135,6 @@ public sealed class FormatCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal("- Item one", result!.Text);
     }
-
-    // ── Numbered List ──────────────────────────────────────────────────────
 
     [Fact]
     public void ApplyNumberedList_PrefixesLine()
@@ -162,8 +150,6 @@ public sealed class FormatCommandHandlerTests
         Assert.Equal("1. Item one", result!.Text);
     }
 
-    // ── Blockquote ─────────────────────────────────────────────────────────
-
     [Fact]
     public void ApplyBlockquote_PrefixesLine()
     {
@@ -177,8 +163,6 @@ public sealed class FormatCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal("> A wise quote", result!.Text);
     }
-
-    // ── InsertLinkAsync ────────────────────────────────────────────────────
 
     [Fact]
     public async Task InsertLinkAsync_UserCancels_DoesNotModifyEditor()
