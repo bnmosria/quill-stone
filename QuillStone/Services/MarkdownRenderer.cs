@@ -190,6 +190,10 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
     private static readonly FontFamily PreviewFont = new("avares://QuillStone/Assets/Fonts#Lora, Georgia, serif");
     private static readonly FontFamily EditorFont  = new("avares://QuillStone/Assets/Fonts#JetBrains Mono, Consolas, monospace");
 
+    private const double BodyFontSize  = 14.5;
+    private const double QuoteFontSize = 14.0;
+    private const double LineHeightMultiplier = 1.6;
+
     private TextBlock BuildHeading(string text, double size, FontWeight weight, Thickness margin)
     {
         var tb = new TextBlock
@@ -210,8 +214,8 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
         var tb = new TextBlock
         {
             FontFamily = PreviewFont,
-            FontSize = 14.5,
-            LineHeight = 1.6 * 14.5,
+            FontSize = BodyFontSize,
+            LineHeight = LineHeightMultiplier * BodyFontSize,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 10),
             Foreground = GetBrush("Brush.Text.Secondary", FallbackFg),
@@ -225,9 +229,9 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
         var inner = new TextBlock
         {
             FontFamily = PreviewFont,
-            FontSize = 14,
+            FontSize = QuoteFontSize,
             FontStyle = FontStyle.Italic,
-            LineHeight = 1.6 * 14,
+            LineHeight = LineHeightMultiplier * QuoteFontSize,
             TextWrapping = TextWrapping.Wrap,
             Foreground = GetBrush("Brush.Text.Secondary", FallbackFg),
         };
@@ -287,7 +291,7 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
             var bullet = new TextBlock
             {
                 Text = "•",
-                FontSize = 14.5,
+                FontSize = BodyFontSize,
                 VerticalAlignment = VerticalAlignment.Top,
                 Foreground = accent,
             };
@@ -295,7 +299,7 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
             var tb = new TextBlock
             {
                 FontFamily = PreviewFont,
-                FontSize = 14.5,
+                FontSize = BodyFontSize,
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = body,
             };
@@ -324,7 +328,7 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
             {
                 Text = $"{n + 1}.",
                 FontFamily = PreviewFont,
-                FontSize = 14.5,
+                FontSize = BodyFontSize,
                 VerticalAlignment = VerticalAlignment.Top,
                 Foreground = accent,
             };
@@ -332,7 +336,7 @@ public sealed class MarkdownRenderer : IMarkdownRenderer
             var tb = new TextBlock
             {
                 FontFamily = PreviewFont,
-                FontSize = 14.5,
+                FontSize = BodyFontSize,
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = body,
             };

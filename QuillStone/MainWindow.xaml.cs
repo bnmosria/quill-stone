@@ -800,10 +800,13 @@ public partial class MainWindow : Window
 
     // ── Preview helpers ───────────────────────────────────────────────────────
 
+    private const string SplitViewActiveHeader   = "✓ _Split View";
+    private const string SplitViewInactiveHeader = "_Split View";
+
     private void ToggleSplitView()
     {
         _isSplitViewActive = !_isSplitViewActive;
-        MenuSplitView.Header = _isSplitViewActive ? "✓ _Split View" : "_Split View";
+        MenuSplitView.Header = _isSplitViewActive ? SplitViewActiveHeader : SplitViewInactiveHeader;
 
         PreviewSplitter.IsVisible = _isSplitViewActive;
         PreviewPane.IsVisible = _isSplitViewActive;
