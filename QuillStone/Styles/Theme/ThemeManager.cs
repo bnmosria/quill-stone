@@ -1,6 +1,6 @@
+using System;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
-using System;
 
 namespace QuillStone.Styles.Theme;
 
@@ -11,12 +11,12 @@ namespace QuillStone.Styles.Theme;
 /// </summary>
 public static class ThemeManager
 {
-    private const string BaseUri   = "avares://QuillStone/Styles/Themes/";
+    private const string BaseUri = "avares://QuillStone/Styles/Themes/";
     private const string LightPath = "Vellichor/Light.axaml";
-    private const string DarkPath  = "Vellichor/Dark.axaml";
+    private const string DarkPath = "Vellichor/Dark.axaml";
 
     private static ResourceInclude? _activeTheme;
-    private static Application      _app = null!;
+    private static Application _app = null!;
 
     public static AppThemeVariant Current { get; private set; } = AppThemeVariant.Light;
 
@@ -35,7 +35,8 @@ public static class ThemeManager
     /// </summary>
     public static void Apply(AppThemeVariant variant, bool forceReload = false)
     {
-        if (variant == Current && !forceReload) return;
+        if (variant == Current && !forceReload)
+            return;
 
         var resources = _app.Resources;
 
@@ -44,8 +45,8 @@ public static class ThemeManager
             resources.MergedDictionaries.Remove(_activeTheme);
 
         var themePath = variant == AppThemeVariant.Dark ? DarkPath : LightPath;
-        var themeUri  = new Uri(BaseUri + themePath);
-        _activeTheme  = new ResourceInclude(themeUri) { Source = themeUri };
+        var themeUri = new Uri(BaseUri + themePath);
+        _activeTheme = new ResourceInclude(themeUri) { Source = themeUri };
         resources.MergedDictionaries.Add(_activeTheme);
 
         Current = variant;

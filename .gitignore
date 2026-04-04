@@ -2,6 +2,9 @@
 bin/
 obj/
 
+# AI
+.claude/
+
 # IDE – JetBrains Rider
 .idea/
 *.sln.iml
@@ -20,4 +23,9 @@ obj/
 
 # macOS
 .DS_Store
+QuillStone.app/
+
+# Packaging output
+*.zip
+*.msi
 

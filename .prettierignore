@@ -1,0 +1,19 @@
+bin/
+obj/
+*.app/
+
+# Exclude everything except .md, .json, .yml/.yaml
+*.cs
+*.axaml
+*.xaml
+*.csproj
+*.sln
+*.props
+*.targets
+*.txt
+*.sh
+*.ps1
+*.ico
+*.png
+*.icns
+*.ttf

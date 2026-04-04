@@ -5,13 +5,13 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Markdig;
 using Markdig.Syntax;
-using MdInline = Markdig.Syntax.Inlines.Inline;
+using MdCodeInline = Markdig.Syntax.Inlines.CodeInline;
 using MdContainerInline = Markdig.Syntax.Inlines.ContainerInline;
 using MdEmphasisInline = Markdig.Syntax.Inlines.EmphasisInline;
-using MdCodeInline = Markdig.Syntax.Inlines.CodeInline;
+using MdInline = Markdig.Syntax.Inlines.Inline;
+using MdLineBreakInline = Markdig.Syntax.Inlines.LineBreakInline;
 using MdLinkInline = Markdig.Syntax.Inlines.LinkInline;
 using MdLiteralInline = Markdig.Syntax.Inlines.LiteralInline;
-using MdLineBreakInline = Markdig.Syntax.Inlines.LineBreakInline;
 
 namespace QuillStone.Services;
 

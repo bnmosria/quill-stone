@@ -1,11 +1,11 @@
-﻿using Avalonia;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Threading;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Threading;
 using QuillStone.Models;
 using QuillStone.Services;
 using QuillStone.ViewModels;
@@ -727,7 +727,9 @@ public partial class MainWindow : Window
             return;
 
         _settingsService.RecordProject(project.ProjectName, project.RootPath);
-        try { await _settingsService.SaveAsync(); } catch { /* settings save failures are non-fatal */ }
+        try
+        { await _settingsService.SaveAsync(); }
+        catch { /* settings save failures are non-fatal */ }
         PopulateRecentProjectsMenu();
     }
 
@@ -794,7 +796,9 @@ public partial class MainWindow : Window
                             $"The project folder no longer exists:\n{capturedProject.Path}");
                         _settingsService.Settings.RecentProjects.RemoveAll(p =>
                             string.Equals(p.Path, capturedProject.Path, StringComparison.OrdinalIgnoreCase));
-                        try { await _settingsService.SaveAsync(); } catch { /* non-fatal */ }
+                        try
+                        { await _settingsService.SaveAsync(); }
+                        catch { /* non-fatal */ }
                         PopulateRecentProjectsMenu();
                         return false;
                     }

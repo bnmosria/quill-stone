@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore QuillStone/QuillStone.csproj
+
+      - name: Check C# formatting
+        run: dotnet format QuillStone/QuillStone.csproj --verify-no-changes
+
+      - name: Check docs formatting
+        run: npx --yes prettier --check .
+
+  build:
+    needs: format
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest # Apple Silicon
+            rid: osx-arm64
+          - os: macos-13 # Intel
+            rid: osx-x64
+          - os: windows-latest
+            rid: win-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore QuillStone/QuillStone.csproj
+
+      - name: Build
+        run:
+          dotnet publish QuillStone/QuillStone.csproj -c Release -r ${{ matrix.rid }}
+          --self-contained true --no-restore

@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*" # trigger on version tags, e.g. v1.0.0
+
+permissions:
+  contents: write # needed to create GitHub releases
+
+jobs:
+  # ─── macOS builds ──────────────────────────────────────────────────────────
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest # Apple Silicon
+            arch: arm64
+          - os: macos-13 # Intel
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Package
+        run: |
+          chmod +x package-mac.sh
+          ./package-mac.sh ${{ matrix.arch }}
+
+      - name: Zip .app bundle
+        run: zip -r "QuillStone-osx-${{ matrix.arch }}.zip" QuillStone.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuillStone-osx-${{ matrix.arch }}
+          path: QuillStone-osx-${{ matrix.arch }}.zip
+
+  # ─── Windows build ─────────────────────────────────────────────────────────
+  build-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+          - arch: arm64
+
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Package MSI
+        shell: pwsh
+        run: .\package-win.ps1 -Arch ${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuillStone-win-${{ matrix.arch }}
+          path: QuillStone-win-${{ matrix.arch }}.msi
+
+  # ─── GitHub Release ────────────────────────────────────────────────────────
+  release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: QuillStone ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/QuillStone-osx-arm64.zip
+            artifacts/QuillStone-osx-x64.zip
+            artifacts/QuillStone-win-x64.msi
+            artifacts/QuillStone-win-arm64.msi

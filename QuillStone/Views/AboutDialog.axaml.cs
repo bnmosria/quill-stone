@@ -1,6 +1,6 @@
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using System.Reflection;
 
 namespace QuillStone.Views;
 
