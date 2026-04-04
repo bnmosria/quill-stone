@@ -44,7 +44,9 @@ jobs:
         run: dotnet restore QuillStone.Tests/QuillStone.Tests.csproj
 
       - name: Test
-        run: dotnet test QuillStone.Tests/QuillStone.Tests.csproj --no-restore --logger "console;verbosity=normal"
+        run:
+          dotnet test QuillStone.Tests/QuillStone.Tests.csproj --no-restore --logger
+          "console;verbosity=normal"
 
   build:
     needs: test
@@ -76,4 +78,3 @@ jobs:
         run:
           dotnet publish QuillStone/QuillStone.csproj -c Release -r ${{ matrix.rid }}
           --self-contained true --no-restore
-

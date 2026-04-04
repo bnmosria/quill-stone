@@ -1,5 +1,5 @@
-bin/
-obj/
+**/bin/
+**/obj/
 *.app/
 
 # Exclude everything except .md, .json, .yml/.yaml
