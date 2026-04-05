@@ -116,6 +116,7 @@ public class MarkdownRenderService : IMarkdownRenderService
                     Source = bitmap,
                     Stretch = Stretch.Uniform,
                     HorizontalAlignment = HorizontalAlignment.Left,
+                    MaxWidth = bitmap.Size.Width,
                 };
             }
             catch (Exception ex)
@@ -131,7 +132,7 @@ public class MarkdownRenderService : IMarkdownRenderService
 
     private static string? ResolveImagePath(string url, string? basePath)
     {
-        if (string.IsNullOrEmpty(url) || basePath is null)
+        if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(basePath))
             return null;
 
         if (Uri.IsWellFormedUriString(url, UriKind.Absolute))

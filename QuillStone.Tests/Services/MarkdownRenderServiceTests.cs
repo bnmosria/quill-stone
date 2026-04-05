@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using QuillStone.Services;
 
@@ -25,7 +26,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Empty(result);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_H1_ReturnsTextBlockWithMdH1Class()
     {
         var result = _service.Render("# Heading One");
@@ -34,7 +35,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdH1", tb.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_H2_ReturnsTextBlockWithMdH2Class()
     {
         var result = _service.Render("## Heading Two");
@@ -43,7 +44,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdH2", tb.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_H3_ReturnsTextBlockWithMdH3Class()
     {
         var result = _service.Render("### Heading Three");
@@ -52,7 +53,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdH3", tb.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_H4OrDeeper_ReturnsTextBlockWithMdH4Class()
     {
         var result = _service.Render("#### Heading Four");
@@ -61,7 +62,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdH4", tb.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_Paragraph_ReturnsTextBlockWithMdBodyClass()
     {
         var result = _service.Render("Some regular paragraph text.");
@@ -70,7 +71,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdBody", tb.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_BoldText_SpanHasBoldFontWeight()
     {
         var result = _service.Render("**bold**");
@@ -82,7 +83,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(FontWeight.Bold, span!.FontWeight);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_ItalicText_SpanHasItalicFontStyle()
     {
         var result = _service.Render("*italic*");
@@ -94,7 +95,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(FontStyle.Italic, span!.FontStyle);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_Blockquote_ReturnsBorderWithMdBlockquoteClass()
     {
         var result = _service.Render("> A quoted line");
@@ -103,7 +104,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdBlockquote", border.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_Blockquote_ChildIsStackPanel()
     {
         var result = _service.Render("> A quoted line");
@@ -112,7 +113,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.IsType<StackPanel>(border.Child);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_FencedCodeBlock_ReturnsBorderWithMdCodeBlockClass()
     {
         var result = _service.Render("```\nvar x = 1;\n```");
@@ -121,7 +122,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdCodeBlock", border.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_FencedCodeBlockWithLanguage_IncludesLangLabel()
     {
         var result = _service.Render("```csharp\nvar x = 1;\n```");
@@ -133,7 +134,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal("csharp", langLabel!.Text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_IndentedCodeBlock_ReturnsBorderWithMdCodeBlockClass()
     {
         var result = _service.Render("    var x = 1;");
@@ -142,7 +143,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdCodeBlock", border.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_HorizontalRule_ReturnsBorderWithMdHrClass()
     {
         var result = _service.Render("---");
@@ -151,7 +152,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Contains("MdHr", border.Classes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_UnorderedList_ReturnsStackPanel()
     {
         var result = _service.Render("- Item A\n- Item B");
@@ -160,7 +161,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(2, panel.Children.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_OrderedList_ReturnsStackPanel()
     {
         var result = _service.Render("1. First\n2. Second");
@@ -169,7 +170,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(2, panel.Children.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_MalformedMarkdown_DoesNotThrow()
     {
         var exception = Record.Exception(() => _service.Render("**unclosed bold"));
@@ -177,7 +178,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Null(exception);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_MixedContent_ReturnsMultipleControls()
     {
         string md = "# Title\n\nParagraph.\n\n---";
@@ -187,7 +188,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal(3, result.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_VeryLongInput_DoesNotThrow()
     {
         string md = string.Concat(Enumerable.Repeat("Line of text.\n", 1000));
@@ -197,7 +198,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Null(exception);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_ImageOnlyParagraph_NoBasePath_ReturnsFallbackTextBlock()
     {
         var result = _service.Render("![alt text](image.png)");
@@ -207,7 +208,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal("[alt text]", tb.Text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_ImageOnlyParagraph_MissingFile_ReturnsFallbackTextBlock()
     {
         var result = _service.Render("![alt text](missing.png)", "/nonexistent/dir");
@@ -217,7 +218,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal("[alt text]", tb.Text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_ImageOnlyParagraph_NoAltAndMissingFile_ReturnsFallbackWithUrl()
     {
         var result = _service.Render("![](image.png)", "/nonexistent/dir");
@@ -227,7 +228,7 @@ public sealed class MarkdownRenderServiceTests
         Assert.Equal("image.png", tb.Text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_ImageOnlyParagraph_ExistingFile_ReturnsControl()
     {
         string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -247,7 +248,7 @@ public sealed class MarkdownRenderServiceTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Render_AbsoluteImageUrl_ReturnsFallback()
     {
         var result = _service.Render("![remote](https://example.com/image.png)", "/some/dir");

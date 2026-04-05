@@ -111,7 +111,10 @@ public sealed class PreviewController
     private string? GetCurrentBasePath()
     {
         string? localPath = _documentService.CurrentDocument?.LocalPath;
-        return localPath is not null ? Path.GetDirectoryName(localPath) : null;
+        if (localPath is null)
+            return null;
+        var dir = Path.GetDirectoryName(localPath);
+        return string.IsNullOrEmpty(dir) ? null : dir;
     }
 
     private void PopulateContainer(IReadOnlyList<Control> controls)
