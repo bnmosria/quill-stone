@@ -4,5 +4,5 @@ namespace QuillStone.Services;
 
 public interface IMarkdownRenderService
 {
-    IReadOnlyList<Control> Render(string markdown);
+    IReadOnlyList<Control> Render(string markdown, string? basePath = null);
 }

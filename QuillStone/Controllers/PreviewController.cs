@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using Avalonia.Controls;
 using QuillStone.Services;
@@ -11,6 +12,7 @@ public sealed class PreviewController
     private Border _previewPane = null!;
     private readonly IMarkdownRenderService _renderService;
     private readonly IEditorService _editorService;
+    private readonly IDocumentService _documentService;
     private Window _owner = null!;
 
     private CancellationTokenSource _renderCts = new();
@@ -18,10 +20,14 @@ public sealed class PreviewController
 
     public bool IsPreviewVisible => _previewPane.IsVisible;
 
-    public PreviewController(IMarkdownRenderService renderService, IEditorService editorService)
+    public PreviewController(
+        IMarkdownRenderService renderService,
+        IEditorService editorService,
+        IDocumentService documentService)
     {
         _renderService = renderService;
         _editorService = editorService;
+        _documentService = documentService;
     }
 
     internal void Wire(Panel previewContainer, Border previewPane, Window owner)
@@ -53,7 +59,7 @@ public sealed class PreviewController
             if (token.IsCancellationRequested)
                 return;
             var markdown = _editorService.GetEditorText();
-            var controls = _renderService.Render(markdown);
+            var controls = _renderService.Render(markdown, GetCurrentBasePath());
             PopulateContainer(controls);
         }
         catch (OperationCanceledException) { }
@@ -64,7 +70,7 @@ public sealed class PreviewController
     {
         CancelPendingRender();
         var markdown = _editorService.GetEditorText();
-        var controls = _renderService.Render(markdown);
+        var controls = _renderService.Render(markdown, GetCurrentBasePath());
         PopulateContainer(controls);
     }
 
@@ -102,8 +108,23 @@ public sealed class PreviewController
         _previewWindow.UpdateContent(_editorService.GetEditorText());
     }
 
+    private string? GetCurrentBasePath()
+    {
+        string? localPath = _documentService.CurrentDocument?.LocalPath;
+        if (localPath is null)
+            return null;
+        var dir = Path.GetDirectoryName(localPath);
+        return string.IsNullOrEmpty(dir) ? null : dir;
+    }
+
     private void PopulateContainer(IReadOnlyList<Control> controls)
     {
+        foreach (var child in _previewContainer.Children)
+        {
+            if (child is Image { Source: IDisposable bitmap })
+                bitmap.Dispose();
+        }
+
         _previewContainer.Children.Clear();
         foreach (var control in controls)
             _previewContainer.Children.Add(control);
