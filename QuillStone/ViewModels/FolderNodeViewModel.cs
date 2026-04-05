@@ -65,7 +65,11 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
                 Children.Add(folderVm);
             }
 
-            foreach (var file in dir.GetFiles("*.md")
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                { ".md", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg" };
+
+            foreach (var file in dir.GetFiles()
+                         .Where(f => allowedExtensions.Contains(f.Extension))
                          .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
             {
                 var fileVm = new FileNodeViewModel(file.Name, file.FullName);
