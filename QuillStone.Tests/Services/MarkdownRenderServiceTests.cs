@@ -260,4 +260,121 @@ public sealed class MarkdownRenderServiceTests
     // Minimal 1×1 transparent PNG (67 bytes) used for image load tests.
     private static readonly byte[] MinimalPng = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+
+    [AvaloniaFact]
+    public void Render_ParagraphWithNoLinks_StillRendersAsSingleTextBlock()
+    {
+        var result = _service.Render("Just plain text without any links.");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.Contains("MdBody", tb.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_HttpLink_ReturnsWrapPanelWithMdLinkButton()
+    {
+        var result = _service.Render("[Visit](https://example.com)");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        var button = wrap.Children.OfType<Button>().FirstOrDefault();
+        Assert.NotNull(button);
+        Assert.Contains("MdLink", button!.Classes);
+        var label = Assert.IsType<TextBlock>(button.Content);
+        Assert.Equal("Visit", label.Text);
+    }
+
+    [AvaloniaFact]
+    public void Render_HttpsLink_ReturnsWrapPanelWithMdLinkButton()
+    {
+        var result = _service.Render("[Secure](https://secure.example.com)");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        var button = wrap.Children.OfType<Button>().FirstOrDefault();
+        Assert.NotNull(button);
+        Assert.Contains("MdLink", button!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_AnchorLink_RendersAsPlainText()
+    {
+        var result = _service.Render("[Section](#section)");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        // Anchor links are resolved to null — rendered as TextBlock.MdBody, not Button
+        Assert.Empty(wrap.Children.OfType<Button>());
+        var tb = wrap.Children.OfType<TextBlock>().FirstOrDefault();
+        Assert.NotNull(tb);
+        Assert.Contains("MdBody", tb!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_BlockedProtocolLink_RendersAsPlainText()
+    {
+        var result = _service.Render("[Email](mailto:user@example.com)");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        Assert.Empty(wrap.Children.OfType<Button>());
+        var tb = wrap.Children.OfType<TextBlock>().FirstOrDefault();
+        Assert.NotNull(tb);
+        Assert.Contains("MdBody", tb!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_RelativeLink_WithBasePath_ReturnsWrapPanelWithButton()
+    {
+        var result = _service.Render("[Read more](other.md)", "/some/dir");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        var button = wrap.Children.OfType<Button>().FirstOrDefault();
+        Assert.NotNull(button);
+        Assert.Contains("MdLink", button!.Classes);
+        var label = Assert.IsType<TextBlock>(button.Content);
+        Assert.Equal("Read more", label.Text);
+    }
+
+    [AvaloniaFact]
+    public void Render_RelativeLink_WithoutBasePath_RendersAsPlainText()
+    {
+        var result = _service.Render("[Read more](other.md)");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        Assert.Empty(wrap.Children.OfType<Button>());
+        var tb = wrap.Children.OfType<TextBlock>().FirstOrDefault();
+        Assert.NotNull(tb);
+        Assert.Contains("MdBody", tb!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_MixedTextAndLink_ReturnsWrapPanelWithTextBlockAndButton()
+    {
+        var result = _service.Render("Click [here](https://example.com) now.");
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        Assert.NotEmpty(wrap.Children.OfType<Button>());
+        Assert.NotEmpty(wrap.Children.OfType<TextBlock>());
+    }
+
+    [AvaloniaFact]
+    public async Task Render_LocalFileLink_InvokesCallbackInsteadOfLauncher()
+    {
+        string? capturedPath = null;
+        Task OnLocalFileLink(string path)
+        {
+            capturedPath = path;
+            return Task.CompletedTask;
+        }
+
+        string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var result = _service.Render("[Notes](notes.md)", dir, OnLocalFileLink);
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        var button = wrap.Children.OfType<Button>().Single();
+
+        // Simulate button click by invoking the command
+        button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        await Task.Delay(50); // let async handler complete
+
+        Assert.NotNull(capturedPath);
+        Assert.EndsWith("notes.md", capturedPath, StringComparison.OrdinalIgnoreCase);
+    }
 }
