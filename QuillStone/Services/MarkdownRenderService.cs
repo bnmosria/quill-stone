@@ -78,10 +78,119 @@ public class MarkdownRenderService : IMarkdownRenderService
         if (TryGetSingleImageLink(paragraph, out var imageLink))
             return RenderImage(imageLink!, basePath);
 
+        if (ContainsLinks(paragraph.Inline))
+            return RenderParagraphWithLinks(paragraph, basePath);
+
         var tb = new TextBlock();
         tb.Classes.Add("MdBody");
         PopulateInlines(tb, paragraph.Inline);
         return tb;
+    }
+
+    private static bool ContainsLinks(MdContainerInline? container)
+    {
+        if (container is null)
+            return false;
+
+        foreach (var inline in container)
+        {
+            if (inline is MdLinkInline link && !link.IsImage)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static Control RenderParagraphWithLinks(ParagraphBlock paragraph, string? basePath)
+    {
+        var wrap = new WrapPanel();
+
+        foreach (var inline in paragraph.Inline ?? Enumerable.Empty<MdInline>())
+        {
+            if (inline is MdLinkInline link && !link.IsImage)
+            {
+                var uri = ResolveLinkUrl(link.Url ?? string.Empty, basePath);
+                var text = GetRawText(link);
+
+                if (uri is not null)
+                    wrap.Children.Add(BuildLinkButton(text, uri));
+                else
+                {
+                    var tb = new TextBlock { Text = text };
+                    tb.Classes.Add("MdBody");
+                    wrap.Children.Add(tb);
+                }
+            }
+            else
+            {
+                var tb = new TextBlock();
+                tb.Classes.Add("MdBody");
+                if (inline is MdContainerInline container)
+                    PopulateInlines(tb, container);
+                else
+                {
+                    var built = BuildInline(inline);
+                    if (built is not null)
+                        tb.Inlines!.Add(built);
+                }
+                wrap.Children.Add(tb);
+            }
+        }
+
+        return wrap;
+    }
+
+    private static Uri? ResolveLinkUrl(string url, string? basePath)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
+
+        if (url.StartsWith('#'))
+        {
+            Debug.WriteLine($"[MarkdownRenderService] Anchor link ignored: {url}");
+            return null;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+        {
+            if (absolute.Scheme is "http" or "https")
+                return absolute;
+
+            Debug.WriteLine($"[MarkdownRenderService] Blocked protocol: {absolute.Scheme}");
+            return null;
+        }
+
+        if (basePath is not null)
+        {
+            try
+            {
+                string fullPath = Path.GetFullPath(url, basePath);
+                return new Uri(fullPath);
+            }
+            catch (Exception ex) when (ex is ArgumentException
+                                           or NotSupportedException
+                                           or PathTooLongException
+                                           or System.Security.SecurityException)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static Button BuildLinkButton(string text, Uri uri)
+    {
+        var label = new TextBlock { Text = text };
+        var button = new Button { Content = label };
+        button.Classes.Add("MdLink");
+        button.Click += async (sender, _) =>
+        {
+            var topLevel = TopLevel.GetTopLevel(sender as Control);
+            if (topLevel?.Launcher is { } launcher)
+                await launcher.LaunchUriAsync(uri);
+        };
+        return button;
     }
 
     private static bool TryGetSingleImageLink(ParagraphBlock paragraph, out MdLinkInline? imageLink)

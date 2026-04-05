@@ -113,4 +113,21 @@
         <Setter Property="Margin"     Value="0,8"/>
     </Style>
 
+    <!-- ── Inline link button ────────────────────────────────────── -->
+    <Style Selector="Button.MdLink">
+        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding"         Value="0"/>
+        <Setter Property="Cursor"          Value="Hand"/>
+        <Setter Property="FontFamily"      Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"        Value="{DynamicResource FontSize.MD}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource Brush.Syntax.Link}"/>
+    </Style>
+    <Style Selector="Button.MdLink TextBlock">
+        <Setter Property="TextDecorations" Value="Underline"/>
+    </Style>
+    <Style Selector="Button.MdLink:pointerover TextBlock">
+        <Setter Property="Opacity" Value="0.75"/>
+    </Style>
+
 </Styles>
