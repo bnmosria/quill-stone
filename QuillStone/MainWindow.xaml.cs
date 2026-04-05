@@ -286,14 +286,4 @@ public partial class MainWindow : Window
         var doc = $"{_documentService.DisplayName}{dirty}";
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
     }
-    private void WindowSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.Source is not Visual v)
-            return;
-        if (v == Editor || Editor.IsVisualAncestorOf(v))
-            return;
-        if (v.FindAncestorOfType<Button>() is not null || v.FindAncestorOfType<MenuItem>() is not null || v.FindAncestorOfType<TreeViewItem>() is not null)
-            return;
-        WindowSurface.Focus();
-    }
 }

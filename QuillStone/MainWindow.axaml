@@ -60,9 +60,7 @@
         <!-- Opaque content area so editor and toolbars are fully readable -->
         <Border x:Name="WindowSurface"
             Background="{DynamicResource Brush.Background.Surface}"
-            CornerRadius="0"
-            Focusable="True"
-            PointerPressed="WindowSurface_PointerPressed">
+            CornerRadius="0">
             <DockPanel>
 
                 <Menu DockPanel.Dock="Top">
