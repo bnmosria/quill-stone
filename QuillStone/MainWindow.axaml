@@ -135,17 +135,35 @@
                                 Classes="Toolbar Ghost">
                             <PathIcon Data="{DynamicResource Icon.Italic}" Width="14" Height="14"/>
                         </Button>
+                        <Button ToolTip.Tip="Strikethrough"
+                                AutomationProperties.Name="Strikethrough"
+                                Click="ToolbarStrikethrough_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Strikethrough}" Width="14" Height="14"/>
+                        </Button>
                         <Button ToolTip.Tip="Inline Code"
                                 AutomationProperties.Name="Inline Code"
                                 Click="ToolbarInlineCode_Click"
                                 Classes="Toolbar Ghost">
                             <PathIcon Data="{DynamicResource Icon.Code}" Width="14" Height="14"/>
                         </Button>
+                        <Button ToolTip.Tip="Code Block"
+                                AutomationProperties.Name="Code Block"
+                                Click="ToolbarCodeBlock_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.CodeBlock}" Width="14" Height="14"/>
+                        </Button>
                         <Button ToolTip.Tip="Insert Link (Ctrl+K)"
                                 AutomationProperties.Name="Insert Link"
                                 Click="ToolbarLink_Click"
                                 Classes="Toolbar Ghost">
                             <PathIcon Data="{DynamicResource Icon.Link}" Width="14" Height="14"/>
+                        </Button>
+                        <Button ToolTip.Tip="Insert Image"
+                                AutomationProperties.Name="Insert Image"
+                                Click="ToolbarImage_Click"
+                                Classes="Toolbar Ghost">
+                            <PathIcon Data="{DynamicResource Icon.Image}" Width="14" Height="14"/>
                         </Button>
                         <Separator Classes="ToolbarSeparator" />
                         <Button ToolTip.Tip="Bullet List"

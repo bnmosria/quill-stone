@@ -56,6 +56,80 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
+    public void WrapSelection_SelectionIncludesMarkers_UnwrapsText()
+    {
+        // Case A: selection is **bold** including the asterisks
+        var result = _formatter.WrapSelection("**bold**", Selection(0, 8), "**", "**", "bold text");
+
+        Assert.Equal("bold", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_SelectionIsInnerText_MarkersOutside_UnwrapsText()
+    {
+        // Case B: selection is "bold" inside **bold**
+        var result = _formatter.WrapSelection("**bold**", Selection(2, 6), "**", "**", "bold text");
+
+        Assert.Equal("bold", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_InnerTextWithSurroundingContent_UnwrapsCorrectly()
+    {
+        // "hello **world** today" — "world" is at [8..13], markers "**" are at [6..8] and [13..15]
+        var result = _formatter.WrapSelection("hello **world** today", Selection(8, 13), "**", "**", "bold text");
+
+        Assert.Equal("hello world today", result.Text);
+        Assert.Equal(6, result.SelectionStart);
+        Assert.Equal(11, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_AlreadyWrappedIncludingMarkers_WithSurroundingContent_UnwrapsCorrectly()
+    {
+        // "hello **world** today" — full "**world**" is at [6..15]
+        var result = _formatter.WrapSelection("hello **world** today", Selection(6, 15), "**", "**", "bold text");
+
+        Assert.Equal("hello world today", result.Text);
+        Assert.Equal(6, result.SelectionStart);
+        Assert.Equal(11, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_NoSelection_InsertsPlaceholder()
+    {
+        var result = _formatter.InsertFencedCode("", NoSelection(), "");
+
+        Assert.Equal("```\ncode\n```", result.Text);
+        Assert.Equal(4, result.SelectionStart);
+        Assert.Equal(8, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_WithSelection_WrapsSelectedText()
+    {
+        var result = _formatter.InsertFencedCode("var x = 1;", Selection(0, 10), "");
+
+        Assert.Equal("```\nvar x = 1;\n```", result.Text);
+        Assert.Equal(4, result.SelectionStart);
+        Assert.Equal(14, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_WithLanguage_AddsLanguageToFence()
+    {
+        var result = _formatter.InsertFencedCode("", NoSelection(), "csharp");
+
+        Assert.Equal("```csharp\ncode\n```", result.Text);
+        Assert.Equal(10, result.SelectionStart);
+        Assert.Equal(14, result.SelectionEnd);
+    }
+
+    [Fact]
     public void InsertLink_NoSelection_InsertsPlaceholderLinkText()
     {
         var result = _formatter.InsertLink("", NoSelection(), "https://example.com", "link text");
