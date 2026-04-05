@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Markdig;
+using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using MdCodeInline = Markdig.Syntax.Inlines.CodeInline;
 using MdContainerInline = Markdig.Syntax.Inlines.ContainerInline;
@@ -19,7 +20,9 @@ namespace QuillStone.Services;
 public class MarkdownRenderService : IMarkdownRenderService
 {
     private static readonly MarkdownPipeline _pipeline =
-        new MarkdownPipelineBuilder().Build();
+        new MarkdownPipelineBuilder()
+            .UsePipeTables()
+            .Build();
 
     public IReadOnlyList<Control> Render(string markdown, string? basePath = null, Func<string, Task>? onLocalFileLink = null)
     {
@@ -56,6 +59,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         CodeBlock c => RenderGenericCode(c),
         ListBlock l => RenderList(l, basePath, onLocalFileLink),
         ThematicBreakBlock => RenderHr(),
+        Table t => RenderTable(t),
         _ => RenderFallback(block),
     };
 
@@ -368,6 +372,72 @@ public class MarkdownRenderService : IMarkdownRenderService
                 inner.Children.Add(control);
         }
         return inner;
+    }
+
+    private static Border RenderTable(Table table)
+    {
+        var firstRow = table.OfType<TableRow>().FirstOrDefault();
+        int colCount = firstRow?.Count ?? 0;
+
+        if (colCount == 0)
+        {
+            var empty = new Border();
+            empty.Classes.Add("MdTable");
+            return empty;
+        }
+
+        var colDefsString = string.Join(",", Enumerable.Repeat("*", colCount));
+
+        var outerPanel = new StackPanel();
+
+        int rowIndex = 0;
+        foreach (var row in table.OfType<TableRow>())
+        {
+            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions(colDefsString) };
+
+            int colIndex = 0;
+            foreach (var cell in row.OfType<TableCell>())
+            {
+                var alignment = table.ColumnDefinitions.ElementAtOrDefault(colIndex)
+                    ?.Alignment ?? TableColumnAlign.Left;
+
+                var textAlign = alignment switch
+                {
+                    TableColumnAlign.Center => TextAlignment.Center,
+                    TableColumnAlign.Right => TextAlignment.Right,
+                    _ => TextAlignment.Left,
+                };
+
+                var cellText = new TextBlock
+                {
+                    TextAlignment = textAlign,
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                cellText.Classes.Add(row.IsHeader ? "MdTableHeadCell" : "MdTableCell");
+
+                var para = cell.OfType<ParagraphBlock>().FirstOrDefault();
+                if (para?.Inline is not null)
+                    PopulateInlines(cellText, para.Inline);
+
+                Grid.SetColumn(cellText, colIndex);
+                grid.Children.Add(cellText);
+                colIndex++;
+            }
+
+            var rowBorder = new Border { Child = grid };
+            rowBorder.Classes.Add(
+                row.IsHeader ? "MdTableHeader" :
+                rowIndex % 2 == 0 ? "MdTableRow" :
+                                    "MdTableRowAlt");
+
+            outerPanel.Children.Add(rowBorder);
+            if (!row.IsHeader)
+                rowIndex++;
+        }
+
+        var outer = new Border { Child = outerPanel };
+        outer.Classes.Add("MdTable");
+        return outer;
     }
 
     private static Border RenderHr()
