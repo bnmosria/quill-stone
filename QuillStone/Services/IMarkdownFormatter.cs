@@ -9,6 +9,7 @@ public interface IMarkdownFormatter
     TextEditResult PrefixSelectedLines(string text, TextSelectionRange selection, string prefix);
     TextEditResult ApplyHeadingToSelectedLines(string text, TextSelectionRange selection, int level);
     TextEditResult ApplyNumberedListToSelectedLines(string text, TextSelectionRange selection);
+    TextEditResult InsertFencedCode(string text, TextSelectionRange selection, string language = "");
     string? GetNextListItemPrefix(string text, int cursorPosition);
     string StripListPrefix(string line);
 }

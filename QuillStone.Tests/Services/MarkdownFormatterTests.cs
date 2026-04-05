@@ -222,4 +222,122 @@ public sealed class MarkdownFormatterTests
     {
         Assert.Equal("plain text", _formatter.StripListPrefix("plain text"));
     }
+
+    // ── WrapSelection toggle (unwrap) tests ──────────────────────────
+
+    [Fact]
+    public void WrapSelection_CaseA_SelectionIncludesMarkers_Unwraps()
+    {
+        // User selected "**bold**" (including markers)
+        var result = _formatter.WrapSelection("**bold**", Selection(0, 8), "**", "**", "bold text");
+
+        Assert.Equal("bold", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_CaseA_MidText_SelectionIncludesMarkers_Unwraps()
+    {
+        // "hello **world** end", selection covers "**world**"
+        var result = _formatter.WrapSelection("hello **world** end", Selection(6, 15), "**", "**", "bold text");
+
+        Assert.Equal("hello world end", result.Text);
+        Assert.Equal(6, result.SelectionStart);
+        Assert.Equal(11, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_CaseB_SelectionIsInnerText_MarkersOutside_Unwraps()
+    {
+        // "**bold**", selection is just "bold" (indices 2..6)
+        var result = _formatter.WrapSelection("**bold**", Selection(2, 6), "**", "**", "bold text");
+
+        Assert.Equal("bold", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_CaseB_Italic_SelectionIsInnerText_Unwraps()
+    {
+        // "*italic*", selection is "italic" (indices 1..7)
+        var result = _formatter.WrapSelection("*italic*", Selection(1, 7), "*", "*", "italic text");
+
+        Assert.Equal("italic", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(6, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_CaseB_InlineCode_SelectionIsInnerText_Unwraps()
+    {
+        // "`code`", selection is "code" (indices 1..5)
+        var result = _formatter.WrapSelection("`code`", Selection(1, 5), "`", "`", "code");
+
+        Assert.Equal("code", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void WrapSelection_Strikethrough_WrapsCorrectly()
+    {
+        var result = _formatter.WrapSelection("text", Selection(0, 4), "~~", "~~", "strikethrough");
+
+        Assert.Equal("~~text~~", result.Text);
+    }
+
+    [Fact]
+    public void WrapSelection_Strikethrough_CaseA_Unwraps()
+    {
+        // "~~text~~", selection covers everything
+        var result = _formatter.WrapSelection("~~text~~", Selection(0, 8), "~~", "~~", "strikethrough");
+
+        Assert.Equal("text", result.Text);
+        Assert.Equal(0, result.SelectionStart);
+        Assert.Equal(4, result.SelectionEnd);
+    }
+
+    // ── InsertFencedCode tests ────────────────────────────────────────
+
+    [Fact]
+    public void InsertFencedCode_NoSelection_InsertsFenceWithPlaceholder()
+    {
+        var result = _formatter.InsertFencedCode("", NoSelection());
+
+        Assert.Equal("```\ncode\n```", result.Text);
+        Assert.Equal(4, result.SelectionStart);
+        Assert.Equal(8, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_WithSelection_WrapsSelectedText()
+    {
+        var result = _formatter.InsertFencedCode("mycode", Selection(0, 6));
+
+        Assert.Equal("```\nmycode\n```", result.Text);
+        Assert.Equal(4, result.SelectionStart);
+        Assert.Equal(10, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_WithLanguage_IncludesLangInFence()
+    {
+        var result = _formatter.InsertFencedCode("", NoSelection(), "csharp");
+
+        Assert.Equal("```csharp\ncode\n```", result.Text);
+        Assert.Equal(10, result.SelectionStart);
+        Assert.Equal(14, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertFencedCode_MidText_InsertsAtCursor()
+    {
+        var result = _formatter.InsertFencedCode("before\nafter", NoSelection(7));
+
+        Assert.Equal("before\n```\ncode\n```after", result.Text);
+        Assert.Equal(11, result.SelectionStart);
+        Assert.Equal(15, result.SelectionEnd);
+    }
 }
