@@ -353,4 +353,28 @@ public sealed class MarkdownRenderServiceTests
         Assert.NotEmpty(wrap.Children.OfType<Button>());
         Assert.NotEmpty(wrap.Children.OfType<TextBlock>());
     }
+
+    [AvaloniaFact]
+    public async Task Render_LocalFileLink_InvokesCallbackInsteadOfLauncher()
+    {
+        string? capturedPath = null;
+        Task OnLocalFileLink(string path)
+        {
+            capturedPath = path;
+            return Task.CompletedTask;
+        }
+
+        string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var result = _service.Render("[Notes](notes.md)", dir, OnLocalFileLink);
+
+        var wrap = Assert.IsType<WrapPanel>(Assert.Single(result));
+        var button = wrap.Children.OfType<Button>().Single();
+
+        // Simulate button click by invoking the command
+        button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        await Task.Delay(50); // let async handler complete
+
+        Assert.NotNull(capturedPath);
+        Assert.EndsWith("notes.md", capturedPath, StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -13,6 +13,7 @@ public sealed class PreviewController
     private readonly IMarkdownRenderService _renderService;
     private readonly IEditorService _editorService;
     private readonly IDocumentService _documentService;
+    private readonly IMenuCommandHandler _menuCommandHandler;
     private Window _owner = null!;
 
     private CancellationTokenSource _renderCts = new();
@@ -23,11 +24,13 @@ public sealed class PreviewController
     public PreviewController(
         IMarkdownRenderService renderService,
         IEditorService editorService,
-        IDocumentService documentService)
+        IDocumentService documentService,
+        IMenuCommandHandler menuCommandHandler)
     {
         _renderService = renderService;
         _editorService = editorService;
         _documentService = documentService;
+        _menuCommandHandler = menuCommandHandler;
     }
 
     internal void Wire(Panel previewContainer, Border previewPane, Window owner)
@@ -59,7 +62,7 @@ public sealed class PreviewController
             if (token.IsCancellationRequested)
                 return;
             var markdown = _editorService.GetEditorText();
-            var controls = _renderService.Render(markdown, GetCurrentBasePath());
+            var controls = _renderService.Render(markdown, GetCurrentBasePath(), OpenLocalFileAsync);
             PopulateContainer(controls);
         }
         catch (OperationCanceledException) { }
@@ -70,7 +73,7 @@ public sealed class PreviewController
     {
         CancelPendingRender();
         var markdown = _editorService.GetEditorText();
-        var controls = _renderService.Render(markdown, GetCurrentBasePath());
+        var controls = _renderService.Render(markdown, GetCurrentBasePath(), OpenLocalFileAsync);
         PopulateContainer(controls);
     }
 
@@ -107,6 +110,9 @@ public sealed class PreviewController
         _previewWindow.Show(_owner);
         _previewWindow.UpdateContent(_editorService.GetEditorText());
     }
+
+    private Task OpenLocalFileAsync(string path) =>
+        _menuCommandHandler.OpenFileFromPathAsync(path);
 
     private string? GetCurrentBasePath()
     {

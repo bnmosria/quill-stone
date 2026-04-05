@@ -21,7 +21,7 @@ public class MarkdownRenderService : IMarkdownRenderService
     private static readonly MarkdownPipeline _pipeline =
         new MarkdownPipelineBuilder().Build();
 
-    public IReadOnlyList<Control> Render(string markdown, string? basePath = null)
+    public IReadOnlyList<Control> Render(string markdown, string? basePath = null, Func<string, Task>? onLocalFileLink = null)
     {
         if (string.IsNullOrEmpty(markdown))
             return [];
@@ -33,7 +33,7 @@ public class MarkdownRenderService : IMarkdownRenderService
 
             foreach (var block in document)
             {
-                var control = RenderBlock(block, basePath);
+                var control = RenderBlock(block, basePath, onLocalFileLink);
                 if (control is not null)
                     controls.Add(control);
             }
@@ -47,14 +47,14 @@ public class MarkdownRenderService : IMarkdownRenderService
         }
     }
 
-    private Control? RenderBlock(Block block, string? basePath) => block switch
+    private Control? RenderBlock(Block block, string? basePath, Func<string, Task>? onLocalFileLink) => block switch
     {
         HeadingBlock h => RenderHeading(h),
-        ParagraphBlock p => RenderParagraph(p, basePath),
-        QuoteBlock q => RenderQuote(q, basePath),
+        ParagraphBlock p => RenderParagraph(p, basePath, onLocalFileLink),
+        QuoteBlock q => RenderQuote(q, basePath, onLocalFileLink),
         FencedCodeBlock f => RenderFencedCode(f),
         CodeBlock c => RenderGenericCode(c),
-        ListBlock l => RenderList(l, basePath),
+        ListBlock l => RenderList(l, basePath, onLocalFileLink),
         ThematicBreakBlock => RenderHr(),
         _ => RenderFallback(block),
     };
@@ -73,13 +73,13 @@ public class MarkdownRenderService : IMarkdownRenderService
         return tb;
     }
 
-    private static Control RenderParagraph(ParagraphBlock paragraph, string? basePath)
+    private static Control RenderParagraph(ParagraphBlock paragraph, string? basePath, Func<string, Task>? onLocalFileLink)
     {
         if (TryGetSingleImageLink(paragraph, out var imageLink))
             return RenderImage(imageLink!, basePath);
 
         if (ContainsLinks(paragraph.Inline))
-            return RenderParagraphWithLinks(paragraph, basePath);
+            return RenderParagraphWithLinks(paragraph, basePath, onLocalFileLink);
 
         var tb = new TextBlock();
         tb.Classes.Add("MdBody");
@@ -101,7 +101,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         return false;
     }
 
-    private static Control RenderParagraphWithLinks(ParagraphBlock paragraph, string? basePath)
+    private static Control RenderParagraphWithLinks(ParagraphBlock paragraph, string? basePath, Func<string, Task>? onLocalFileLink)
     {
         var wrap = new WrapPanel();
 
@@ -113,7 +113,7 @@ public class MarkdownRenderService : IMarkdownRenderService
                 var text = GetRawText(link);
 
                 if (uri is not null)
-                    wrap.Children.Add(BuildLinkButton(text, uri));
+                    wrap.Children.Add(BuildLinkButton(text, uri, onLocalFileLink));
                 else
                 {
                     var tb = new TextBlock { Text = text };
@@ -179,16 +179,23 @@ public class MarkdownRenderService : IMarkdownRenderService
         return null;
     }
 
-    private static Button BuildLinkButton(string text, Uri uri)
+    private static Button BuildLinkButton(string text, Uri uri, Func<string, Task>? onLocalFileLink)
     {
         var label = new TextBlock { Text = text };
         var button = new Button { Content = label };
         button.Classes.Add("MdLink");
         button.Click += async (sender, _) =>
         {
-            var topLevel = TopLevel.GetTopLevel(sender as Control);
-            if (topLevel?.Launcher is { } launcher)
-                await launcher.LaunchUriAsync(uri);
+            if (uri.IsFile && onLocalFileLink is not null)
+            {
+                await onLocalFileLink(uri.LocalPath);
+            }
+            else
+            {
+                var topLevel = TopLevel.GetTopLevel(sender as Control);
+                if (topLevel?.Launcher is { } launcher)
+                    await launcher.LaunchUriAsync(uri);
+            }
         };
         return button;
     }
@@ -258,12 +265,12 @@ public class MarkdownRenderService : IMarkdownRenderService
         }
     }
 
-    private Border RenderQuote(QuoteBlock quote, string? basePath)
+    private Border RenderQuote(QuoteBlock quote, string? basePath, Func<string, Task>? onLocalFileLink)
     {
         var inner = new StackPanel { Spacing = 6 };
         foreach (var block in quote)
         {
-            var control = RenderBlock(block, basePath);
+            var control = RenderBlock(block, basePath, onLocalFileLink);
             if (control is not null)
                 inner.Children.Add(control);
         }
@@ -303,7 +310,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         return border;
     }
 
-    private StackPanel RenderList(ListBlock list, string? basePath)
+    private StackPanel RenderList(ListBlock list, string? basePath, Func<string, Task>? onLocalFileLink)
     {
         var panel = new StackPanel { Spacing = 4 };
 
@@ -323,7 +330,7 @@ public class MarkdownRenderService : IMarkdownRenderService
             var marker = new TextBlock { Text = markerText };
             marker.Classes.Add(markerClass);
 
-            Control itemContent = BuildListItemContent(listItem, basePath);
+            Control itemContent = BuildListItemContent(listItem, basePath, onLocalFileLink);
 
             var row = new Grid
             {
@@ -341,7 +348,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         return panel;
     }
 
-    private Control BuildListItemContent(ListItemBlock listItem, string? basePath)
+    private Control BuildListItemContent(ListItemBlock listItem, string? basePath, Func<string, Task>? onLocalFileLink)
     {
         var blocks = listItem.OfType<Block>().ToList();
 
@@ -356,7 +363,7 @@ public class MarkdownRenderService : IMarkdownRenderService
         var inner = new StackPanel { Spacing = 4 };
         foreach (var block in blocks)
         {
-            var control = RenderBlock(block, basePath);
+            var control = RenderBlock(block, basePath, onLocalFileLink);
             if (control is not null)
                 inner.Children.Add(control);
         }
