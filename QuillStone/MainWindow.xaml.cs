@@ -163,8 +163,11 @@ public partial class MainWindow : Window
 
     private void ToolbarBold_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyBold();
     private void ToolbarItalic_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyItalic();
+    private void ToolbarStrikethrough_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyStrikethrough();
     private void ToolbarInlineCode_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyInlineCode();
+    private void ToolbarCodeBlock_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyCodeBlock();
     private async void ToolbarLink_Click(object? s, RoutedEventArgs e) => await _formatHandler.InsertLinkAsync(this);
+    private async void ToolbarImage_Click(object? s, RoutedEventArgs e) => await _formatHandler.InsertImageAsync(this);
     private void ToolbarH1_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(1);
     private void ToolbarH2_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(2);
     private void ToolbarH3_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(3);

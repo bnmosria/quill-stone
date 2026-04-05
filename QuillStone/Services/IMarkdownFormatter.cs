@@ -11,4 +11,5 @@ public interface IMarkdownFormatter
     TextEditResult ApplyNumberedListToSelectedLines(string text, TextSelectionRange selection);
     string? GetNextListItemPrefix(string text, int cursorPosition);
     string StripListPrefix(string line);
+    TextEditResult InsertFencedCode(string text, TextSelectionRange selection, string language = "");
 }

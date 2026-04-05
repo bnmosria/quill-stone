@@ -193,4 +193,60 @@ public sealed class FormatCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal("[click here](https://example.com)", result!.Text);
     }
+
+    [Fact]
+    public void ApplyStrikethrough_WithSelection_WrapsStrikethrough()
+    {
+        SetupEditor("word", 0, 4);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.ApplyStrikethrough();
+
+        Assert.NotNull(result);
+        Assert.Equal("~~word~~", result!.Text);
+    }
+
+    [Fact]
+    public void ApplyStrikethrough_NoSelection_InsertsPlaceholder()
+    {
+        SetupEditor("", 0, 0);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.ApplyStrikethrough();
+
+        Assert.NotNull(result);
+        Assert.Equal("~~strikethrough~~", result!.Text);
+    }
+
+    [Fact]
+    public void ApplyCodeBlock_NoSelection_InsertsFencedBlock()
+    {
+        SetupEditor("", 0, 0);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.ApplyCodeBlock();
+
+        Assert.NotNull(result);
+        Assert.Equal("```\ncode\n```", result!.Text);
+    }
+
+    [Fact]
+    public void ApplyCodeBlock_WithSelection_WrapsFencedBlock()
+    {
+        SetupEditor("var x = 1;", 0, 10);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.ApplyCodeBlock();
+
+        Assert.NotNull(result);
+        Assert.Equal("```\nvar x = 1;\n```", result!.Text);
+    }
 }

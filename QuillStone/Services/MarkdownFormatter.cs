@@ -11,13 +11,56 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
         int end = selection.NormalizedEnd;
         bool hasSelection = selection.HasSelection;
 
-        string inner = hasSelection ? text[start..end] : placeholder;
-        string replacement = prefix + inner + suffix;
+        // Case A: selection includes the markers — unwrap
+        if (hasSelection)
+        {
+            string selected = text[start..end];
+            if (selected.StartsWith(prefix, StringComparison.Ordinal)
+                && selected.EndsWith(suffix, StringComparison.Ordinal)
+                && selected.Length > prefix.Length + suffix.Length)
+            {
+                string inner = selected[prefix.Length..(selected.Length - suffix.Length)];
+                string newText = text[..start] + inner + text[end..];
+                return new TextEditResult(newText, start, start + inner.Length);
+            }
+        }
+
+        // Case B: selection is the inner text, markers sit just outside — unwrap
+        if (hasSelection
+            && start >= prefix.Length
+            && end + suffix.Length <= text.Length)
+        {
+            bool prefixJustBefore = text[(start - prefix.Length)..start] == prefix;
+            bool suffixJustAfter = text[end..(end + suffix.Length)] == suffix;
+            if (prefixJustBefore && suffixJustAfter)
+            {
+                string inner = text[start..end];
+                int newStart = start - prefix.Length;
+                string newText = text[..newStart] + inner + text[(end + suffix.Length)..];
+                return new TextEditResult(newText, newStart, newStart + inner.Length);
+            }
+        }
+
+        string innerText = hasSelection ? text[start..end] : placeholder;
+        string replacement = prefix + innerText + suffix;
         string updatedText = text[..start] + replacement + text[end..];
 
         return hasSelection
             ? new TextEditResult(updatedText, start + replacement.Length, start + replacement.Length)
             : new TextEditResult(updatedText, start + prefix.Length, start + prefix.Length + placeholder.Length);
+    }
+
+    public TextEditResult InsertFencedCode(string text, TextSelectionRange selection, string language = "")
+    {
+        int start = selection.NormalizedStart;
+        int end = selection.NormalizedEnd;
+        string fence = $"```{language}";
+        string inner = selection.HasSelection ? text[start..end] : "code";
+        string block = $"{fence}\n{inner}\n```";
+        string newText = text[..start] + block + text[end..];
+        int codeStart = start + fence.Length + 1;
+        int codeEnd = codeStart + inner.Length;
+        return new TextEditResult(newText, codeStart, codeEnd);
     }
 
     public TextEditResult InsertLink(string text, TextSelectionRange selection, string url, string placeholder)
