@@ -113,6 +113,50 @@
         <Setter Property="Margin"     Value="0,8"/>
     </Style>
 
+    <!-- ── Table ─────────────────────────────────────────────────── -->
+    <Style Selector="Border.MdTable">
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource Radius.MD}"/>
+        <Setter Property="ClipToBounds"    Value="True"/>
+        <Setter Property="Margin"          Value="0,0,0,16"/>
+    </Style>
+
+    <Style Selector="Border.MdTableHeader">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Background.Overlay}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding"         Value="12,8"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdTableHeadCell">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="FontWeight"   Value="SemiBold"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Secondary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="Border.MdTableRow">
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding"         Value="12,8"/>
+    </Style>
+
+    <Style Selector="Border.MdTableRowAlt">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Background.Overlay}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Border.Separator}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding"         Value="12,8"/>
+    </Style>
+
+    <Style Selector="TextBlock.MdTableCell">
+        <Setter Property="FontFamily"   Value="{DynamicResource Font.Preview}"/>
+        <Setter Property="FontSize"     Value="{DynamicResource FontSize.Base}"/>
+        <Setter Property="Foreground"   Value="{DynamicResource Brush.Text.Primary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
     <!-- ── Inline link button ────────────────────────────────────── -->
     <Style Selector="Button.MdLink">
         <Setter Property="Background"      Value="Transparent"/>

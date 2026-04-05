@@ -377,4 +377,89 @@ public sealed class MarkdownRenderServiceTests
         Assert.NotNull(capturedPath);
         Assert.EndsWith("notes.md", capturedPath, StringComparison.OrdinalIgnoreCase);
     }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_ReturnsBorderWithMdTableClass()
+    {
+        string md = "| A | B |\n|---|---|\n| 1 | 2 |";
+
+        var result = _service.Render(md);
+
+        var border = Assert.IsType<Border>(Assert.Single(result));
+        Assert.Contains("MdTable", border.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_HeaderRowHasMdTableHeaderClass()
+    {
+        string md = "| Name | Age |\n|------|-----|\n| Alice | 30 |";
+
+        var result = _service.Render(md);
+
+        var outer = Assert.IsType<Border>(Assert.Single(result));
+        var panel = Assert.IsType<StackPanel>(outer.Child);
+        var headerRow = panel.Children.OfType<Border>().FirstOrDefault();
+        Assert.NotNull(headerRow);
+        Assert.Contains("MdTableHeader", headerRow!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_HeaderCellsHaveMdTableHeadCellClass()
+    {
+        string md = "| Col1 | Col2 |\n|------|------|\n| a | b |";
+
+        var result = _service.Render(md);
+
+        var outer = Assert.IsType<Border>(Assert.Single(result));
+        var panel = Assert.IsType<StackPanel>(outer.Child);
+        var headerRow = panel.Children.OfType<Border>().First(b => b.Classes.Contains("MdTableHeader"));
+        var grid = Assert.IsType<Grid>(headerRow.Child);
+        var headCells = grid.Children.OfType<TextBlock>().ToList();
+        Assert.All(headCells, tb => Assert.Contains("MdTableHeadCell", tb.Classes));
+    }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_BodyRowsAlternate_MdTableRow_And_MdTableRowAlt()
+    {
+        string md = "| X |\n|---|\n| r0 |\n| r1 |\n| r2 |";
+
+        var result = _service.Render(md);
+
+        var outer = Assert.IsType<Border>(Assert.Single(result));
+        var panel = Assert.IsType<StackPanel>(outer.Child);
+        var bodyRows = panel.Children.OfType<Border>()
+            .Where(b => !b.Classes.Contains("MdTableHeader"))
+            .ToList();
+
+        Assert.Equal(3, bodyRows.Count);
+        Assert.Contains("MdTableRow", bodyRows[0].Classes);
+        Assert.Contains("MdTableRowAlt", bodyRows[1].Classes);
+        Assert.Contains("MdTableRow", bodyRows[2].Classes);
+    }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_EmptyTable_DoesNotCrash()
+    {
+        // A table AST with no rows — simulate by rendering degenerate input
+        var exception = Record.Exception(() => _service.Render("| |\n|---|"));
+
+        Assert.Null(exception);
+    }
+
+    [AvaloniaFact]
+    public void Render_PipeTable_CellContentIsRendered()
+    {
+        string md = "| Hello |\n|-------|\n| World |";
+
+        var result = _service.Render(md);
+
+        var outer = Assert.IsType<Border>(Assert.Single(result));
+        var panel = Assert.IsType<StackPanel>(outer.Child);
+        var bodyRow = panel.Children.OfType<Border>()
+            .First(b => b.Classes.Contains("MdTableRow") || b.Classes.Contains("MdTableRowAlt"));
+        var grid = Assert.IsType<Grid>(bodyRow.Child);
+        var cell = grid.Children.OfType<TextBlock>().FirstOrDefault();
+        Assert.NotNull(cell);
+        Assert.Contains("MdTableCell", cell!.Classes);
+    }
 }
