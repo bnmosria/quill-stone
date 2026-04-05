@@ -99,4 +99,43 @@ public sealed class EditorServiceTests
         Assert.Equal("- first\n- second\n- ", result!.Value.NewText);
         Assert.Equal(cursor + "\n- ".Length, result.Value.NewCaretIndex);
     }
+
+    [Fact]
+    public void ComputeEnterKeyEdit_UncheckedCheckboxLine_InsertsNextUncheckedCheckbox()
+    {
+        string text = "- [ ] item";
+        int cursor = text.Length;
+
+        var result = EditorService.ComputeEnterKeyEdit(text, cursor, _formatter);
+
+        Assert.NotNull(result);
+        Assert.Equal("- [ ] item\n- [ ] ", result!.Value.NewText);
+        Assert.Equal(cursor + "\n- [ ] ".Length, result.Value.NewCaretIndex);
+    }
+
+    [Fact]
+    public void ComputeEnterKeyEdit_CheckedCheckboxLine_InsertsNextUncheckedCheckbox()
+    {
+        string text = "- [x] item";
+        int cursor = text.Length;
+
+        var result = EditorService.ComputeEnterKeyEdit(text, cursor, _formatter);
+
+        Assert.NotNull(result);
+        Assert.Equal("- [x] item\n- [ ] ", result!.Value.NewText);
+        Assert.Equal(cursor + "\n- [ ] ".Length, result.Value.NewCaretIndex);
+    }
+
+    [Fact]
+    public void ComputeEnterKeyEdit_EmptyUncheckedCheckbox_RemovesMarker()
+    {
+        string text = "- [ ] ";
+        int cursor = text.Length;
+
+        var result = EditorService.ComputeEnterKeyEdit(text, cursor, _formatter);
+
+        Assert.NotNull(result);
+        Assert.Equal(string.Empty, result!.Value.NewText);
+        Assert.Equal(0, result.Value.NewCaretIndex);
+    }
 }

@@ -238,6 +238,10 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
                 return $"{number + 1}. ";
         }
 
+        if (lineContent.StartsWith("- [ ] ", StringComparison.Ordinal))
+            return "- [ ] ";
+        if (lineContent.StartsWith("- [x] ", StringComparison.Ordinal))
+            return "- [ ] ";
         if (lineContent.StartsWith("- ", StringComparison.Ordinal))
             return "- ";
         if (lineContent.StartsWith("* ", StringComparison.Ordinal))
@@ -246,10 +250,6 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
             return "+ ";
         if (lineContent.StartsWith("> ", StringComparison.Ordinal))
             return "> ";
-        if (lineContent.StartsWith("- [ ] ", StringComparison.Ordinal))
-            return "- [ ] ";
-        if (lineContent.StartsWith("- [x] ", StringComparison.Ordinal))
-            return "- [ ] ";
 
         return null;
     }

@@ -280,6 +280,24 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
+    public void GetNextListItemPrefix_UncheckedCheckboxLine_ReturnsCheckboxPrefix()
+    {
+        string text = "- [ ] item";
+        var prefix = _formatter.GetNextListItemPrefix(text, text.Length);
+
+        Assert.Equal("- [ ] ", prefix);
+    }
+
+    [Fact]
+    public void GetNextListItemPrefix_CheckedCheckboxLine_ReturnsUncheckedCheckboxPrefix()
+    {
+        string text = "- [x] item";
+        var prefix = _formatter.GetNextListItemPrefix(text, text.Length);
+
+        Assert.Equal("- [ ] ", prefix);
+    }
+
+    [Fact]
     public void StripListPrefix_BulletLine_StripsPrefix()
     {
         Assert.Equal("item", _formatter.StripListPrefix("- item"));
