@@ -386,15 +386,14 @@ public class MarkdownRenderService : IMarkdownRenderService
             return empty;
         }
 
-        var colDefs = new ColumnDefinitions(
-            string.Join(",", Enumerable.Repeat("*", colCount)));
+        var colDefsString = string.Join(",", Enumerable.Repeat("*", colCount));
 
         var outerPanel = new StackPanel();
 
         int rowIndex = 0;
         foreach (var row in table.OfType<TableRow>())
         {
-            var grid = new Grid { ColumnDefinitions = colDefs };
+            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions(colDefsString) };
 
             int colIndex = 0;
             foreach (var cell in row.OfType<TableCell>())
