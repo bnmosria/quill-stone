@@ -10,6 +10,7 @@ public sealed class PreviewController
 {
     private Panel _previewContainer = null!;
     private Border _previewPane = null!;
+    private ScrollViewer _previewScroll = null!;
     private readonly IMarkdownRenderService _renderService;
     private readonly IEditorService _editorService;
     private readonly IDocumentService _documentService;
@@ -33,10 +34,11 @@ public sealed class PreviewController
         _menuCommandHandler = menuCommandHandler;
     }
 
-    internal void Wire(Panel previewContainer, Border previewPane, Window owner)
+    internal void Wire(Panel previewContainer, Border previewPane, ScrollViewer previewScroll, Window owner)
     {
         _previewContainer = previewContainer;
         _previewPane = previewPane;
+        _previewScroll = previewScroll;
         _owner = owner;
     }
 
@@ -69,18 +71,21 @@ public sealed class PreviewController
         catch (ObjectDisposedException) { }
     }
 
-    public void RenderImmediate()
+    public void RenderImmediate(bool resetScroll = false)
     {
         CancelPendingRender();
         var markdown = _editorService.GetEditorText();
         var controls = _renderService.Render(markdown, GetCurrentBasePath(), OpenLocalFileAsync);
         PopulateContainer(controls);
+
+        if (resetScroll)
+            _previewScroll.ScrollToHome();
     }
 
-    public void RenderIfVisible()
+    public void RenderIfVisible(bool resetScroll = false)
     {
         if (IsPreviewVisible)
-            RenderImmediate();
+            RenderImmediate(resetScroll);
     }
 
     public void RenderIfEmpty()

@@ -435,7 +435,8 @@
                                 IsVisible="False"
                                 BorderBrush="{DynamicResource Brush.Border.Separator}"
                                 BorderThickness="1,0,0,0">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                            <ScrollViewer x:Name="PreviewScrollViewer"
+                                          VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
                                           Background="{DynamicResource Brush.Background.Base}">
                                 <StackPanel x:Name="PreviewContainer"
