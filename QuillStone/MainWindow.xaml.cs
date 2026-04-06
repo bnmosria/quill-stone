@@ -129,7 +129,7 @@ public partial class MainWindow : Window
         _statusBarController.UpdateWordCount();
     }
 
-    private async void Editor_KeyDown(object? sender, KeyEventArgs e)
+    private void Editor_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Return && e.KeyModifiers == KeyModifiers.None)
         {
@@ -155,8 +155,8 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case Key.K:
+                _formatHandler.InsertLink();
                 e.Handled = true;
-                await _formatHandler.InsertLinkAsync(this);
                 break;
             case Key.H:
                 _formatHandler.ApplyHeading(1);
@@ -170,8 +170,8 @@ public partial class MainWindow : Window
     private void ToolbarStrikethrough_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyStrikethrough();
     private void ToolbarInlineCode_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyInlineCode();
     private void ToolbarCodeBlock_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyCodeBlock();
-    private async void ToolbarLink_Click(object? s, RoutedEventArgs e) => await _formatHandler.InsertLinkAsync(this);
-    private async void ToolbarImage_Click(object? s, RoutedEventArgs e) => await _formatHandler.InsertImageAsync(this);
+    private void ToolbarLink_Click(object? s, RoutedEventArgs e) => _formatHandler.InsertLink();
+    private void ToolbarImage_Click(object? s, RoutedEventArgs e) => _formatHandler.InsertImage();
     private void ToolbarH1_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(1);
     private void ToolbarH2_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(2);
     private void ToolbarH3_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyHeading(3);

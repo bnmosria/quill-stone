@@ -7,13 +7,12 @@ namespace QuillStone.Tests.Services;
 public sealed class FormatCommandHandlerTests
 {
     private readonly Mock<IEditorService> _editorMock = new();
-    private readonly Mock<IWindowDialogService> _dialogMock = new();
     private readonly MarkdownFormatter _formatter = new();
     private readonly FormatCommandHandler _handler;
 
     public FormatCommandHandlerTests()
     {
-        _handler = new FormatCommandHandler(_editorMock.Object, _formatter, _dialogMock.Object);
+        _handler = new FormatCommandHandler(_editorMock.Object, _formatter);
     }
 
     private void SetupEditor(string text, int selStart = 0, int selEnd = 0)
@@ -165,33 +164,71 @@ public sealed class FormatCommandHandlerTests
     }
 
     [Fact]
-    public async Task InsertLinkAsync_UserCancels_DoesNotModifyEditor()
+    public void InsertLink_NoSelection_InsertsPlaceholderAndSelectsUrl()
     {
-        _dialogMock
-            .Setup(d => d.ShowInputDialogAsync(null!, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync((string?)null);
-        SetupEditor("some text", 0, 0);
+        SetupEditor("", 0, 0);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
 
-        await _handler.InsertLinkAsync(null!);
+        _handler.InsertLink();
 
-        _editorMock.Verify(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()), Times.Never);
+        Assert.NotNull(result);
+        Assert.Equal("[link text](url)", result!.Text);
+        // Selection should cover "url"
+        Assert.Equal(12, result!.SelectionStart);
+        Assert.Equal(15, result!.SelectionEnd);
     }
 
     [Fact]
-    public async Task InsertLinkAsync_UserProvidesUrl_InsertsLink()
+    public void InsertLink_WithSelection_UsesSelectionAsLabelAndSelectsUrl()
     {
-        _dialogMock
-            .Setup(d => d.ShowInputDialogAsync(null!, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync("https://example.com");
         SetupEditor("click here", 0, 10);
         TextEditResult? result = null;
         _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
             .Callback<TextEditResult>(r => result = r);
 
-        await _handler.InsertLinkAsync(null!);
+        _handler.InsertLink();
 
         Assert.NotNull(result);
-        Assert.Equal("[click here](https://example.com)", result!.Text);
+        Assert.Equal("[click here](url)", result!.Text);
+        // Selection should cover "url"
+        Assert.Equal(13, result!.SelectionStart);
+        Assert.Equal(16, result!.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertImage_NoSelection_InsertsPlaceholderAndSelectsAlt()
+    {
+        SetupEditor("", 0, 0);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.InsertImage();
+
+        Assert.NotNull(result);
+        Assert.Equal("![alt text](path)", result!.Text);
+        // Selection should cover "alt text" (start+2 to start+2+8)
+        Assert.Equal(2, result!.SelectionStart);
+        Assert.Equal(10, result!.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertImage_WithSelection_UsesSelectionAsAltAndSelectsPath()
+    {
+        SetupEditor("my image", 0, 8);
+        TextEditResult? result = null;
+        _editorMock.Setup(e => e.ApplyTextEdit(It.IsAny<TextEditResult>()))
+            .Callback<TextEditResult>(r => result = r);
+
+        _handler.InsertImage();
+
+        Assert.NotNull(result);
+        Assert.Equal("![my image](path)", result!.Text);
+        // Selection should cover "path" (start + alt.Length + 4 = 0 + 8 + 4 = 12, to 12 + 4 = 16)
+        Assert.Equal(12, result!.SelectionStart);
+        Assert.Equal(16, result!.SelectionEnd);
     }
 
     [Fact]

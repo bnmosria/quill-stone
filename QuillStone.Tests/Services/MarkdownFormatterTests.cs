@@ -130,22 +130,47 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
-    public void InsertLink_NoSelection_InsertsPlaceholderLinkText()
+    public void InsertLink_NoSelection_InsertsPlaceholderAndSelectsUrl()
     {
         var result = _formatter.InsertLink("", NoSelection(), "https://example.com", "link text");
 
         Assert.Equal("[link text](https://example.com)", result.Text);
-        Assert.Equal(1, result.SelectionStart);
-        Assert.Equal(10, result.SelectionEnd);
+        // Selection should cover the url "https://example.com"
+        Assert.Equal(12, result.SelectionStart);
+        Assert.Equal(31, result.SelectionEnd);
     }
 
     [Fact]
-    public void InsertLink_WithSelection_UsesSelectedTextAsLabel()
+    public void InsertLink_WithSelection_UsesSelectedTextAsLabelAndSelectsUrl()
     {
         var result = _formatter.InsertLink("click here", Selection(0, 10), "https://example.com", "link text");
 
         Assert.Equal("[click here](https://example.com)", result.Text);
-        Assert.Equal(33, result.SelectionStart);
+        // Selection should cover the url "https://example.com"
+        Assert.Equal(13, result.SelectionStart);
+        Assert.Equal(32, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertImage_NoSelection_InsertsPlaceholderAndSelectsAlt()
+    {
+        var result = _formatter.InsertImage("", NoSelection(), "path/to/image.png", "alt text");
+
+        Assert.Equal("![alt text](path/to/image.png)", result.Text);
+        // No selection → select alt text (positions 2 to 2+8=10)
+        Assert.Equal(2, result.SelectionStart);
+        Assert.Equal(10, result.SelectionEnd);
+    }
+
+    [Fact]
+    public void InsertImage_WithSelection_UsesSelectionAsAltAndSelectsPath()
+    {
+        var result = _formatter.InsertImage("my photo", Selection(0, 8), "path/to/image.png", "alt text");
+
+        Assert.Equal("![my photo](path/to/image.png)", result.Text);
+        // With selection → select path (positions: 0 + 8 + 4 = 12, to 12 + 17 = 29)
+        Assert.Equal(12, result.SelectionStart);
+        Assert.Equal(29, result.SelectionEnd);
     }
 
     [Fact]

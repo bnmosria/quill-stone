@@ -96,6 +96,19 @@ public sealed class MarkdownRenderServiceTests
     }
 
     [AvaloniaFact]
+    public void Render_StrikethroughText_SpanHasStrikethroughDecoration()
+    {
+        var result = _service.Render("~~strikethrough~~");
+
+        var tb = Assert.IsType<TextBlock>(Assert.Single(result));
+        Assert.NotNull(tb.Inlines);
+        var span = tb.Inlines!.OfType<Span>().FirstOrDefault();
+        Assert.NotNull(span);
+        Assert.NotNull(span!.TextDecorations);
+        Assert.Contains(span.TextDecorations!, d => d.Location == TextDecorationLocation.Strikethrough);
+    }
+
+    [AvaloniaFact]
     public void Render_Blockquote_ReturnsBorderWithMdBlockquoteClass()
     {
         var result = _service.Render("> A quoted line");
