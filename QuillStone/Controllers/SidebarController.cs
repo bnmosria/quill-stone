@@ -29,6 +29,28 @@ public sealed class SidebarController
         _toggleIcon = toggleIcon;
     }
 
+    public void EnsureVisible()
+    {
+        if (!_isVisible)
+            Toggle();
+    }
+
+    public void EnsureHidden()
+    {
+        if (_isVisible)
+            Toggle();
+    }
+
+    public void HideToggleStrip()
+    {
+        _sidebarEditorGrid.ColumnDefinitions[0].Width = new GridLength(0);
+    }
+
+    public void ShowToggleStrip()
+    {
+        _sidebarEditorGrid.ColumnDefinitions[0].Width = new GridLength(28);
+    }
+
     public void Toggle()
     {
         _isVisible = !_isVisible;

@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private readonly WindowChromeController _windowChromeController;
     private readonly RecentProjectsController _recentProjectsController;
     private readonly SidebarController _sidebarController;
+    private readonly WelcomeScreenController _welcomeScreenController;
 
     public MainWindow(
         IEditorService editorService,
@@ -49,7 +50,8 @@ public partial class MainWindow : Window
         DragDropController dragDropController,
         StatusBarController statusBarController,
         WindowChromeController windowChromeController,
-        SidebarController sidebarController)
+        SidebarController sidebarController,
+        WelcomeScreenController welcomeScreenController)
     {
         InitializeComponent();
 
@@ -72,6 +74,7 @@ public partial class MainWindow : Window
         _statusBarController = statusBarController;
         _windowChromeController = windowChromeController;
         _sidebarController = sidebarController;
+        _welcomeScreenController = welcomeScreenController;
 
         // Set owner on services that need a Window reference
         _menuHandler.SetOwner(this);
@@ -103,6 +106,74 @@ public partial class MainWindow : Window
             resetEditor: () => RunWithEditorUpdateGuardAsync(ResetEditorAsync),
             onProjectOpened: () => { _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); });
 
+        _welcomeScreenController.Wire(
+            WelcomeScreen,
+            Editor,
+            FormattingToolbarContainer,
+            _sidebarController,
+            onNewDocument: async () =>
+            {
+                await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
+                UpdateWindowTitle();
+                _previewController.RenderIfVisible(resetScroll: true);
+                _projectTreeController.RefreshSidebar();
+                return true;
+            },
+            onOpenFile: async () =>
+            {
+                var prevPath = _documentService.CurrentDocument?.LocalPath;
+                await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync);
+                UpdateWindowTitle();
+                _previewController.RenderIfVisible(resetScroll: true);
+                _projectTreeController.RefreshSidebar();
+                return _documentService.CurrentDocument?.LocalPath != prevPath
+                    && _documentService.CurrentDocument != null;
+            },
+            onOpenProject: async () =>
+            {
+                if (!await TrySwitchProjectAsync(() => _projectService.NewProjectAsync(this, _dialogService)))
+                    return false;
+                await _recentProjectsController.RecordAndSaveAsync();
+                _projectTreeController.RefreshSidebar();
+                UpdateWindowTitle();
+                return true;
+            },
+            onOpenFolder: async () =>
+            {
+                if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this, _dialogService)))
+                    return false;
+                await _recentProjectsController.RecordAndSaveAsync();
+                _projectTreeController.RefreshSidebar();
+                UpdateWindowTitle();
+                return true;
+            },
+            onOpenRecentProject: async project =>
+            {
+                if (!await TrySwitchProjectAsync(async () =>
+                {
+                    if (!System.IO.Directory.Exists(project.Path))
+                    {
+                        await _dialogService.ShowMessageDialogAsync(this, "QuillStone",
+                            $"The project folder no longer exists:\n{project.Path}");
+                        _settingsService.Settings.RecentProjects.RemoveAll(p =>
+                            string.Equals(p.Path, project.Path, StringComparison.OrdinalIgnoreCase));
+                        try
+                        {
+                            await _settingsService.SaveAsync();
+                        }
+                        catch { /* non-fatal */ }
+                        _recentProjectsController.Populate();
+                        return false;
+                    }
+                    _projectService.RestoreProject(project.Name, project.Path, isProject: true);
+                    return true;
+                }))
+                    return;
+                await _recentProjectsController.RecordAndSaveAsync();
+                _projectTreeController.RefreshSidebar();
+                UpdateWindowTitle();
+            });
+
         ProjectTree.ItemsSource = _projectTreeController.ProjectRoots;
         ProjectTree.SelectionChanged += _projectTreeController.OnSelectionChanged;
         _dragDropController.Register(ProjectTree);
@@ -114,7 +185,11 @@ public partial class MainWindow : Window
         _statusBarController.UpdateWordCount();
         _windowChromeController.Configure();
         _windowChromeController.OnWindowStateChanged();
-        Loaded += async (_, _) => await _recentProjectsController.InitializeAsync();
+        Loaded += async (_, _) =>
+        {
+            await _recentProjectsController.InitializeAsync();
+            _welcomeScreenController.Show();
+        };
     }
 
     private void Editor_TextChanged(object? sender, TextChangedEventArgs e)
@@ -181,7 +256,14 @@ public partial class MainWindow : Window
     private void ToolbarCheckbox_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyCheckbox();
 
     private async void MenuNew_Click(object? sender, RoutedEventArgs e)
-    { await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); _projectTreeController.RefreshSidebar(); }
+    {
+        await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync);
+        UpdateWindowTitle();
+        _previewController.RenderIfVisible(resetScroll: true);
+        _projectTreeController.RefreshSidebar();
+        if (_projectService.CurrentProject is null)
+            _welcomeScreenController.Show();
+    }
     private async void MenuOpen_Click(object? sender, RoutedEventArgs e)
     { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); _projectTreeController.RefreshSidebar(); }
     private async void SidebarOpenFile_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
