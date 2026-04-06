@@ -188,8 +188,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             await _recentProjectsController.InitializeAsync();
-            if (_projectService.CurrentProject is null)
-                _welcomeScreenController.Show();
+            _welcomeScreenController.Show();
         };
     }
 
