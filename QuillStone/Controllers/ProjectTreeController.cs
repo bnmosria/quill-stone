@@ -324,7 +324,8 @@ public sealed class ProjectTreeController
         if (!_documentService.IsCurrentFile(e.FullPath))
             return;
 
-        // Cancel any pending debounce for this file then start a fresh 500 ms window
+        // Cancel any pending debounce for this file then start a fresh 500 ms window.
+        // Capture the local cts so the continuation checks the correct token instance.
         _externalChangeCts?.Cancel();
         _externalChangeCts?.Dispose();
         var cts = new CancellationTokenSource();
@@ -333,7 +334,7 @@ public sealed class ProjectTreeController
         _ = Task.Delay(500, cts.Token).ContinueWith(
             t =>
             {
-                if (t.IsCanceled)
+                if (cts.IsCancellationRequested)
                     return;
                 _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
                     () => FireAndForget(() => PromptExternalReloadAsync(e.FullPath)),
@@ -347,10 +348,13 @@ public sealed class ProjectTreeController
             return;
 
         string fileName = Path.GetFileName(fullPath);
+        string warningLine = _documentService.IsDirty
+            ? "Reloading will discard your unsaved changes."
+            : "The file on disk has been updated.";
         bool reload = await _dialogService.ShowConfirmAsync(
             _owner,
             "File Changed Externally",
-            $"'{fileName}' was modified by another application.\n\nReload from disk and discard unsaved changes?",
+            $"'{fileName}' was modified by another application.\n{warningLine}\n\nReload from disk?",
             "Reload");
 
         if (!reload)
@@ -364,7 +368,7 @@ public sealed class ProjectTreeController
         string newContent;
         try
         {
-            newContent = await File.ReadAllTextAsync(fullPath);
+            newContent = await ReadFileWithRetryAsync(fullPath);
         }
         catch (Exception ex)
         {
@@ -378,6 +382,26 @@ public sealed class ProjectTreeController
         _editorService.SetEditorText(newContent);
         _documentService.AcceptExternalReload(newContent);
         _onTitleUpdateNeeded();
+    }
+    private static async Task<string> ReadFileWithRetryAsync(string path, int retries = 3, int retryDelayMs = 100)
+    {
+        for (int attempt = 0; attempt < retries; attempt++)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var reader = new StreamReader(stream);
+                return await reader.ReadToEndAsync();
+            }
+            catch (IOException) when (attempt < retries - 1)
+            {
+                await Task.Delay(retryDelayMs);
+            }
+        }
+        // Final attempt — let exception propagate
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var sr = new StreamReader(fs);
+        return await sr.ReadToEndAsync();
     }
     private static void FireAndForget(Func<Task> action)
     {
