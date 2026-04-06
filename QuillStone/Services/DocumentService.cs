@@ -148,6 +148,15 @@ public sealed class DocumentService : IDocumentService
                       Path.GetFullPath(path),
                       StringComparison.OrdinalIgnoreCase);
 
+    public void AcceptExternalReload(string newContent)
+    {
+        if (CurrentDocument is null)
+            return;
+        CurrentDocument = new LoadedDocument(CurrentDocument.File, CurrentDocument.LocalPath, newContent);
+        _documentState.SetPersistedContent(newContent);
+        MarkDirty(false);
+    }
+
     public async Task<bool> SaveAsAsync(Window owner, string content)
     {
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions

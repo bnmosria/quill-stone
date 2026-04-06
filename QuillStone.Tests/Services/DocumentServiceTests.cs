@@ -251,4 +251,31 @@ public sealed class DocumentServiceTests
         // No document loaded — any path should return false
         Assert.False(_svc.IsCurrentFile("/other/path/other.md"));
     }
+
+    [Fact]
+    public async Task AcceptExternalReload_UpdatesContentAndClearsDirty()
+    {
+        var storageFile = MakeStorageFile("note.md");
+        _state.SetCurrentFile(storageFile.Object, "/docs/note.md");
+        _fileServiceMock
+            .Setup(f => f.LoadAsync(storageFile.Object))
+            .ReturnsAsync(new QuillStone.Models.LoadedDocument(storageFile.Object, "/docs/note.md", "old content"));
+        await _svc.LoadAsync(storageFile.Object);
+        _svc.MarkDirty(true);
+
+        _svc.AcceptExternalReload("new external content");
+
+        Assert.Equal("new external content", _svc.CurrentDocument!.Content);
+        Assert.False(_svc.IsDirty);
+    }
+
+    [Fact]
+    public void AcceptExternalReload_WhenNoCurrentDocument_DoesNotThrow()
+    {
+        _svc.NewDocument();
+
+        // Should be a no-op without throwing
+        var ex = Record.Exception(() => _svc.AcceptExternalReload("some content"));
+        Assert.Null(ex);
+    }
 }

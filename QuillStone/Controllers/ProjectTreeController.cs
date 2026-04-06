@@ -24,6 +24,7 @@ public sealed class ProjectTreeController
     private Action _onTitleUpdateNeeded = null!;
     private FileNodeViewModel? _activeFileNode;
     private FileSystemWatcher? _watcher;
+    private CancellationTokenSource? _externalChangeCts;
 
     public ObservableCollection<FolderNodeViewModel> ProjectRoots => _projectRoots;
 
@@ -282,12 +283,13 @@ public sealed class ProjectTreeController
         _watcher = new FileSystemWatcher(rootPath)
         {
             IncludeSubdirectories = true,
-            NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName,
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite,
             EnableRaisingEvents = true,
         };
         _watcher.Created += OnFileSystemChanged;
         _watcher.Deleted += OnFileSystemChanged;
         _watcher.Renamed += OnFileSystemChanged;
+        _watcher.Changed += OnFileChanged;
     }
     private void StopWatching()
     {
@@ -296,6 +298,9 @@ public sealed class ProjectTreeController
         _watcher.EnableRaisingEvents = false;
         _watcher.Dispose();
         _watcher = null;
+        _externalChangeCts?.Cancel();
+        _externalChangeCts?.Dispose();
+        _externalChangeCts = null;
     }
     private void OnFileSystemChanged(object sender, FileSystemEventArgs e)
     {
@@ -313,6 +318,66 @@ public sealed class ProjectTreeController
                     }
                 },
                 Avalonia.Threading.DispatcherPriority.Background);
+    }
+    private void OnFileChanged(object sender, FileSystemEventArgs e)
+    {
+        if (!_documentService.IsCurrentFile(e.FullPath))
+            return;
+
+        // Cancel any pending debounce for this file then start a fresh 500 ms window
+        _externalChangeCts?.Cancel();
+        _externalChangeCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _externalChangeCts = cts;
+
+        _ = Task.Delay(500, cts.Token).ContinueWith(
+            t =>
+            {
+                if (t.IsCanceled)
+                    return;
+                _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
+                    () => FireAndForget(() => PromptExternalReloadAsync(e.FullPath)),
+                    Avalonia.Threading.DispatcherPriority.Normal);
+            },
+            TaskScheduler.Default);
+    }
+    private async Task PromptExternalReloadAsync(string fullPath)
+    {
+        if (!_documentService.IsCurrentFile(fullPath))
+            return;
+
+        string fileName = Path.GetFileName(fullPath);
+        bool reload = await _dialogService.ShowConfirmAsync(
+            _owner,
+            "File Changed Externally",
+            $"'{fileName}' was modified by another application.\n\nReload from disk and discard unsaved changes?",
+            "Reload");
+
+        if (!reload)
+        {
+            // Mark dirty so the user is reminded their in-memory version differs from disk
+            _documentService.MarkDirty(true);
+            _onTitleUpdateNeeded();
+            return;
+        }
+
+        string newContent;
+        try
+        {
+            newContent = await File.ReadAllTextAsync(fullPath);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageDialogAsync(
+                _owner,
+                "QuillStone",
+                $"Could not read the updated file from disk.\n\n{ex.Message}");
+            return;
+        }
+
+        _editorService.SetEditorText(newContent);
+        _documentService.AcceptExternalReload(newContent);
+        _onTitleUpdateNeeded();
     }
     private static void FireAndForget(Func<Task> action)
     {
