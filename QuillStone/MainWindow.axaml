@@ -377,8 +377,14 @@
                                                       VerticalAlignment="Center"
                                                       Foreground="{DynamicResource Brush.Text.Tertiary}"/>
                                             <TextBlock Text="{Binding Name}"
-                                                       Classes="ExplorerItem"/>
+                                                       Classes="ExplorerItem"
+                                                       Classes.ActiveFile="{Binding IsActive}"/>
                                         </StackPanel>
+                                    </DataTemplate>
+                                    <DataTemplate DataType="vm:FolderNodeViewModel+EmptyPlaceholderViewModel">
+                                        <TextBlock Text="(empty)"
+                                                   Classes="ExplorerEmpty"
+                                                   IsHitTestVisible="False"/>
                                     </DataTemplate>
                                 </TreeView.DataTemplates>
                                 <TreeView.Styles>

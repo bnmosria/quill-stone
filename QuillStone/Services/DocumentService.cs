@@ -1,3 +1,4 @@
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using QuillStone.Models;
@@ -139,6 +140,21 @@ public sealed class DocumentService : IDocumentService
     public void SyncDirtyState(string content)
     {
         _documentState.MarkDirty(_documentState.HasUnsavedChanges(content));
+    }
+
+    public bool IsCurrentFile(string path) =>
+        CurrentDocument?.LocalPath is { } current &&
+        string.Equals(Path.GetFullPath(current),
+                      Path.GetFullPath(path),
+                      StringComparison.OrdinalIgnoreCase);
+
+    public void AcceptExternalReload(string newContent)
+    {
+        if (CurrentDocument is null)
+            return;
+        CurrentDocument = new LoadedDocument(CurrentDocument.File, CurrentDocument.LocalPath, newContent);
+        _documentState.SetPersistedContent(newContent);
+        MarkDirty(false);
     }
 
     public async Task<bool> SaveAsAsync(Window owner, string content)

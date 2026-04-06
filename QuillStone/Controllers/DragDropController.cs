@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using QuillStone.Services;
 using QuillStone.ViewModels;
 
@@ -21,6 +22,8 @@ public sealed class DragDropController
     private FileSystemNodeViewModel? _pendingDragSource;
     private Point _pendingDragStartPoint;
     private FileSystemNodeViewModel? _activeDragSource;
+    private TreeViewItem? _currentDropTargetItem;
+    private TreeViewItem? _dragSourceItem;
     private const string DragNodeFormat = "QuillStone.Node";
     private const double DragThreshold = 8.0;
 
@@ -82,6 +85,11 @@ public sealed class DragDropController
         var source = _pendingDragSource;
         _pendingDragSource = null;
         _activeDragSource = source;
+        _dragSourceItem = _projectTree?.GetVisualDescendants()
+            .OfType<TreeViewItem>()
+            .FirstOrDefault(i => i.DataContext == source);
+        if (_dragSourceItem is not null)
+            _dragSourceItem.Opacity = 0.45;
         try
         {
             var data = new DataObject();
@@ -93,21 +101,33 @@ public sealed class DragDropController
             await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone",
                 $"An unexpected error occurred while starting the drag.\n\n{ex.Message}");
         }
-        finally { _activeDragSource = null; }
+        finally
+        {
+            ClearDropTargetHighlight();
+            if (_dragSourceItem is not null)
+            {
+                _dragSourceItem.Opacity = 1.0;
+                _dragSourceItem = null;
+            }
+            _activeDragSource = null;
+        }
     }
     private void OnDragOver(object? sender, DragEventArgs e)
     {
         var target = TreeViewHelper.GetDropTargetFolder(e.Source as Visual);
         if (_activeDragSource is null || target is null || !IsValidDropTarget(_activeDragSource, target))
         {
+            ClearDropTargetHighlight();
             e.DragEffects = DragDropEffects.None;
             return;
         }
+        SetDropTargetHighlight(e.Source as Visual);
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
     }
     private async void OnDrop(object? sender, DragEventArgs e)
     {
+        ClearDropTargetHighlight();
         var source = _activeDragSource;
         var target = TreeViewHelper.GetDropTargetFolder(e.Source as Visual);
         if (source is null || target is null || !IsValidDropTarget(source, target))
@@ -151,7 +171,7 @@ public sealed class DragDropController
         }
         var sourceParent = source.ParentFolder;
         string? newOpenFilePath = isFolder ? GetNewOpenFilePathAfterFolderMove(sourcePath, destPath) : null;
-        bool isCurrentFile = !isFolder && source is FileNodeViewModel fileVm && IsCurrentlyOpenFile(fileVm);
+        bool isCurrentFile = !isFolder && source is FileNodeViewModel fileVm && _documentService.IsCurrentFile(fileVm.FullPath);
         try
         {
             if (isFolder)
@@ -193,12 +213,10 @@ public sealed class DragDropController
         return targetPath.StartsWith(candidatePath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
             || string.Equals(candidatePath, targetPath, StringComparison.OrdinalIgnoreCase);
     }
-    private bool IsCurrentlyOpenFile(FileNodeViewModel fileNode)
-    {
-        var currentPath = _documentService.CurrentDocument?.LocalPath;
-        return currentPath is not null
-            && string.Equals(currentPath, fileNode.FullPath, StringComparison.OrdinalIgnoreCase);
-    }
+    private bool IsProjectRoot(FolderNodeViewModel folder)
+        => _projectService.CurrentProject is { } project
+            && string.Equals(project.RootPath, folder.FullPath, StringComparison.OrdinalIgnoreCase);
+
     private string? GetNewOpenFilePathAfterFolderMove(string sourceFolderPath, string destFolderPath)
     {
         var currentPath = _documentService.CurrentDocument?.LocalPath;
@@ -212,7 +230,24 @@ public sealed class DragDropController
         var relative = normalizedCurrent[normalizedSource.Length..];
         return Path.Combine(destFolderPath, relative);
     }
-    private bool IsProjectRoot(FolderNodeViewModel folder)
-        => _projectService.CurrentProject is { } project
-            && string.Equals(project.RootPath, folder.FullPath, StringComparison.OrdinalIgnoreCase);
+
+    private void ClearDropTargetHighlight()
+    {
+        if (_currentDropTargetItem is null)
+            return;
+        _currentDropTargetItem.Classes.Remove("DropTarget");
+        _currentDropTargetItem = null;
+    }
+
+    private void SetDropTargetHighlight(Visual? source)
+    {
+        var item = source?.FindAncestorOfType<TreeViewItem>(includeSelf: true);
+        if (item == _currentDropTargetItem)
+            return;
+        ClearDropTargetHighlight();
+        if (item is null)
+            return;
+        item.Classes.Add("DropTarget");
+        _currentDropTargetItem = item;
+    }
 }

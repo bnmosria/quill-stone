@@ -17,5 +17,7 @@ public interface IDocumentService
     void NewDocument();
     void MarkDirty(bool dirty);
     void SyncDirtyState(string content);
+    bool IsCurrentFile(string path);
+    void AcceptExternalReload(string newContent);
 }
 
