@@ -79,7 +79,7 @@ public partial class MainWindow : Window
 
         // Wire controllers to AXAML controls
         _windowChromeController.Wire(this, TitleBar, MinimizeButton, MaximizeButton, CloseButton);
-        _previewController.Wire(PreviewContainer, PreviewPane, this);
+        _previewController.Wire(PreviewContainer, PreviewPane, PreviewScrollViewer, this);
         _viewModeController.Wire(
             EditorPreviewGrid, Editor, PreviewPane, PreviewSplitter,
             ViewEditorOnlyButton, ViewSplitButton, ViewFullPreviewButton, MenuSplitView, MenuFullPreview,
@@ -90,7 +90,7 @@ public partial class MainWindow : Window
             {
                 await RunWithEditorUpdateGuardAsync(() => _menuHandler.OpenFileFromPathAsync(p));
                 UpdateWindowTitle();
-                _previewController.RenderIfVisible();
+                _previewController.RenderIfVisible(resetScroll: true);
             },
             onTitleUpdateNeeded: UpdateWindowTitle);
         _dragDropController.Wire(this, onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
@@ -181,11 +181,11 @@ public partial class MainWindow : Window
     private void ToolbarCheckbox_Click(object? s, RoutedEventArgs e) => _formatHandler.ApplyCheckbox();
 
     private async void MenuNew_Click(object? sender, RoutedEventArgs e)
-    { await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(); _projectTreeController.RefreshSidebar(); }
+    { await RunWithEditorUpdateGuardAsync(_menuHandler.NewDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); _projectTreeController.RefreshSidebar(); }
     private async void MenuOpen_Click(object? sender, RoutedEventArgs e)
-    { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(); _projectTreeController.RefreshSidebar(); }
+    { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); _projectTreeController.RefreshSidebar(); }
     private async void SidebarOpenFile_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
-    { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); _previewController.RenderIfVisible(); }
+    { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); }
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
         if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
