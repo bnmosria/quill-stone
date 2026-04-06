@@ -188,7 +188,7 @@ public partial class MainWindow : Window
     { await RunWithEditorUpdateGuardAsync(_menuHandler.OpenDocumentAsync); _projectTreeController.RefreshSidebar(); UpdateWindowTitle(); _previewController.RenderIfVisible(resetScroll: true); }
     private async void SidebarOpenFolder_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this, _dialogService)))
             return;
         await _recentProjectsController.RecordAndSaveAsync();
         _projectTreeController.RefreshSidebar();
@@ -201,7 +201,7 @@ public partial class MainWindow : Window
     private void MenuExit_Click(object? sender, RoutedEventArgs e) => Close();
     private async void MenuOpenFolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this)))
+        if (!await TrySwitchProjectAsync(() => _projectService.OpenFolderAsync(this, _dialogService)))
             return;
         await _recentProjectsController.RecordAndSaveAsync();
         _projectTreeController.RefreshSidebar();
@@ -292,7 +292,7 @@ public partial class MainWindow : Window
         var dirty = _documentService.IsDirty ? "*" : string.Empty;
         var doc = $"{_documentService.DisplayName}{dirty}";
         _previewController.UpdateReaderTitle(_documentService.DisplayName);
-        Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
+        Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.DisplayName} - QuillStone" : $"{doc} - QuillStone";
     }
     private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
         => _sidebarController.Toggle();

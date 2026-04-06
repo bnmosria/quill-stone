@@ -76,7 +76,7 @@ public sealed class ProjectTreeController
             _sidebarNoProjectActions.IsVisible = false;
             _sidebarOpenSection.IsVisible = false;
             _projectTree.IsVisible = true;
-            var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
+            var root = new FolderNodeViewModel(project.DisplayName, project.RootPath);
             root.IsExpanded = true;
             _projectRoots.Add(root);
             StartWatching(project.RootPath);

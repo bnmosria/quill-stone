@@ -155,16 +155,56 @@ public sealed class RecentProjectsIntegrationTests : IDisposable
         Assert.False(placeholder.IsEnabled);
     }
 
+    [AvaloniaFact]
+    public async Task RecordAndSaveAsync_NamedProject_RecordsProject()
+    {
+        var svc = CreateSettingsService();
+        await svc.LoadAsync();
+        var projectPath = MakeProjectDir("NamedProj");
+        var projectService = new Mock<IProjectService>();
+        projectService.Setup(p => p.CurrentProject)
+            .Returns(new ProjectState("Named Project", projectPath, isProject: true));
+
+        var menuItem = new MenuItem();
+        var controller = CreateController(menuItem, svc, projectService.Object);
+        await controller.RecordAndSaveAsync();
+
+        Assert.Single(svc.Settings.RecentProjects);
+        Assert.Equal("Named Project", svc.Settings.RecentProjects[0].Name);
+    }
+
+    [AvaloniaFact]
+    public async Task RecordAndSaveAsync_PlainFolderOpen_DoesNotRecordProject()
+    {
+        var svc = CreateSettingsService();
+        await svc.LoadAsync();
+        var folderPath = MakeProjectDir("PlainFolder");
+        var projectService = new Mock<IProjectService>();
+        projectService.Setup(p => p.CurrentProject)
+            .Returns(new ProjectState("PlainFolder", folderPath, isProject: false));
+
+        var menuItem = new MenuItem();
+        var controller = CreateController(menuItem, svc, projectService.Object);
+        await controller.RecordAndSaveAsync();
+
+        Assert.Empty(svc.Settings.RecentProjects);
+    }
+
     private RecentProjectsController CreateController(MenuItem menuItem, IAppSettingsService settingsService)
     {
         var projectService = new Mock<IProjectService>();
+        return CreateController(menuItem, settingsService, projectService.Object);
+    }
+
+    private RecentProjectsController CreateController(MenuItem menuItem, IAppSettingsService settingsService, IProjectService projectService)
+    {
         var dialogService = new Mock<IWindowDialogService>();
         var owner = new Window();
 
         return new RecentProjectsController(
             menuItem,
             settingsService,
-            projectService.Object,
+            projectService,
             dialogService.Object,
             owner,
             trySwitchProject: _ => Task.FromResult(false),
