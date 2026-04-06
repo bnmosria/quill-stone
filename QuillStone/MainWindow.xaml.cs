@@ -291,8 +291,11 @@ public partial class MainWindow : Window
     {
         var dirty = _documentService.IsDirty ? "*" : string.Empty;
         var doc = $"{_documentService.DisplayName}{dirty}";
+        _previewController.UpdateReaderTitle(_documentService.DisplayName);
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
     }
     private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
         => _sidebarController.Toggle();
+    private void ReaderMode_Click(object? sender, RoutedEventArgs e)
+        => _previewController.OpenOrActivateReaderWindow();
 }

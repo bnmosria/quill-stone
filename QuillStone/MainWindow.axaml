@@ -89,6 +89,10 @@
                                   Header="_Full Preview"
                                   HotKey="Ctrl+Shift+F"
                                   Click="MenuFullPreview_Click" />
+                        <Separator />
+                        <MenuItem Header="_Reader Mode"
+                                  HotKey="Ctrl+Shift+R"
+                                  Click="ReaderMode_Click" />
                     </MenuItem>
                     <MenuItem Header="_Help">
                         <MenuItem Header="_About QuillStone..." Click="MenuAbout_Click" />
@@ -206,7 +210,7 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}"
                                    VerticalAlignment="Center" />
 
-                        <!-- Centre: three view-mode toggle buttons -->
+                        <!-- Centre: three view-mode toggle buttons + reader mode -->
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal"
                                     Spacing="2"
@@ -231,6 +235,12 @@
                                     Classes="Ghost"
                                     Padding="5">
                                 <PathIcon Data="{DynamicResource Icon.ViewFullPreview}" Width="14" Height="14"/>
+                            </Button>
+                            <Button ToolTip.Tip="Reader Mode (Ctrl+Shift+R)"
+                                    Click="ReaderMode_Click"
+                                    Classes="Ghost"
+                                    Padding="5">
+                                <PathIcon Data="{DynamicResource Icon.Reader}" Width="14" Height="14"/>
                             </Button>
                         </StackPanel>
 

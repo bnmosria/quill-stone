@@ -19,6 +19,7 @@ public sealed class PreviewController
 
     private CancellationTokenSource _renderCts = new();
     private PreviewWindow? _previewWindow;
+    private ReaderWindow? _readerWindow;
 
     public bool IsPreviewVisible => _previewPane.IsVisible;
 
@@ -48,6 +49,34 @@ public sealed class PreviewController
             _ = ScheduleUpdateAsync();
 
         _previewWindow?.UpdateContent(_editorService.GetEditorText());
+
+        if (_readerWindow is not null)
+        {
+            _readerWindow.UpdateContent(
+                _editorService.GetEditorText(),
+                _documentService.DisplayName,
+                GetCurrentBasePath());
+        }
+    }
+
+    public void UpdateReaderTitle(string documentName) =>
+        _readerWindow?.SetDocumentName(documentName);
+
+    public void OpenOrActivateReaderWindow()
+    {
+        if (_readerWindow is not null)
+        {
+            _readerWindow.Activate();
+            return;
+        }
+
+        _readerWindow = new ReaderWindow(_renderService);
+        _readerWindow.Closed += (_, _) => _readerWindow = null;
+        _readerWindow.Show(_owner);
+        _readerWindow.LoadContent(
+            _editorService.GetEditorText(),
+            _documentService.DisplayName,
+            GetCurrentBasePath());
     }
 
     public async Task ScheduleUpdateAsync()
