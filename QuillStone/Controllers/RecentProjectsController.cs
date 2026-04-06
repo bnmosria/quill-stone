@@ -47,6 +47,8 @@ internal sealed class RecentProjectsController
     {
         if (_projectService.CurrentProject is not { } project)
             return;
+        if (!project.IsProject)
+            return;
         _settingsService.RecordProject(project.ProjectName, project.RootPath);
         try
         {
@@ -88,7 +90,7 @@ internal sealed class RecentProjectsController
                         Populate();
                         return false;
                     }
-                    _projectService.RestoreProject(capturedProject.Name, capturedProject.Path);
+                    _projectService.RestoreProject(capturedProject.Name, capturedProject.Path, isProject: true);
                     return true;
                 }))
                     return;
@@ -104,13 +106,14 @@ internal sealed class RecentProjectsController
         var path = _settingsService.Settings.LastOpenedProjectPath;
         if (path is null || !Directory.Exists(path))
             return;
+        bool isProject = File.Exists(Path.Combine(path, ProjectService.MarkerDirectory, ProjectService.MarkerFileName));
         var recent = _settingsService.Settings.RecentProjects
             .FirstOrDefault(p => string.Equals(p.Path, path, StringComparison.OrdinalIgnoreCase));
         string name =
             recent?.Name
             ?? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
             ?? path;
-        _projectService.RestoreProject(name, path);
+        _projectService.RestoreProject(name, path, isProject);
         await _resetEditor();
         _onProjectOpened();
     }
