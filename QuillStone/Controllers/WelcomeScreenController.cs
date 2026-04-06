@@ -81,6 +81,9 @@ public sealed class WelcomeScreenController
 
         _welcomeScreen.NoRecentProjectsHint.IsVisible = false;
 
+        var app = Application.Current!;
+        var themeVariant = app.ActualThemeVariant;
+
         foreach (var project in projects)
         {
             var btn = new Button { Classes = { "WelcomeRecentItem" } };
@@ -96,13 +99,13 @@ public sealed class WelcomeScreenController
                 Text = project.Name,
                 FontWeight = FontWeight.Bold,
             };
-            if (Application.Current!.TryGetResource("Brush.Text.Primary", Application.Current.ActualThemeVariant, out var primary))
+            if (app.TryGetResource("Brush.Text.Primary", themeVariant, out var primary))
                 nameBlock.Foreground = (IBrush?)primary;
 
             var pathBlock = new TextBlock { Text = project.Path, Margin = new Thickness(0, 2, 0, 0) };
-            if (Application.Current!.TryGetResource("FontSize.SM", Application.Current.ActualThemeVariant, out var sm))
+            if (app.TryGetResource("FontSize.SM", themeVariant, out var sm))
                 pathBlock.FontSize = (double)sm!;
-            if (Application.Current!.TryGetResource("Brush.Text.Tertiary", Application.Current.ActualThemeVariant, out var tertiary))
+            if (app.TryGetResource("Brush.Text.Tertiary", themeVariant, out var tertiary))
                 pathBlock.Foreground = (IBrush?)tertiary;
 
             btn.Content = new StackPanel { Children = { nameBlock, pathBlock } };
