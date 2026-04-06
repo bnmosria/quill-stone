@@ -288,7 +288,7 @@ public sealed class ProjectTreeController
         };
         _watcher.Created += OnFileSystemChanged;
         _watcher.Deleted += OnFileSystemChanged;
-        _watcher.Renamed += OnFileSystemChanged;
+        _watcher.Renamed += OnFileRenamed;
         _watcher.Changed += OnFileChanged;
     }
     private void StopWatching()
@@ -318,6 +318,23 @@ public sealed class ProjectTreeController
                     }
                 },
                 Avalonia.Threading.DispatcherPriority.Background);
+    }
+    private void OnFileRenamed(object sender, RenamedEventArgs e)
+    {
+        // Atomic-save editors (e.g. VS Code) write to a temp file then rename it over the
+        // original, producing a Renamed event instead of a Changed event.  When the
+        // rename destination is the currently open file, treat it as an external content
+        // change (debounce + reload dialog) rather than a structural tree change — this
+        // also prevents the active-file highlight from being needlessly cleared.
+        if (_documentService.IsCurrentFile(e.FullPath))
+        {
+            OnFileChanged(sender, e);
+            return;
+        }
+
+        // A real structural rename (e.g. another file or folder was renamed by an
+        // external tool) — refresh the sidebar tree as normal.
+        OnFileSystemChanged(sender, e);
     }
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
