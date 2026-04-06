@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using Avalonia.VisualTree;
 using QuillStone.Controllers;
 using QuillStone.Models;
@@ -25,7 +24,6 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
-    private bool _sidebarVisible = true;
 
     private readonly ViewModeController _viewModeController;
     private readonly PreviewController _previewController;
@@ -34,6 +32,7 @@ public partial class MainWindow : Window
     private readonly StatusBarController _statusBarController;
     private readonly WindowChromeController _windowChromeController;
     private readonly RecentProjectsController _recentProjectsController;
+    private readonly SidebarController _sidebarController;
 
     public MainWindow(
         IEditorService editorService,
@@ -49,7 +48,8 @@ public partial class MainWindow : Window
         ProjectTreeController projectTreeController,
         DragDropController dragDropController,
         StatusBarController statusBarController,
-        WindowChromeController windowChromeController)
+        WindowChromeController windowChromeController,
+        SidebarController sidebarController)
     {
         InitializeComponent();
 
@@ -71,6 +71,7 @@ public partial class MainWindow : Window
         _dragDropController = dragDropController;
         _statusBarController = statusBarController;
         _windowChromeController = windowChromeController;
+        _sidebarController = sidebarController;
 
         // Set owner on services that need a Window reference
         _menuHandler.SetOwner(this);
@@ -94,6 +95,7 @@ public partial class MainWindow : Window
             onTitleUpdateNeeded: UpdateWindowTitle);
         _dragDropController.Wire(this, onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
         _statusBarController.Wire(StatusMeta, StatusWordCount, Editor);
+        _sidebarController.Wire(SidebarEditorGrid, SidebarContent, SidebarSplitter, SidebarToggleButton, SidebarToggleIcon);
 
         _recentProjectsController = new RecentProjectsController(
             RecentProjectsMenuItem, _settingsService, _projectService, _dialogService, this,
@@ -293,30 +295,5 @@ public partial class MainWindow : Window
     }
 
     private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
-    {
-        _sidebarVisible = !_sidebarVisible;
-
-        var cols = SidebarEditorGrid.ColumnDefinitions;
-
-        if (_sidebarVisible)
-        {
-            cols[1].Width = new GridLength(210);
-            cols[1].MinWidth = 150;
-            cols[2].Width = GridLength.Auto;
-            SidebarContent.IsVisible = true;
-            SidebarSplitter.IsVisible = true;
-            SidebarToggleIcon.Data = (Geometry?)this.FindResource("Icon.SidebarCollapse");
-            ToolTip.SetTip(SidebarToggleButton, "Collapse sidebar");
-        }
-        else
-        {
-            cols[1].MinWidth = 0;
-            cols[1].Width = new GridLength(0);
-            cols[2].Width = new GridLength(0);
-            SidebarContent.IsVisible = false;
-            SidebarSplitter.IsVisible = false;
-            SidebarToggleIcon.Data = (Geometry?)this.FindResource("Icon.SidebarExpand");
-            ToolTip.SetTip(SidebarToggleButton, "Expand sidebar");
-        }
-    }
+        => _sidebarController.Toggle();
 }
