@@ -293,7 +293,6 @@ public partial class MainWindow : Window
         var doc = $"{_documentService.DisplayName}{dirty}";
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
     }
-
     private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
         => _sidebarController.Toggle();
 }
