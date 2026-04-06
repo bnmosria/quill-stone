@@ -336,8 +336,21 @@ public sealed class ProjectTreeController
             {
                 if (cts.IsCancellationRequested)
                     return;
+
+                // PromptExternalReloadAsync calls ShowDialog which MUST run on the UI thread.
+                // Use an async lambda so InvokeAsync properly awaits the full dialog flow.
                 _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
-                    () => FireAndForget(() => PromptExternalReloadAsync(e.FullPath)),
+                    async () =>
+                    {
+                        try
+                        {
+                            await PromptExternalReloadAsync(e.FullPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[ProjectTreeController] External reload prompt failed: {ex.Message}");
+                        }
+                    },
                     Avalonia.Threading.DispatcherPriority.Normal);
             },
             TaskScheduler.Default);
