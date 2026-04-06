@@ -112,7 +112,7 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
         public LoadingPlaceholderViewModel() : base(string.Empty, string.Empty) { }
     }
 
-    public sealed class EmptyPlaceholderViewModel : FileSystemNodeViewModel
+    internal sealed class EmptyPlaceholderViewModel : FileSystemNodeViewModel
     {
         public EmptyPlaceholderViewModel() : base("(empty)", string.Empty) { }
     }

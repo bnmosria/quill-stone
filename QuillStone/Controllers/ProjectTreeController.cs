@@ -299,9 +299,20 @@ public sealed class ProjectTreeController
     }
     private void OnFileSystemChanged(object sender, FileSystemEventArgs e)
     {
-        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
-            RefreshSidebar,
-            Avalonia.Threading.DispatcherPriority.Background);
+        _ = Avalonia.Threading.Dispatcher.UIThread
+            .InvokeAsync(
+                () =>
+                {
+                    try
+                    {
+                        RefreshSidebar();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[ProjectTreeController] File system refresh failed: {ex.Message}");
+                    }
+                },
+                Avalonia.Threading.DispatcherPriority.Background);
     }
     private static void FireAndForget(Func<Task> action)
     {
