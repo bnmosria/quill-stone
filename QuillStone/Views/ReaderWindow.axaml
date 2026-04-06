@@ -1,0 +1,181 @@
+<Window x:Class="QuillStone.Views.ReaderWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Reader – QuillStone"
+        Width="960" Height="700"
+        MinWidth="640" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://QuillStone/Assets/Icons/icon.png"
+        Background="{DynamicResource Brush.Background.Elevated}">
+
+    <DockPanel>
+
+        <!-- 2 px reading progress bar at the very top -->
+        <ProgressBar x:Name="ReadingProgress"
+                     DockPanel.Dock="Top"
+                     Classes="Slim"
+                     Minimum="0" Maximum="100" Value="0"/>
+
+        <!-- 44 px top bar -->
+        <Border DockPanel.Dock="Top"
+                Height="44"
+                Background="{DynamicResource Brush.Background.Surface}"
+                BorderBrush="{DynamicResource Brush.Border.Separator}"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Left: close / back button -->
+                <Button Grid.Column="0"
+                        Click="Close_Click"
+                        Classes="Ghost"
+                        Margin="4,0,0,0"
+                        Padding="8"
+                        ToolTip.Tip="Close Reader">
+                    <PathIcon Data="{DynamicResource Icon.ArrowLeft}" Width="16" Height="16"/>
+                </Button>
+
+                <!-- Centre: reader logomark + document name -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+                    <PathIcon Data="{DynamicResource Icon.Reader}"
+                              Width="14" Height="14"
+                              Foreground="{DynamicResource Brush.Accent.Primary}"/>
+                    <TextBlock x:Name="DocumentNameLabel"
+                               Text="Untitled"
+                               FontFamily="{DynamicResource Font.UI}"
+                               FontSize="{DynamicResource FontSize.SM}"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Right: font size decrease · increase · theme · focus -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="2"
+                            VerticalAlignment="Center"
+                            Margin="0,0,8,0">
+                    <Button Click="FontSizeDecrease_Click"
+                            Classes="Ghost"
+                            Padding="6"
+                            ToolTip.Tip="Decrease font size">
+                        <TextBlock Text="A"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="11"
+                                   VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Click="FontSizeIncrease_Click"
+                            Classes="Ghost"
+                            Padding="6"
+                            ToolTip.Tip="Increase font size">
+                        <TextBlock Text="A"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Click="ToggleTheme_Click"
+                            Classes="Ghost"
+                            Padding="6"
+                            ToolTip.Tip="Toggle theme">
+                        <PathIcon Data="{DynamicResource Icon.Moon}" Width="14" Height="14"/>
+                    </Button>
+                    <Button x:Name="FocusToggleButton"
+                            Click="FocusToggle_Click"
+                            Classes="Ghost"
+                            Padding="6"
+                            ToolTip.Tip="Toggle focus mode">
+                        <PathIcon Data="{DynamicResource Icon.Focus}" Width="14" Height="14"/>
+                    </Button>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- Body: TOC sidebar + reading area -->
+        <Grid ColumnDefinitions="Auto,*">
+
+            <!-- TOC sidebar: 190 px fixed width -->
+            <Border x:Name="TocSidebar"
+                    Grid.Column="0"
+                    Width="190"
+                    Background="{DynamicResource Brush.Background.Elevated}"
+                    BorderBrush="{DynamicResource Brush.Border.Separator}"
+                    BorderThickness="0,0,1,0">
+                <DockPanel>
+
+                    <!-- CONTENTS heading -->
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="CONTENTS"
+                               Classes="TocSectionTitle"
+                               Margin="16,14,16,6"/>
+
+                    <!-- Progress percentage + slim bar at the bottom -->
+                    <StackPanel DockPanel.Dock="Bottom"
+                                Margin="16,6,16,14"
+                                Spacing="4">
+                        <TextBlock x:Name="ProgressLabel"
+                                   Text="0% complete"
+                                   Classes="TocSectionTitle"/>
+                        <ProgressBar x:Name="SidebarProgress"
+                                     Classes="Slim"
+                                     Minimum="0" Maximum="100" Value="0"/>
+                    </StackPanel>
+
+                    <!-- Scrollable TOC items -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="TocContainer"
+                                    Spacing="0"
+                                    Margin="8,0,8,8"/>
+                    </ScrollViewer>
+
+                </DockPanel>
+            </Border>
+
+            <!-- Content column + floating navigation arrows -->
+            <Grid Grid.Column="1">
+
+                <!-- Scrollable reading area -->
+                <ScrollViewer x:Name="ReaderScroll"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              ScrollChanged="ReaderScroll_ScrollChanged">
+                    <Border x:Name="ReaderContent"
+                            HorizontalAlignment="Center"
+                            MaxWidth="680"
+                            Padding="36,32,36,80">
+                        <StackPanel x:Name="ReaderContainer"/>
+                    </Border>
+                </ScrollViewer>
+
+                <!-- Prev / Next heading buttons — pinned bottom-right -->
+                <StackPanel HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Orientation="Horizontal"
+                            Spacing="4"
+                            Margin="0,0,16,16">
+                    <Button x:Name="PrevHeadingButton"
+                            Click="PrevHeading_Click"
+                            Classes="Ghost"
+                            Padding="8"
+                            ToolTip.Tip="Previous heading">
+                        <PathIcon Data="{DynamicResource Icon.ArrowLeft}" Width="14" Height="14"/>
+                    </Button>
+                    <Button x:Name="NextHeadingButton"
+                            Click="NextHeading_Click"
+                            Classes="Ghost"
+                            Padding="8"
+                            ToolTip.Tip="Next heading">
+                        <PathIcon Data="{DynamicResource Icon.ArrowRight}" Width="14" Height="14"/>
+                    </Button>
+                </StackPanel>
+
+            </Grid>
+
+        </Grid>
+
+    </DockPanel>
+
+</Window>

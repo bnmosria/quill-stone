@@ -84,4 +84,14 @@
     <StreamGeometry x:Key="Icon.SidebarCollapse">M11,13L7,9L11,5V8H21V10H11V13M3,19V5H5V19H3Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.SidebarExpand">M13,11L17,15L13,19V16H3V14H13V11M21,5V19H19V5H21Z</StreamGeometry>
 
+    <!-- ── READER MODE ICONS ─────────────────────────────────────── -->
+    <!-- Reader: open book silhouette -->
+    <StreamGeometry x:Key="Icon.Reader">M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4C20,2.89 19.1,2 18,2M6,4H11V12L8.5,10.5L6,12V4Z</StreamGeometry>
+    <!-- ArrowLeft: navigate to previous heading -->
+    <StreamGeometry x:Key="Icon.ArrowLeft">M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z</StreamGeometry>
+    <!-- ArrowRight: navigate to next heading -->
+    <StreamGeometry x:Key="Icon.ArrowRight">M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z</StreamGeometry>
+    <!-- Focus: toggle distraction-free mode (expand corners) -->
+    <StreamGeometry x:Key="Icon.Focus">M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z</StreamGeometry>
+
 </ResourceDictionary>
