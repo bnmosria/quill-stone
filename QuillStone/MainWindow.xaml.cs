@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using QuillStone.Controllers;
 using QuillStone.Models;
@@ -24,6 +25,7 @@ public partial class MainWindow : Window
     private bool _isUpdatingEditorText;
     private bool _closeConfirmed;
     private bool _closingPromptOpen;
+    private bool _sidebarVisible = true;
 
     private readonly ViewModeController _viewModeController;
     private readonly PreviewController _previewController;
@@ -288,5 +290,33 @@ public partial class MainWindow : Window
         var dirty = _documentService.IsDirty ? "*" : string.Empty;
         var doc = $"{_documentService.DisplayName}{dirty}";
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
+    }
+
+    private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
+    {
+        _sidebarVisible = !_sidebarVisible;
+
+        var cols = SidebarEditorGrid.ColumnDefinitions;
+
+        if (_sidebarVisible)
+        {
+            cols[1].Width = new GridLength(210);
+            cols[1].MinWidth = 150;
+            cols[2].Width = GridLength.Auto;
+            SidebarContent.IsVisible = true;
+            SidebarSplitter.IsVisible = true;
+            SidebarToggleIcon.Data = (Geometry?)this.FindResource("Icon.SidebarCollapse");
+            ToolTip.SetTip(SidebarToggleButton, "Collapse sidebar");
+        }
+        else
+        {
+            cols[1].MinWidth = 0;
+            cols[1].Width = new GridLength(0);
+            cols[2].Width = new GridLength(0);
+            SidebarContent.IsVisible = false;
+            SidebarSplitter.IsVisible = false;
+            SidebarToggleIcon.Data = (Geometry?)this.FindResource("Icon.SidebarExpand");
+            ToolTip.SetTip(SidebarToggleButton, "Expand sidebar");
+        }
     }
 }
