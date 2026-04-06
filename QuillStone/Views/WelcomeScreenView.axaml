@@ -1,0 +1,141 @@
+<UserControl x:Class="QuillStone.Views.WelcomeScreenView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Styles>
+        <Style Selector="Button.WelcomeCard">
+            <Setter Property="Background" Value="{DynamicResource Brush.Background.Elevated}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource Radius.LG}"/>
+            <Setter Property="Padding" Value="{DynamicResource Spacing.2XL}"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.WelcomeCard:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+        </Style>
+        <Style Selector="Button.WelcomeRecentItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="{DynamicResource Spacing.MD}"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.WelcomeRecentItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Brush.Background.Hover}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel HorizontalAlignment="Center"
+                    MaxWidth="600"
+                    Margin="32,48,32,32"
+                    Spacing="0">
+
+            <!-- Header -->
+            <TextBlock Text="QuillStone"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.3XL}"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource Brush.Text.Primary}"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="A focused Markdown editor"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.LG}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       HorizontalAlignment="Center"
+                       Margin="0,8,0,32" />
+
+            <!-- Action cards 2×2 grid -->
+            <UniformGrid Columns="2" Rows="2">
+                <Button x:Name="NewDocumentButton" Classes="WelcomeCard">
+                    <StackPanel>
+                        <TextBlock Text="New document"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.MD}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="Start with a blank page"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.SM}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="OpenFileButton" Classes="WelcomeCard">
+                    <StackPanel>
+                        <TextBlock Text="Open file"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.MD}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="Open a Markdown file"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.SM}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="OpenProjectButton" Classes="WelcomeCard">
+                    <StackPanel>
+                        <TextBlock Text="Open project"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.MD}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="Open a QuillStone project"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.SM}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="OpenFolderButton" Classes="WelcomeCard">
+                    <StackPanel>
+                        <TextBlock Text="Open folder"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.MD}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="Browse a folder"
+                                   FontFamily="{DynamicResource Font.UI}"
+                                   FontSize="{DynamicResource FontSize.SM}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+
+            <!-- Recent Projects section -->
+            <TextBlock Text="Recent Projects"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.LG}"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource Brush.Text.Primary}"
+                       Margin="8,32,8,12" />
+
+            <TextBlock x:Name="NoRecentProjectsHint"
+                       Text="No recent projects yet"
+                       FontFamily="{DynamicResource Font.UI}"
+                       FontSize="{DynamicResource FontSize.Base}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       Margin="8,0,8,0"
+                       IsVisible="True" />
+
+            <StackPanel x:Name="RecentProjectsPanel"
+                        Spacing="0" />
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

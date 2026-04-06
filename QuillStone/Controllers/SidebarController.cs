@@ -29,6 +29,18 @@ public sealed class SidebarController
         _toggleIcon = toggleIcon;
     }
 
+    public void EnsureVisible()
+    {
+        if (!_isVisible)
+            Toggle();
+    }
+
+    public void EnsureHidden()
+    {
+        if (_isVisible)
+            Toggle();
+    }
+
     public void Toggle()
     {
         _isVisible = !_isVisible;

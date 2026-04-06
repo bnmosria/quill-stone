@@ -48,6 +48,7 @@ public partial class App : Application
         services.AddTransient<StatusBarController>();
         services.AddTransient<WindowChromeController>();
         services.AddTransient<SidebarController>();
+        services.AddTransient<WelcomeScreenController>();
 
         services.AddTransient<MainWindow>();
 

@@ -2,6 +2,7 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:QuillStone.ViewModels"
+        xmlns:views="using:QuillStone.Views"
         x:Name="RootWindow"
         Title="QuillStone" Height="800" Width="1280"
         MinWidth="480" MinHeight="360"
@@ -99,7 +100,8 @@
                     </MenuItem>
                 </Menu>
 
-                <Border DockPanel.Dock="Top"
+                <Border x:Name="FormattingToolbarContainer"
+                        DockPanel.Dock="Top"
                         Background="{DynamicResource Brush.Background.Overlay}"
                         BorderBrush="{DynamicResource Brush.Border.Separator}"
                         BorderThickness="0,1,0,1"
@@ -430,6 +432,11 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                  TextChanged="Editor_TextChanged"
                                  KeyDown="Editor_KeyDown" />
+
+                        <views:WelcomeScreenView x:Name="WelcomeScreen"
+                                                 Grid.Column="0"
+                                                 IsVisible="False"
+                                                 Background="{DynamicResource Brush.Background.Base}" />
 
                         <!-- Resizable splitter; hidden until split view is activated -->
                         <GridSplitter x:Name="PreviewSplitter"
