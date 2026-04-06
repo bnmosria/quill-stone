@@ -26,6 +26,16 @@ public sealed class ProjectTreeController
     private FileSystemWatcher? _watcher;
     private CancellationTokenSource? _externalChangeCts;
 
+    private static readonly HashSet<string> _imageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".svg",
+    };
+
     public ObservableCollection<FolderNodeViewModel> ProjectRoots => _projectRoots;
 
     public ProjectTreeController(
@@ -98,17 +108,56 @@ public sealed class ProjectTreeController
     {
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is FileNodeViewModel fileNode)
         {
-            // Only open .md files — images are shown in tree for reference but not editable
             if (fileNode.FullPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
             {
                 await _onFileOpened(fileNode.FullPath);
                 SetActiveFile(fileNode.FullPath);
+            }
+            else if (IsImageFile(fileNode.FullPath))
+            {
+                InsertImageSyntax(fileNode.FullPath);
             }
         }
         // Clear selection so every subsequent click always fires a new SelectionChanged,
         // regardless of whether the same item or a folder was previously selected.
         _projectTree.SelectedItem = null;
     }
+
+    private void InsertImageSyntax(string imagePath)
+    {
+        var currentDocPath = _documentService.CurrentDocument?.LocalPath;
+        var syntax = BuildImageSyntax(imagePath, currentDocPath);
+        var currentText = _editorService.GetEditorText();
+        var caretIndex = _editorService.GetCaretIndex();
+        var newText = currentText[..caretIndex] + syntax + currentText[caretIndex..];
+        var newCaretPos = caretIndex + syntax.Length;
+        _editorService.ApplyTextEdit(new QuillStone.Models.TextEditResult(newText, newCaretPos, newCaretPos));
+    }
+
+    private static bool IsImageFile(string path)
+        => _imageExtensions.Contains(Path.GetExtension(path));
+
+    internal static string BuildImageSyntax(string imagePath, string? currentDocumentLocalPath)
+    {
+        var relativePath = BuildRelativePath(imagePath, currentDocumentLocalPath);
+        var altText = BuildAltText(Path.GetFileNameWithoutExtension(imagePath));
+        return $"![{altText}]({relativePath})";
+    }
+
+    internal static string BuildRelativePath(string imagePath, string? currentDocumentLocalPath)
+    {
+        if (currentDocumentLocalPath is not null)
+        {
+            var docFolder = Path.GetDirectoryName(currentDocumentLocalPath);
+            if (docFolder is not null)
+                return Path.GetRelativePath(docFolder, imagePath).Replace(Path.DirectorySeparatorChar, '/');
+        }
+
+        return Path.GetFileName(imagePath);
+    }
+
+    internal static string BuildAltText(string filenameWithoutExtension)
+        => filenameWithoutExtension.Replace('_', ' ').Replace('-', ' ');
     public void OnFolderNewFile(object? sender, RoutedEventArgs e) =>
         FireAndForget(() => OnFolderNewFileAsync(sender, e));
     public void OnFolderNewFolder(object? sender, RoutedEventArgs e) =>
