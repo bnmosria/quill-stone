@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private readonly StatusBarController _statusBarController;
     private readonly WindowChromeController _windowChromeController;
     private readonly RecentProjectsController _recentProjectsController;
+    private readonly SidebarController _sidebarController;
 
     public MainWindow(
         IEditorService editorService,
@@ -47,7 +48,8 @@ public partial class MainWindow : Window
         ProjectTreeController projectTreeController,
         DragDropController dragDropController,
         StatusBarController statusBarController,
-        WindowChromeController windowChromeController)
+        WindowChromeController windowChromeController,
+        SidebarController sidebarController)
     {
         InitializeComponent();
 
@@ -69,6 +71,7 @@ public partial class MainWindow : Window
         _dragDropController = dragDropController;
         _statusBarController = statusBarController;
         _windowChromeController = windowChromeController;
+        _sidebarController = sidebarController;
 
         // Set owner on services that need a Window reference
         _menuHandler.SetOwner(this);
@@ -92,6 +95,7 @@ public partial class MainWindow : Window
             onTitleUpdateNeeded: UpdateWindowTitle);
         _dragDropController.Wire(this, onMoveCompleted: _projectTreeController.RefreshFolderOrSidebar, onTitleUpdateNeeded: UpdateWindowTitle);
         _statusBarController.Wire(StatusMeta, StatusWordCount, Editor);
+        _sidebarController.Wire(SidebarEditorGrid, SidebarContent, SidebarSplitter, SidebarToggleButton, SidebarToggleIcon);
 
         _recentProjectsController = new RecentProjectsController(
             RecentProjectsMenuItem, _settingsService, _projectService, _dialogService, this,
@@ -289,4 +293,6 @@ public partial class MainWindow : Window
         var doc = $"{_documentService.DisplayName}{dirty}";
         Title = _projectService.CurrentProject is { } p ? $"{doc} - {p.ProjectName} - QuillStone" : $"{doc} - QuillStone";
     }
+    private void SidebarToggle_Click(object? sender, RoutedEventArgs e)
+        => _sidebarController.Toggle();
 }

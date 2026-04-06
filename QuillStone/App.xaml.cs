@@ -47,6 +47,7 @@ public partial class App : Application
         services.AddTransient<DragDropController>();
         services.AddTransient<StatusBarController>();
         services.AddTransient<WindowChromeController>();
+        services.AddTransient<SidebarController>();
 
         services.AddTransient<MainWindow>();
 

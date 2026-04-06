@@ -257,16 +257,43 @@
                     </Grid>
                 </Border>
 
-                <Grid ColumnDefinitions="210,*">
-                    <!-- Outer grid: sidebar (col 0) + editor/preview area (col 1) -->
-                    <!-- The inner EditorPreviewGrid handles the split -->
+                <Grid x:Name="SidebarEditorGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28"/>
+                        <ColumnDefinition Width="210" MinWidth="150" MaxWidth="400"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Col 0: toggle strip — always visible -->
                     <Border Grid.Column="0"
+                            Background="{DynamicResource Brush.Background.Sidebar}"
+                            BorderBrush="{DynamicResource Brush.Border.Separator}"
+                            BorderThickness="0,0,1,0">
+                        <Button x:Name="SidebarToggleButton"
+                                Classes="Ghost"
+                                Width="22" Height="22"
+                                Padding="4"
+                                Margin="3,8,3,0"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Center"
+                                ToolTip.Tip="Collapse sidebar"
+                                Click="SidebarToggle_Click">
+                            <PathIcon x:Name="SidebarToggleIcon"
+                                      Data="{DynamicResource Icon.SidebarCollapse}"
+                                      Width="12" Height="12"/>
+                        </Button>
+                    </Border>
+
+                    <!-- Col 1: sidebar content — collapses to 0 -->
+                    <Border x:Name="SidebarContent"
+                            Grid.Column="1"
                             Background="{DynamicResource Brush.Background.Sidebar}"
                             BorderBrush="{DynamicResource Brush.Border.Separator}"
                             BorderThickness="0,0,1,0">
                         <DockPanel>
                             <Border DockPanel.Dock="Top"
-                                    Padding="16,12,12,6"
+                                    Padding="8,12,12,6"
                                     BorderBrush="{DynamicResource Brush.Border.Separator}"
                                     BorderThickness="0,0,0,1">
                                 <TextBlock Text="EXPLORER"
@@ -363,8 +390,18 @@
                         </DockPanel>
                     </Border>
 
+                    <!-- Col 2: splitter — hidden when collapsed -->
+                    <GridSplitter x:Name="SidebarSplitter"
+                                  Grid.Column="2"
+                                  Width="4"
+                                  ResizeDirection="Columns"
+                                  Background="{DynamicResource Brush.Border.Separator}"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"/>
+
+                    <!-- Col 3: editor + preview -->
                     <Grid x:Name="EditorPreviewGrid"
-                          Grid.Column="1"
+                          Grid.Column="3"
                           ColumnDefinitions="1*,Auto,0">
 
                         <TextBox x:Name="Editor"

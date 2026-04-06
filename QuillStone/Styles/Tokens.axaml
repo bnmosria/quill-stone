@@ -80,4 +80,8 @@
     <!-- Moon: crescent for theme toggle -->
     <StreamGeometry x:Key="Icon.Moon">M21,12.79A9,9 0 1,1 11.21,3 7,7 0 0,0 21,12.79Z</StreamGeometry>
 
+    <!-- ── SIDEBAR TOGGLE ICONS ──────────────────────────────────── -->
+    <StreamGeometry x:Key="Icon.SidebarCollapse">M11,13L7,9L11,5V8H21V10H11V13M3,19V5H5V19H3Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.SidebarExpand">M13,11L17,15L13,19V16H3V14H13V11M21,5V19H19V5H21Z</StreamGeometry>
+
 </ResourceDictionary>
