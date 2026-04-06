@@ -181,6 +181,22 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
+    public void PrefixSelectedLines_Checkbox_EmptyLine_AppliesPrefix()
+    {
+        var result = _formatter.PrefixSelectedLines("", NoSelection(), "- [ ] ");
+
+        Assert.Equal("- [ ] ", result.Text);
+    }
+
+    [Fact]
+    public void PrefixSelectedLines_MultiLineWithBlankSeparator_SkipsBlankLine()
+    {
+        var result = _formatter.PrefixSelectedLines("foo\n\nbar", Selection(0, 8), "- ");
+
+        Assert.Equal("- foo\n\n- bar", result.Text);
+    }
+
+    [Fact]
     public void ApplyHeading_H1_AddsHash()
     {
         var result = _formatter.ApplyHeadingToSelectedLines("Introduction", NoSelection(), 1);
@@ -277,6 +293,24 @@ public sealed class MarkdownFormatterTests
         var prefix = _formatter.GetNextListItemPrefix("", 0);
 
         Assert.Null(prefix);
+    }
+
+    [Fact]
+    public void GetNextListItemPrefix_UncheckedCheckboxLine_ReturnsCheckboxPrefix()
+    {
+        string text = "- [ ] item";
+        var prefix = _formatter.GetNextListItemPrefix(text, text.Length);
+
+        Assert.Equal("- [ ] ", prefix);
+    }
+
+    [Fact]
+    public void GetNextListItemPrefix_CheckedCheckboxLine_ReturnsUncheckedCheckboxPrefix()
+    {
+        string text = "- [x] item";
+        var prefix = _formatter.GetNextListItemPrefix(text, text.Length);
+
+        Assert.Equal("- [ ] ", prefix);
     }
 
     [Fact]

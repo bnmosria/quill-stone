@@ -92,7 +92,7 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
 
         string block = text[lineStart..lineEnd];
         string[] lines = block.Split('\n');
-        string replacement = string.Join('\n', lines.Select(l => string.IsNullOrWhiteSpace(l) ? l : prefix + StripLinePrefix(l)));
+        string replacement = string.Join('\n', lines.Select(l => (string.IsNullOrWhiteSpace(l) && lines.Length > 1) ? l : prefix + StripLinePrefix(l)));
 
         string newText = text[..lineStart] + replacement + text[lineEnd..];
         int newCursorPos = lineStart + replacement.Length;
@@ -238,6 +238,11 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
                 return $"{number + 1}. ";
         }
 
+        // Checkbox prefixes checked before "- " — "- [ ] " starts with "- " so longest match must come first.
+        if (lineContent.StartsWith("- [ ] ", StringComparison.Ordinal))
+            return "- [ ] ";
+        if (lineContent.StartsWith("- [x] ", StringComparison.Ordinal))
+            return "- [ ] ";
         if (lineContent.StartsWith("- ", StringComparison.Ordinal))
             return "- ";
         if (lineContent.StartsWith("* ", StringComparison.Ordinal))
@@ -246,10 +251,6 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
             return "+ ";
         if (lineContent.StartsWith("> ", StringComparison.Ordinal))
             return "> ";
-        if (lineContent.StartsWith("- [ ] ", StringComparison.Ordinal))
-            return "- [ ] ";
-        if (lineContent.StartsWith("- [x] ", StringComparison.Ordinal))
-            return "- [ ] ";
 
         return null;
     }
