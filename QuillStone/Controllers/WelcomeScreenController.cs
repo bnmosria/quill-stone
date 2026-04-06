@@ -55,6 +55,7 @@ public sealed class WelcomeScreenController
         _formattingToolbarContainer.IsVisible = false;
         _sidebarWasVisible = _sidebarController.IsVisible;
         _sidebarController.EnsureHidden();
+        _sidebarController.HideToggleStrip();
         RefreshRecentProjects();
     }
 
@@ -64,6 +65,7 @@ public sealed class WelcomeScreenController
         _welcomeScreen.IsVisible = false;
         _editor.IsVisible = true;
         _formattingToolbarContainer.IsVisible = true;
+        _sidebarController.ShowToggleStrip();
         if (_sidebarWasVisible)
             _sidebarController.EnsureVisible();
     }
