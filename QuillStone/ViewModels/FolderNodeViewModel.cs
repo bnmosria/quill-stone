@@ -23,13 +23,13 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
             _isExpanded = value;
             OnPropertyChanged();
             if (_isExpanded)
-                EnsureChildrenLoaded();
+                _ = EnsureChildrenLoadedAsync();
         }
     }
 
     public FolderNodeViewModel(string name, string fullPath) : base(name, fullPath)
     {
-        Children.Add(new PlaceholderNodeViewModel());
+        Children.Add(new LoadingPlaceholderViewModel());
     }
 
     /// <summary>Reloads the immediate children from disk.</summary>
@@ -39,12 +39,12 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
         Children.Clear();
 
         if (_isExpanded)
-            EnsureChildrenLoaded();
+            _ = EnsureChildrenLoadedAsync();
         else
-            Children.Add(new PlaceholderNodeViewModel());
+            Children.Add(new LoadingPlaceholderViewModel());
     }
 
-    private void EnsureChildrenLoaded()
+    private async Task EnsureChildrenLoadedAsync()
     {
         if (_isLoaded)
             return;
@@ -54,28 +54,45 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
 
         try
         {
-            var dir = new DirectoryInfo(FullPath);
-
-            foreach (var subDir in dir.GetDirectories()
-                         .Where(d => !d.Attributes.HasFlag(FileAttributes.Hidden))
-                         .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase))
+            var (dirs, files) = await Task.Run(() =>
             {
-                var folderVm = new FolderNodeViewModel(subDir.Name, subDir.FullName);
-                folderVm.ParentFolder = this;
-                Children.Add(folderVm);
-            }
+                var dir = new DirectoryInfo(FullPath);
 
-            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { ".md", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg" };
+                var subDirs = dir.GetDirectories()
+                    .Where(d => !d.Attributes.HasFlag(FileAttributes.Hidden))
+                    .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
-            foreach (var file in dir.GetFiles()
-                         .Where(f => allowedExtensions.Contains(f.Extension))
-                         .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
+                var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { ".md", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg" };
+
+                var mdFiles = dir.GetFiles()
+                    .Where(f => allowedExtensions.Contains(f.Extension))
+                    .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                return (subDirs, mdFiles);
+            });
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var fileVm = new FileNodeViewModel(file.Name, file.FullName);
-                fileVm.ParentFolder = this;
-                Children.Add(fileVm);
-            }
+                foreach (var subDir in dirs)
+                {
+                    var vm = new FolderNodeViewModel(subDir.Name, subDir.FullName);
+                    vm.ParentFolder = this;
+                    Children.Add(vm);
+                }
+
+                foreach (var file in files)
+                {
+                    var vm = new FileNodeViewModel(file.Name, file.FullName);
+                    vm.ParentFolder = this;
+                    Children.Add(vm);
+                }
+
+                if (Children.Count == 0)
+                    Children.Add(new EmptyPlaceholderViewModel());
+            });
         }
         catch (UnauthorizedAccessException)
         {
@@ -90,8 +107,13 @@ public sealed class FolderNodeViewModel : FileSystemNodeViewModel, INotifyProper
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    private sealed class PlaceholderNodeViewModel : FileSystemNodeViewModel
+    private sealed class LoadingPlaceholderViewModel : FileSystemNodeViewModel
     {
-        public PlaceholderNodeViewModel() : base(string.Empty, string.Empty) { }
+        public LoadingPlaceholderViewModel() : base(string.Empty, string.Empty) { }
+    }
+
+    public sealed class EmptyPlaceholderViewModel : FileSystemNodeViewModel
+    {
+        public EmptyPlaceholderViewModel() : base("(empty)", string.Empty) { }
     }
 }

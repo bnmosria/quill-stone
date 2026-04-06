@@ -236,4 +236,19 @@ public sealed class DocumentServiceTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public void IsCurrentFile_WhenNoCurrentDocument_ReturnsFalse()
+    {
+        _svc.NewDocument();
+
+        Assert.False(_svc.IsCurrentFile("/some/path/file.md"));
+    }
+
+    [Fact]
+    public void IsCurrentFile_WithNonMatchingPath_ReturnsFalse()
+    {
+        // No document loaded — any path should return false
+        Assert.False(_svc.IsCurrentFile("/other/path/other.md"));
+    }
 }

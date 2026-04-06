@@ -421,4 +421,25 @@
         <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
     </Style>
 
+    <Style Selector="TextBlock.ExplorerItem.ActiveFile">
+        <Setter Property="Foreground"  Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="FontWeight"  Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="TextBlock.ExplorerEmpty">
+        <Setter Property="FontFamily"        Value="{DynamicResource Font.UI}"/>
+        <Setter Property="FontSize"          Value="{DynamicResource FontSize.SM}"/>
+        <Setter Property="Foreground"        Value="{DynamicResource Brush.Text.Tertiary}"/>
+        <Setter Property="FontStyle"         Value="Italic"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin"            Value="4,0,0,0"/>
+    </Style>
+
+    <Style Selector="TreeViewItem.DropTarget /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background"      Value="{DynamicResource Brush.Accent.Muted}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource Brush.Accent.Primary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource Radius.SM}"/>
+    </Style>
+
 </Styles>

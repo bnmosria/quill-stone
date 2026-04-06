@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -21,6 +22,8 @@ public sealed class ProjectTreeController
     private Window _owner = null!;
     private Func<string, Task> _onFileOpened = null!;
     private Action _onTitleUpdateNeeded = null!;
+    private FileNodeViewModel? _activeFileNode;
+    private FileSystemWatcher? _watcher;
 
     public ObservableCollection<FolderNodeViewModel> ProjectRoots => _projectRoots;
 
@@ -55,6 +58,7 @@ public sealed class ProjectTreeController
     }
     public void RefreshSidebar()
     {
+        SetActiveFile(null);
         _projectRoots.Clear();
         if (_projectService.CurrentProject is { } project)
         {
@@ -64,8 +68,10 @@ public sealed class ProjectTreeController
             var root = new FolderNodeViewModel(project.ProjectName, project.RootPath);
             root.IsExpanded = true;
             _projectRoots.Add(root);
+            StartWatching(project.RootPath);
             return;
         }
+        StopWatching();
         _projectTree.IsVisible = false;
         if (_documentService.CurrentDocument is not null)
         {
@@ -90,12 +96,32 @@ public sealed class ProjectTreeController
     public async void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is FileNodeViewModel fileNode)
-            await _onFileOpened(fileNode.FullPath);
+        {
+            // Only open .md files — images are shown in tree for reference but not editable
+            if (fileNode.FullPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            {
+                await _onFileOpened(fileNode.FullPath);
+                SetActiveFile(fileNode.FullPath);
+            }
+        }
         // Clear selection so every subsequent click always fires a new SelectionChanged,
         // regardless of whether the same item or a folder was previously selected.
         _projectTree.SelectedItem = null;
     }
-    public async void OnFolderNewFile(object? sender, RoutedEventArgs e)
+    public void OnFolderNewFile(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFolderNewFileAsync(sender, e));
+    public void OnFolderNewFolder(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFolderNewFolderAsync(sender, e));
+    public void OnFolderRename(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFolderRenameAsync(sender, e));
+    public void OnFolderDelete(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFolderDeleteAsync(sender, e));
+    public void OnFileRename(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFileRenameAsync(sender, e));
+    public void OnFileDelete(object? sender, RoutedEventArgs e) =>
+        FireAndForget(() => OnFileDeleteAsync(sender, e));
+
+    public async Task OnFolderNewFileAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
             return;
@@ -111,7 +137,7 @@ public sealed class ProjectTreeController
         { File.WriteAllText(filePath, string.Empty, System.Text.Encoding.UTF8); folder.Refresh(); }
         catch (Exception ex) { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", $"Could not create file.\n\n{ex.Message}"); }
     }
-    public async void OnFolderNewFolder(object? sender, RoutedEventArgs e)
+    public async Task OnFolderNewFolderAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
             return;
@@ -125,7 +151,7 @@ public sealed class ProjectTreeController
         { Directory.CreateDirectory(folderPath); folder.Refresh(); }
         catch (Exception ex) { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", $"Could not create folder.\n\n{ex.Message}"); }
     }
-    public async void OnFolderRename(object? sender, RoutedEventArgs e)
+    public async Task OnFolderRenameAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
             return;
@@ -146,7 +172,7 @@ public sealed class ProjectTreeController
         { Directory.Move(folder.FullPath, newPath); RefreshFolderOrSidebar(folder.ParentFolder); }
         catch (Exception ex) { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", $"Could not rename folder.\n\n{ex.Message}"); }
     }
-    public async void OnFolderDelete(object? sender, RoutedEventArgs e)
+    public async Task OnFolderDeleteAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FolderNodeViewModel>(sender) is not { } folder)
             return;
@@ -163,11 +189,11 @@ public sealed class ProjectTreeController
         { Directory.Delete(folder.FullPath, recursive: true); RefreshFolderOrSidebar(folder.ParentFolder); }
         catch (Exception ex) { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", $"Could not delete folder.\n\n{ex.Message}"); }
     }
-    public async void OnFileRename(object? sender, RoutedEventArgs e)
+    public async Task OnFileRenameAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FileNodeViewModel>(sender) is not { } fileNode)
             return;
-        bool isCurrentFile = IsCurrentlyOpenFile(fileNode);
+        bool isCurrentFile = _documentService.IsCurrentFile(fileNode.FullPath);
         var newName = await _dialogService.ShowInputDialogAsync(_owner, "Rename File", "New name:", fileNode.Name);
         if (string.IsNullOrWhiteSpace(newName) || newName == fileNode.Name)
             return;
@@ -193,11 +219,11 @@ public sealed class ProjectTreeController
         }
         catch (Exception ex) { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", $"Could not rename file.\n\n{ex.Message}"); }
     }
-    public async void OnFileDelete(object? sender, RoutedEventArgs e)
+    public async Task OnFileDeleteAsync(object? sender, RoutedEventArgs e)
     {
         if (GetContextMenuNode<FileNodeViewModel>(sender) is not { } fileNode)
             return;
-        if (IsCurrentlyOpenFile(fileNode))
+        if (_documentService.IsCurrentFile(fileNode.FullPath))
         { await _dialogService.ShowMessageDialogAsync(_owner, "QuillStone", "Cannot delete the file that is currently open in the editor."); return; }
         var confirmed = await _dialogService.ShowConfirmAsync(
             _owner, "Delete File", $"Permanently delete '{fileNode.Name}'?", "Delete");
@@ -215,11 +241,30 @@ public sealed class ProjectTreeController
             return contextMenu.PlacementTarget?.DataContext as T ?? contextMenu.DataContext as T;
         return menuItem.DataContext as T;
     }
-    private bool IsCurrentlyOpenFile(FileNodeViewModel fileNode)
+    private void SetActiveFile(string? fullPath)
     {
-        var currentPath = _documentService.CurrentDocument?.LocalPath;
-        return currentPath is not null
-            && string.Equals(currentPath, fileNode.FullPath, StringComparison.OrdinalIgnoreCase);
+        if (_activeFileNode is not null)
+            _activeFileNode.IsActive = false;
+
+        _activeFileNode = fullPath is null ? null :
+            _projectRoots
+                .SelectMany(r => FindAllFileNodes(r))
+                .FirstOrDefault(f => string.Equals(f.FullPath, fullPath,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (_activeFileNode is not null)
+            _activeFileNode.IsActive = true;
+    }
+    private static IEnumerable<FileNodeViewModel> FindAllFileNodes(FolderNodeViewModel folder)
+    {
+        foreach (var child in folder.Children)
+        {
+            if (child is FileNodeViewModel file)
+                yield return file;
+            else if (child is FolderNodeViewModel sub)
+                foreach (var f in FindAllFileNodes(sub))
+                    yield return f;
+        }
     }
     private bool CurrentOpenFileIsInsideFolder(FolderNodeViewModel folder)
     {
@@ -230,5 +275,41 @@ public sealed class ProjectTreeController
         var normalizedFolder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder.FullPath))
             + Path.DirectorySeparatorChar;
         return normalizedCurrent.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase);
+    }
+    private void StartWatching(string rootPath)
+    {
+        StopWatching();
+        _watcher = new FileSystemWatcher(rootPath)
+        {
+            IncludeSubdirectories = true,
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName,
+            EnableRaisingEvents = true,
+        };
+        _watcher.Created += OnFileSystemChanged;
+        _watcher.Deleted += OnFileSystemChanged;
+        _watcher.Renamed += OnFileSystemChanged;
+    }
+    private void StopWatching()
+    {
+        if (_watcher is null)
+            return;
+        _watcher.EnableRaisingEvents = false;
+        _watcher.Dispose();
+        _watcher = null;
+    }
+    private void OnFileSystemChanged(object sender, FileSystemEventArgs e)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
+            RefreshSidebar,
+            Avalonia.Threading.DispatcherPriority.Background);
+    }
+    private static void FireAndForget(Func<Task> action)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            { await action(); }
+            catch (Exception ex) { Debug.WriteLine($"[ProjectTreeController] {ex.Message}"); }
+        });
     }
 }

@@ -1,3 +1,4 @@
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using QuillStone.Models;
@@ -140,6 +141,12 @@ public sealed class DocumentService : IDocumentService
     {
         _documentState.MarkDirty(_documentState.HasUnsavedChanges(content));
     }
+
+    public bool IsCurrentFile(string path) =>
+        CurrentDocument?.LocalPath is { } current &&
+        string.Equals(Path.GetFullPath(current),
+                      Path.GetFullPath(path),
+                      StringComparison.OrdinalIgnoreCase);
 
     public async Task<bool> SaveAsAsync(Window owner, string content)
     {
