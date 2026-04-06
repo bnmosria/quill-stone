@@ -181,6 +181,22 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
+    public void PrefixSelectedLines_Checkbox_EmptyLine_AppliesPrefix()
+    {
+        var result = _formatter.PrefixSelectedLines("", NoSelection(), "- [ ] ");
+
+        Assert.Equal("- [ ] ", result.Text);
+    }
+
+    [Fact]
+    public void PrefixSelectedLines_MultiLineWithBlankSeparator_SkipsBlankLine()
+    {
+        var result = _formatter.PrefixSelectedLines("foo\n\nbar", Selection(0, 8), "- ");
+
+        Assert.Equal("- foo\n\n- bar", result.Text);
+    }
+
+    [Fact]
     public void ApplyHeading_H1_AddsHash()
     {
         var result = _formatter.ApplyHeadingToSelectedLines("Introduction", NoSelection(), 1);
