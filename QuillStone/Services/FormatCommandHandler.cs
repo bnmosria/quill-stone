@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using QuillStone.Models;
 
 namespace QuillStone.Services;
@@ -8,16 +6,13 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 {
     private readonly IEditorService _editorService;
     private readonly IMarkdownFormatter _formatter;
-    private readonly IWindowDialogService _dialogService;
 
     public FormatCommandHandler(
         IEditorService editorService,
-        IMarkdownFormatter formatter,
-        IWindowDialogService dialogService)
+        IMarkdownFormatter formatter)
     {
         _editorService = editorService;
         _formatter = formatter;
-        _dialogService = dialogService;
     }
 
     public void ApplyBold() => ApplyWrap("**", "**", "bold text");
@@ -28,15 +23,11 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
 
     public void ApplyStrikethrough() => ApplyWrap("~~", "~~", "strikethrough");
 
-    public async Task InsertLinkAsync(Window owner)
+    public void InsertLink()
     {
-        string? url = await _dialogService.ShowInputDialogAsync(owner, "Insert Link", "Enter URL:", "https://");
-        if (url is null)
-            return;
-
         _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
-        TextEditResult result = _formatter.InsertLink(editorText, _editorService.GetSavedSelection(), url, "link text");
+        TextEditResult result = _formatter.InsertLink(editorText, _editorService.GetSavedSelection(), "url", "link text");
         _editorService.ApplyTextEdit(result);
     }
 
@@ -70,44 +61,12 @@ public sealed class FormatCommandHandler : IFormatCommandHandler
         _editorService.ApplyTextEdit(result);
     }
 
-    public async Task InsertImageAsync(Window owner)
+    public void InsertImage()
     {
-        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Insert Image",
-            AllowMultiple = false,
-            FileTypeFilter =
-            [
-                new FilePickerFileType("Image files")
-                {
-                    Patterns = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.svg"]
-                },
-                FilePickerFileTypes.All
-            ]
-        });
-
-        if (files.Count == 0)
-            return;
-
-        string? localPath = files[0].TryGetLocalPath();
-        string path = localPath ?? files[0].Name;
-
         _editorService.UpdateSelection();
         string editorText = _editorService.GetEditorText();
-        var selection = _editorService.GetSavedSelection();
-
-        string alt = selection.HasSelection
-            ? editorText[selection.NormalizedStart..selection.NormalizedEnd]
-            : "alt text";
-
-        string insertion = $"![{alt}]({path})";
-        string newText = editorText[..selection.NormalizedStart]
-            + insertion
-            + editorText[selection.NormalizedEnd..];
-
-        int altStart = selection.NormalizedStart + 2;
-        int altEnd = altStart + alt.Length;
-        _editorService.ApplyTextEdit(new TextEditResult(newText, altStart, altEnd));
+        TextEditResult result = _formatter.InsertImage(editorText, _editorService.GetSavedSelection(), "path", "alt text");
+        _editorService.ApplyTextEdit(result);
     }
 
     private void ApplyWrap(string prefix, string suffix, string placeholder)

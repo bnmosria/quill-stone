@@ -69,13 +69,34 @@ public sealed class MarkdownFormatter : IMarkdownFormatter
         int end = selection.NormalizedEnd;
         bool hasSelection = selection.HasSelection;
 
-        string inner = hasSelection ? text[start..end] : placeholder;
-        string replacement = $"[{inner}]({url})";
-        string updatedText = text[..start] + replacement + text[end..];
+        string label = hasSelection ? text[start..end] : placeholder;
+        string replacement = $"[{label}]({url})";
+        string newText = text[..start] + replacement + text[end..];
 
-        return hasSelection
-            ? new TextEditResult(updatedText, start + replacement.Length, start + replacement.Length)
-            : new TextEditResult(updatedText, start + 1, start + 1 + inner.Length);
+        // Select the url part so the user types the destination immediately
+        int urlStart = start + label.Length + 3; // skips "[", label, "]", "("
+        int urlEnd = urlStart + url.Length;
+        return new TextEditResult(newText, urlStart, urlEnd);
+    }
+
+    public TextEditResult InsertImage(string text, TextSelectionRange selection, string path, string altPlaceholder)
+    {
+        int start = selection.NormalizedStart;
+        int end = selection.NormalizedEnd;
+        bool hasSelection = selection.HasSelection;
+
+        string alt = hasSelection ? text[start..end] : altPlaceholder;
+        string replacement = $"![{alt}]({path})";
+        string newText = text[..start] + replacement + text[end..];
+
+        // No selection → select alt text so user types description first
+        // With selection → select path so user types destination
+        if (!hasSelection)
+            return new TextEditResult(newText, start + 2, start + 2 + alt.Length);
+
+        int pathStart = start + alt.Length + 4; // skips "!", "[", alt, "]", "("
+        int pathEnd = pathStart + path.Length;
+        return new TextEditResult(newText, pathStart, pathEnd);
     }
 
     public TextEditResult PrefixSelectedLines(string text, TextSelectionRange selection, string prefix)

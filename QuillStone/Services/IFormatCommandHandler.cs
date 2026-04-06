@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using QuillStone.Models;
 
 namespace QuillStone.Services;
@@ -10,13 +8,13 @@ public interface IFormatCommandHandler
     void ApplyItalic();
     void ApplyInlineCode();
     void ApplyStrikethrough();
-    Task InsertLinkAsync(Window owner);
+    void InsertLink();
     void ApplyHeading(int level);
     void ApplyBulletList();
     void ApplyNumberedList();
     void ApplyBlockquote();
     void ApplyCheckbox();
     void ApplyCodeBlock();
-    Task InsertImageAsync(Window owner);
+    void InsertImage();
 }
 

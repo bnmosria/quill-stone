@@ -22,6 +22,7 @@ public class MarkdownRenderService : IMarkdownRenderService
     private static readonly MarkdownPipeline _pipeline =
         new MarkdownPipelineBuilder()
             .UsePipeTables()
+            .UseEmphasisExtras()
             .Build();
 
     public IReadOnlyList<Control> Render(string markdown, string? basePath = null, Func<string, Task>? onLocalFileLink = null)
@@ -483,7 +484,9 @@ public class MarkdownRenderService : IMarkdownRenderService
 
             case MdEmphasisInline emphasis:
                 var span = new Span();
-                if (emphasis.DelimiterCount >= 2)
+                if (emphasis.DelimiterChar == '~' && emphasis.DelimiterCount == 2)
+                    span.TextDecorations = TextDecorations.Strikethrough;
+                else if (emphasis.DelimiterCount >= 2)
                     span.FontWeight = FontWeight.Bold;
                 else
                     span.FontStyle = FontStyle.Italic;
